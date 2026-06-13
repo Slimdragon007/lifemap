@@ -11,11 +11,13 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
+  buildVaultItemsFromAnalysis,
   familyMembers,
   recurringCareItems,
   vaultItems,
   type VaultCategory,
 } from "./familyOS";
+import type { LifeMapAnalysis } from "./lifemap";
 
 const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
   { id: "all", label: "All" },
@@ -27,18 +29,30 @@ const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
   { id: "travel", label: "Travel" },
 ];
 
-function VaultView() {
+type VaultViewProps = {
+  analysis: LifeMapAnalysis;
+};
+
+function VaultView({ analysis }: VaultViewProps) {
   const [activeCategory, setActiveCategory] = useState<VaultCategory | "all">(
     "all",
+  );
+  const analysisItems = useMemo(
+    () => buildVaultItemsFromAnalysis(analysis),
+    [analysis],
+  );
+  const allItems = useMemo(
+    () => [...analysisItems, ...vaultItems],
+    [analysisItems],
   );
   const visibleItems = useMemo(
     () =>
       activeCategory === "all"
-        ? vaultItems
-        : vaultItems.filter((item) => item.category === activeCategory),
-    [activeCategory],
+        ? allItems
+        : allItems.filter((item) => item.category === activeCategory),
+    [activeCategory, allItems],
   );
-  const urgentItems = vaultItems.filter(
+  const urgentItems = allItems.filter(
     (item) => item.status === "Needs update" || item.status === "Expires soon",
   );
 
@@ -53,14 +67,17 @@ function VaultView() {
           <h1 id="vault-title">Vault</h1>
           <p>Insurance cards, IDs, vaccines, school records, and pet documents.</p>
           <span className="storage-note">
-            Demo records are local placeholders until secure document storage is
-            connected.
+            Current AI missing-info records appear here until secure document
+            storage is connected.
           </span>
         </div>
         <div className="status-strip" aria-label="Vault summary">
-          <span className="status-pill calm">{vaultItems.length} records</span>
+          <span className="status-pill calm">{allItems.length} records</span>
           <span className="status-pill warning">
             {urgentItems.length} need attention
+          </span>
+          <span className="status-pill urgent">
+            {analysisItems.length} from AI
           </span>
         </div>
       </header>
@@ -134,7 +151,14 @@ function VaultView() {
 
           <div className="vault-record-list">
             {visibleItems.map((item) => (
-              <article className={`vault-card vault-${item.status.toLowerCase().replace(/\s/g, "-")}`} key={item.id}>
+              <article
+                className={
+                  item.id.startsWith("ai-vault-")
+                    ? `vault-card generated-vault-card vault-${item.status.toLowerCase().replace(/\s/g, "-")}`
+                    : `vault-card vault-${item.status.toLowerCase().replace(/\s/g, "-")}`
+                }
+                key={item.id}
+              >
                 <div className="vault-card-top">
                   <span className={`vault-icon vault-icon-${item.category}`}>
                     {categoryIcon(item.category)}
@@ -145,6 +169,9 @@ function VaultView() {
                   </div>
                   <span className="vault-status">{item.status}</span>
                 </div>
+                {item.id.startsWith("ai-vault-") ? (
+                  <span className="generated-label">From AI map</span>
+                ) : null}
                 <p>{item.detail}</p>
                 {item.renewalDate ? (
                   <small>

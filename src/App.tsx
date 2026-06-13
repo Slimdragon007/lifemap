@@ -480,9 +480,9 @@ function App() {
             onOpenFamilyMap={() => setView("family")}
           />
         ) : view === "calendar" ? (
-          <CalendarView />
+          <CalendarView analysis={map} />
         ) : view === "vault" ? (
-          <VaultView />
+          <VaultView analysis={map} />
         ) : view === "family" ? (
           <>
             <section className="workspace" aria-labelledby="page-title">

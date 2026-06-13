@@ -7,23 +7,37 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
+  buildCalendarEventsFromAnalysis,
   calendarLayers,
   familyEvents,
   recurringCareItems,
   type CalendarLayer,
 } from "./familyOS";
+import type { LifeMapAnalysis } from "./lifemap";
 
-function CalendarView() {
+type CalendarViewProps = {
+  analysis: LifeMapAnalysis;
+};
+
+function CalendarView({ analysis }: CalendarViewProps) {
   const [activeLayers, setActiveLayers] = useState<Set<CalendarLayer>>(
     () => new Set(calendarLayers.map((layer) => layer.id)),
+  );
+  const analysisEvents = useMemo(
+    () => buildCalendarEventsFromAnalysis(analysis),
+    [analysis],
+  );
+  const allEvents = useMemo(
+    () => [...analysisEvents, ...familyEvents],
+    [analysisEvents],
   );
 
   const visibleEvents = useMemo(
     () =>
-      familyEvents
+      allEvents
         .filter((event) => activeLayers.has(event.layer))
         .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)),
-    [activeLayers],
+    [activeLayers, allEvents],
   );
 
   function toggleLayer(layer: CalendarLayer) {
@@ -49,7 +63,8 @@ function CalendarView() {
           <h1 id="calendar-title">Calendar</h1>
           <p>School, health, pets, meals, travel, and admin in one view.</p>
           <span className="storage-note">
-            Demo calendar is local until calendar sync is connected.
+            Current AI due dates appear here before real calendar sync is
+            connected.
           </span>
         </div>
         <div className="status-strip" aria-label="Calendar summary">
@@ -58,6 +73,9 @@ function CalendarView() {
           </span>
           <span className="status-pill calm">
             {recurringCareItems.length} recurring
+          </span>
+          <span className="status-pill warning">
+            {analysisEvents.length} from AI
           </span>
         </div>
       </header>
@@ -96,7 +114,14 @@ function CalendarView() {
 
           <div className="event-timeline">
             {visibleEvents.map((event) => (
-              <article className={`event-card layer-${event.layer}`} key={event.id}>
+              <article
+                className={
+                  event.id.startsWith("ai-event-")
+                    ? `event-card generated-event layer-${event.layer}`
+                    : `event-card layer-${event.layer}`
+                }
+                key={event.id}
+              >
                 <div className="event-date">
                   <span>{formatMonth(event.date)}</span>
                   <strong>{formatDay(event.date)}</strong>
@@ -106,6 +131,9 @@ function CalendarView() {
                     <h3>{event.title}</h3>
                     <span>{event.owner}</span>
                   </div>
+                  {event.id.startsWith("ai-event-") ? (
+                    <span className="generated-label">From AI map</span>
+                  ) : null}
                   <p>
                     <Clock3 size={14} />
                     {event.time}

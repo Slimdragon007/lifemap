@@ -127,6 +127,32 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByRole("button", { name: "Approvals" })).toHaveClass("active");
   });
 
+  test("projects current AI analysis into Calendar and Vault", async () => {
+    const user = userEvent.setup();
+    saveStoredDemoState({
+      isLoggedIn: true,
+      intake: "stored school note",
+      analysis: aiAnalysis,
+      disabledApprovalIds: []
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Calendar" }));
+
+    expect(screen.getByRole("heading", { name: "Calendar" })).toBeInTheDocument();
+    expect(screen.getByText("Field trip permission slip")).toBeInTheDocument();
+    expect(screen.getByText("Missing: Parent signature")).toBeInTheDocument();
+    expect(screen.getByText("1 from AI")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Vault" }));
+
+    expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
+    expect(screen.getByText("Parent signature")).toBeInTheDocument();
+    expect(screen.getByText("The school needs the signed form.")).toBeInTheDocument();
+    expect(screen.getByText("6 records")).toBeInTheDocument();
+  });
+
   test("generates a Daily Brief through the local AI API", async () => {
     const user = userEvent.setup();
     vi.stubGlobal(

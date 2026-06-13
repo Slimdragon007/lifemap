@@ -1,3 +1,5 @@
+import type { LifeMapAnalysis } from "./lifemap";
+
 export type FamilyMember = {
   id: string;
   name: string;
@@ -259,3 +261,133 @@ export const recurringCareItems: RecurringCareItem[] = [
     category: "document",
   },
 ];
+
+export function buildCalendarEventsFromAnalysis(
+  analysis: LifeMapAnalysis,
+): FamilyEvent[] {
+  return analysis.dueItems.map((item) => ({
+    id: `ai-event-${item.id}`,
+    title: item.title,
+    date: parseDueDate(item.dueDate),
+    time: "9:00 AM",
+    layer: inferCalendarLayer(`${item.title} ${item.sourceQuote}`),
+    owner: inferOwner(`${item.title} ${item.sourceQuote}`),
+    source: "Current AI map",
+    needsPrep: buildPrepNote(analysis),
+  }));
+}
+
+export function buildVaultItemsFromAnalysis(
+  analysis: LifeMapAnalysis,
+): VaultItem[] {
+  return analysis.missingInfo.map((item) => ({
+    id: `ai-vault-${item.id}`,
+    title: item.label,
+    category: inferVaultCategory(`${item.label} ${item.reason}`),
+    owner: inferOwner(`${item.label} ${item.reason} ${item.sourceQuote}`),
+    status: "Needs update",
+    detail: item.reason,
+  }));
+}
+
+function inferCalendarLayer(text: string): CalendarLayer {
+  if (/school|teacher|field trip|permission|lunch|camp/i.test(text)) {
+    return "school";
+  }
+
+  if (/medical|doctor|vaccine|immunization|dental|health|allergy/i.test(text)) {
+    return "health";
+  }
+
+  if (/pet|vet|rabies|dog|cat|boarding/i.test(text)) {
+    return "pets";
+  }
+
+  if (/passport|travel|flight|trip|hotel/i.test(text)) {
+    return "travel";
+  }
+
+  if (/meal|lunch|dinner|snack|grocery/i.test(text)) {
+    return "meals";
+  }
+
+  return "admin";
+}
+
+function inferVaultCategory(text: string): VaultCategory {
+  if (/passport|license|birth certificate|id\b|ids\b/i.test(text)) {
+    return "identity";
+  }
+
+  if (/insurance|claim|group number|policy/i.test(text)) {
+    return "insurance";
+  }
+
+  if (/medical|doctor|vaccine|immunization|dental|health|allergy|record/i.test(text)) {
+    return "health";
+  }
+
+  if (/pet|vet|rabies|dog|cat|boarding/i.test(text)) {
+    return "pet";
+  }
+
+  if (/travel|flight|trip|hotel/i.test(text)) {
+    return "travel";
+  }
+
+  return "school";
+}
+
+function inferOwner(text: string): string {
+  if (/casey/i.test(text)) return "Casey";
+  if (/milo/i.test(text)) return "Milo";
+  if (/jordan/i.test(text)) return "Jordan";
+  if (/alex/i.test(text)) return "Alex";
+  return "Family";
+}
+
+function buildPrepNote(analysis: LifeMapAnalysis): string | undefined {
+  const labels = analysis.missingInfo
+    .slice(0, 2)
+    .map((item) => item.label)
+    .filter(Boolean);
+
+  if (labels.length === 0) {
+    return undefined;
+  }
+
+  return `Missing: ${labels.join(", ")}`;
+}
+
+function parseDueDate(value: string): string {
+  const numeric = value.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/);
+  if (numeric) {
+    const month = numeric[1].padStart(2, "0");
+    const day = numeric[2].padStart(2, "0");
+    const year = normalizeYear(numeric[3]);
+    return `${year}-${month}-${day}`;
+  }
+
+  const parsed = new Date(`${value} 12:00:00`);
+  if (!Number.isNaN(parsed.getTime())) {
+    return [
+      parsed.getFullYear(),
+      String(parsed.getMonth() + 1).padStart(2, "0"),
+      String(parsed.getDate()).padStart(2, "0"),
+    ].join("-");
+  }
+
+  return "2026-06-13";
+}
+
+function normalizeYear(value?: string): string {
+  if (!value) {
+    return "2026";
+  }
+
+  if (value.length === 2) {
+    return `20${value}`;
+  }
+
+  return value;
+}
