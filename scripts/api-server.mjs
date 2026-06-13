@@ -126,6 +126,53 @@ export async function classifyPayload(
   }
 }
 
+export async function generateBriefPayload(
+  payload,
+  env = process.env,
+  fetchImpl = fetch,
+) {
+  const analysis = normalizeAnalysis(payload?.analysis);
+  if (!analysis) {
+    return { status: 400, body: { ok: false, error: INVALID_INPUT_ERROR } };
+  }
+
+  const apiKey =
+    typeof env.OPENAI_API_KEY === "string" ? env.OPENAI_API_KEY.trim() : "";
+  if (!apiKey) {
+    return { status: 500, body: { ok: false, error: MISSING_KEY_ERROR } };
+  }
+
+  try {
+    const response = await fetchImpl("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(
+        buildBriefRequest(analysis, env.OPENAI_MODEL || DEFAULT_MODEL),
+      ),
+    });
+
+    if (!response.ok) {
+      return { status: 502, body: { ok: false, error: AI_FAILURE_ERROR } };
+    }
+
+    const responseJson = await response.json();
+    const outputText = extractOutputText(responseJson);
+    const parsed = JSON.parse(outputText);
+    const normalized = normalizeDailyBrief(parsed);
+
+    if (!normalized) {
+      return { status: 502, body: { ok: false, error: AI_FAILURE_ERROR } };
+    }
+
+    return { status: 200, body: { ok: true, brief: normalized } };
+  } catch {
+    return { status: 502, body: { ok: false, error: AI_FAILURE_ERROR } };
+  }
+}
+
 export function createApiServer(
   env = { ...loadEnvFiles(), ...process.env },
   fetchImpl = fetch,
@@ -141,7 +188,7 @@ export function createApiServer(
 
     if (
       request.method !== "POST" ||
-      (request.url !== "/api/analyze" && request.url !== "/api/classify")
+      !["/api/analyze", "/api/classify", "/api/brief"].includes(request.url)
     ) {
       writeJson(response, 404, { ok: false, error: "Not found." });
       return;
@@ -152,7 +199,9 @@ export function createApiServer(
       const result =
         request.url === "/api/classify"
           ? await classifyPayload(payload, env, fetchImpl)
-          : await analyzePayload(payload, env, fetchImpl);
+          : request.url === "/api/brief"
+            ? await generateBriefPayload(payload, env, fetchImpl)
+            : await analyzePayload(payload, env, fetchImpl);
       writeJson(response, result.status, result.body);
     } catch {
       writeJson(response, 400, { ok: false, error: INVALID_INPUT_ERROR });
@@ -237,6 +286,117 @@ function buildClassifyRequest(rawDump, model) {
     },
   };
 }
+
+function buildBriefRequest(analysis, model) {
+  return {
+    model,
+    store: false,
+    input: [
+      {
+        role: "system",
+        content:
+          "You are LifeMap, a calm operator for overloaded adults. Create a daily brief from the current LifeMap analysis only. Keep topPriorities to the three highest-leverage actions, preserve approval-gated suggested messages, name open loops clearly, and never invent events, dates, or sent messages.",
+      },
+      {
+        role: "user",
+        content: JSON.stringify(analysis),
+      },
+    ],
+    text: {
+      format: {
+        type: "json_schema",
+        name: "lifemap_daily_brief",
+        strict: true,
+        schema: dailyBriefSchema,
+      },
+    },
+  };
+}
+
+const dailyBriefSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "todaySummary",
+    "topPriorities",
+    "openLoops",
+    "canWait",
+    "suggestedMessages",
+    "conflicts",
+    "groundingNote",
+  ],
+  properties: {
+    todaySummary: { type: "string" },
+    topPriorities: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["id", "label", "reason"],
+        properties: {
+          id: { type: "string" },
+          label: { type: "string" },
+          reason: { type: "string" },
+        },
+      },
+    },
+    openLoops: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["id", "label", "blockedBy"],
+        properties: {
+          id: { type: "string" },
+          label: { type: "string" },
+          blockedBy: { type: "string" },
+        },
+      },
+    },
+    canWait: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["id", "label", "reason"],
+        properties: {
+          id: { type: "string" },
+          label: { type: "string" },
+          reason: { type: "string" },
+        },
+      },
+    },
+    suggestedMessages: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["id", "recipient", "subject", "body", "status"],
+        properties: {
+          id: { type: "string" },
+          recipient: { type: "string" },
+          subject: { type: "string" },
+          body: { type: "string" },
+          status: { type: "string", enum: ["Scheduled", "Needs review"] },
+        },
+      },
+    },
+    conflicts: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["id", "label", "reason"],
+        properties: {
+          id: { type: "string" },
+          label: { type: "string" },
+          reason: { type: "string" },
+        },
+      },
+    },
+    groundingNote: { type: "string" },
+  },
+};
 
 const mentalLoadSchema = {
   type: "object",
@@ -468,6 +628,73 @@ function normalizeAnalysis(value) {
   };
 }
 
+function normalizeDailyBrief(value) {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const todaySummary = readRequiredString(value.todaySummary);
+  const topPriorities = parseArray(value.topPriorities, parsePriority);
+  const openLoops = parseArray(value.openLoops, parseOpenLoop);
+  const canWait = parseArray(value.canWait, parseCanWait);
+  const suggestedMessages = parseArray(
+    value.suggestedMessages,
+    parseDraftMessage,
+  );
+  const conflicts = parseArray(value.conflicts, parseConflict);
+  const groundingNote = readRequiredString(value.groundingNote);
+
+  if (
+    !todaySummary ||
+    !topPriorities ||
+    !openLoops ||
+    !canWait ||
+    !suggestedMessages ||
+    !conflicts ||
+    !groundingNote
+  ) {
+    return undefined;
+  }
+
+  return {
+    todaySummary,
+    topPriorities: topPriorities.slice(0, 3),
+    openLoops,
+    canWait,
+    suggestedMessages,
+    conflicts,
+    groundingNote,
+  };
+}
+
+function parsePriority(value) {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  return readObject(value, ["id", "label", "reason"]);
+}
+
+function parseOpenLoop(value) {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  return readObject(value, ["id", "label", "blockedBy"]);
+}
+
+function parseCanWait(value) {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  return readObject(value, ["id", "label", "reason"]);
+}
+
+function parseConflict(value) {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  return readObject(value, ["id", "label", "reason"]);
+}
+
 function parseDueItem(value) {
   if (!isRecord(value)) {
     return undefined;
@@ -533,6 +760,12 @@ function readObject(value, keys) {
     result[key] = value[key].trim();
   }
   return result;
+}
+
+function readRequiredString(value) {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : undefined;
 }
 
 function parseArray(value, parser) {

@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { analyzeWithAi } from "./api";
+import { analyzeWithAi, generateBriefWithAi } from "./api";
+import type { DailyBrief } from "./dailyBrief";
+import type { LifeMapAnalysis } from "./lifemap";
 
-const aiAnalysis = {
+const aiAnalysis: LifeMapAnalysis = {
   dueItems: [
     {
       id: "due-slip",
@@ -30,6 +32,22 @@ const aiAnalysis = {
       quote: "Return by 6/18."
     }
   ]
+};
+
+const dailyBrief: DailyBrief = {
+  todaySummary: "The permission slip is the clearest thing to move today.",
+  topPriorities: [
+    {
+      id: "priority-slip",
+      label: "Sign the permission slip",
+      reason: "It is due Jun 18.",
+    },
+  ],
+  openLoops: [],
+  canWait: [],
+  suggestedMessages: [],
+  conflicts: [],
+  groundingNote: "Grounded in the school email.",
 };
 
 describe("analyzeWithAi", () => {
@@ -82,6 +100,47 @@ describe("analyzeWithAi", () => {
     await expect(analyzeWithAi("field trip form")).resolves.toEqual({
       ok: false,
       error: "LifeMap could not understand the extracted map."
+    });
+  });
+});
+
+describe("generateBriefWithAi", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("posts the current analysis to the local brief API", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, brief: dailyBrief }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await generateBriefWithAi(aiAnalysis);
+
+    expect(fetchMock).toHaveBeenCalledWith("http://localhost:8787/api/brief", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ analysis: aiAnalysis }),
+    });
+    expect(result.ok).toBe(true);
+    expect(result.ok && result.brief.todaySummary).toContain(
+      "permission slip",
+    );
+  });
+
+  test("returns a safe error for broken brief responses", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ ok: true, brief: { todaySummary: "thin" } }),
+      }),
+    );
+
+    await expect(generateBriefWithAi(aiAnalysis)).resolves.toEqual({
+      ok: false,
+      error: "LifeMap could not understand the daily brief.",
     });
   });
 });

@@ -1,5 +1,22 @@
 import { afterEach, describe, expect, test } from "vitest";
 import { loadStoredDemoState, saveStoredDemoState } from "./storage";
+import type { DailyBrief } from "./dailyBrief";
+
+const dailyBrief: DailyBrief = {
+  todaySummary: "School form is the clearest thing to move today.",
+  topPriorities: [
+    {
+      id: "priority-form",
+      label: "Sign the form",
+      reason: "It is due this week.",
+    },
+  ],
+  openLoops: [],
+  canWait: [],
+  suggestedMessages: [],
+  conflicts: [],
+  groundingNote: "Grounded in current map.",
+};
 
 describe("demo browser storage", () => {
   afterEach(() => {
@@ -23,7 +40,8 @@ describe("demo browser storage", () => {
       approvalBodyEdits: {
         "draft-slip": "Edited draft body",
         "reminder-slip": "Edited reminder body"
-      }
+      },
+      dailyBrief
     });
 
     expect(loadStoredDemoState()).toEqual({
@@ -42,7 +60,8 @@ describe("demo browser storage", () => {
       approvalBodyEdits: {
         "draft-slip": "Edited draft body",
         "reminder-slip": "Edited reminder body"
-      }
+      },
+      dailyBrief
     });
   });
 
@@ -62,6 +81,19 @@ describe("demo browser storage", () => {
         "draft-slip": "Edited draft body"
       }
     });
+  });
+
+  test("ignores invalid stored daily briefs", () => {
+    localStorage.setItem(
+      "lifemap-demo-state",
+      JSON.stringify({
+        dailyBrief: {
+          todaySummary: "too thin"
+        }
+      })
+    );
+
+    expect(loadStoredDemoState()).toEqual({});
   });
 
   test("ignores corrupt stored state", () => {

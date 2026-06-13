@@ -1,3 +1,4 @@
+import { normalizeDailyBrief, type DailyBrief } from "./dailyBrief";
 import { normalizeAnalysis, type LifeMapAnalysis } from "./lifemap";
 
 const STORAGE_KEY = "lifemap-demo-state";
@@ -8,6 +9,7 @@ export type StoredDemoState = {
   analysis?: LifeMapAnalysis;
   disabledApprovalIds?: string[];
   approvalBodyEdits?: Record<string, string>;
+  dailyBrief?: DailyBrief;
 };
 
 export function loadStoredDemoState(): StoredDemoState {
@@ -17,39 +19,7 @@ export function loadStoredDemoState(): StoredDemoState {
   }
 
   try {
-    const parsed: unknown = JSON.parse(rawValue);
-    if (!isRecord(parsed)) {
-      return {};
-    }
-
-    const analysis = parsed.analysis === undefined ? undefined : normalizeAnalysis(parsed.analysis);
-
-    const state: StoredDemoState = {};
-    const approvalBodyEdits = parseStringRecord(parsed.approvalBodyEdits);
-
-    if (typeof parsed.isLoggedIn === "boolean") {
-      state.isLoggedIn = parsed.isLoggedIn;
-    }
-
-    if (typeof parsed.intake === "string") {
-      state.intake = parsed.intake;
-    }
-
-    if (analysis?.ok) {
-      state.analysis = analysis.analysis;
-    }
-
-    if (Array.isArray(parsed.disabledApprovalIds)) {
-      state.disabledApprovalIds = parsed.disabledApprovalIds.filter(
-        (id): id is string => typeof id === "string"
-      );
-    }
-
-    if (approvalBodyEdits) {
-      state.approvalBodyEdits = approvalBodyEdits;
-    }
-
-    return state;
+    return normalizeStoredDemoState(JSON.parse(rawValue));
   } catch {
     return {};
   }
@@ -57,6 +27,50 @@ export function loadStoredDemoState(): StoredDemoState {
 
 export function saveStoredDemoState(state: StoredDemoState): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+export function normalizeStoredDemoState(value: unknown): StoredDemoState {
+  if (!isRecord(value)) {
+    return {};
+  }
+
+  const analysis =
+    value.analysis === undefined ? undefined : normalizeAnalysis(value.analysis);
+  const dailyBrief =
+    value.dailyBrief === undefined
+      ? undefined
+      : normalizeDailyBrief(value.dailyBrief);
+
+  const state: StoredDemoState = {};
+  const approvalBodyEdits = parseStringRecord(value.approvalBodyEdits);
+
+  if (typeof value.isLoggedIn === "boolean") {
+    state.isLoggedIn = value.isLoggedIn;
+  }
+
+  if (typeof value.intake === "string") {
+    state.intake = value.intake;
+  }
+
+  if (analysis?.ok) {
+    state.analysis = analysis.analysis;
+  }
+
+  if (Array.isArray(value.disabledApprovalIds)) {
+    state.disabledApprovalIds = value.disabledApprovalIds.filter(
+      (id): id is string => typeof id === "string",
+    );
+  }
+
+  if (approvalBodyEdits) {
+    state.approvalBodyEdits = approvalBodyEdits;
+  }
+
+  if (dailyBrief?.ok) {
+    state.dailyBrief = dailyBrief.brief;
+  }
+
+  return state;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

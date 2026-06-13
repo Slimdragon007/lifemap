@@ -17,7 +17,11 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { analyzeWithAi } from "./api";
+import { analyzeWithAi, generateBriefWithAi } from "./api";
+import {
+  buildDailyBriefFromAnalysis,
+  type DailyBrief,
+} from "./dailyBrief";
 import {
   analyzeIntake,
   buildApprovalQueue,
@@ -25,6 +29,16 @@ import {
 } from "./lifemap";
 import { loadStoredDemoState, saveStoredDemoState } from "./storage";
 import BrainDumpView from "./BrainDumpView";
+import AuthScreen from "./AuthScreen";
+import { useSession } from "./useSession";
+import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
+import TodayView from "./TodayView";
+import {
+  loadRemoteState,
+  saveRemoteState,
+  type RemoteStateClient,
+} from "./remoteState";
+import type { StoredDemoState } from "./storage";
 
 const starterIntake = `From: nurse@WestviewPeds.com
 To: Alex Kim
@@ -99,6 +113,10 @@ type StagedRun = {
   stagedAt: string;
 };
 
+type AppView = "today" | "family" | "braindump";
+
+type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
+
 function App() {
   const [initialState] = useState(loadStoredDemoState);
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -134,17 +152,99 @@ function App() {
     "idle" | "loading" | "success" | "error" | "fallback"
   >("idle");
   const [analyzeError, setAnalyzeError] = useState<string>();
-  const [view, setView] = useState<"family" | "braindump">("family");
-
-  useEffect(() => {
-    saveStoredDemoState({
+  const [dailyBrief, setDailyBrief] = useState<DailyBrief>(
+    initialState.dailyBrief ?? buildDailyBriefFromAnalysis(map),
+  );
+  const [briefStatus, setBriefStatus] = useState<BriefStatus>("idle");
+  const [briefError, setBriefError] = useState<string>();
+  const [view, setView] = useState<AppView>("today");
+  const [remoteLoadedFor, setRemoteLoadedFor] = useState<string>();
+  const { session, loading: sessionLoading } = useSession();
+  const storedState = useMemo<StoredDemoState>(
+    () => ({
       isLoggedIn,
       intake,
       analysis: map,
       disabledApprovalIds: Array.from(disabledApprovals),
       approvalBodyEdits,
-    });
-  }, [approvalBodyEdits, disabledApprovals, intake, isLoggedIn, map]);
+      dailyBrief,
+    }),
+    [approvalBodyEdits, dailyBrief, disabledApprovals, intake, isLoggedIn, map],
+  );
+
+  useEffect(() => {
+    saveStoredDemoState(storedState);
+  }, [storedState]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !session) {
+      return;
+    }
+
+    let active = true;
+    const userId = session.user.id;
+    setRemoteLoadedFor(undefined);
+
+    loadRemoteState(userId, getSupabase() as unknown as RemoteStateClient).then(
+      (remoteState) => {
+        if (!active) {
+          return;
+        }
+
+        applyStoredState(remoteState);
+        setRemoteLoadedFor(userId);
+      },
+    );
+
+    return () => {
+      active = false;
+    };
+  }, [session]);
+
+  useEffect(() => {
+    if (
+      !isSupabaseConfigured ||
+      !session ||
+      remoteLoadedFor !== session.user.id
+    ) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      void saveRemoteState(
+        session.user.id,
+        storedState,
+        getSupabase() as unknown as RemoteStateClient,
+      );
+    }, 650);
+
+    return () => window.clearTimeout(timeout);
+  }, [remoteLoadedFor, session, storedState]);
+
+  function applyStoredState(state: StoredDemoState) {
+    if (state.intake) {
+      setIntake(state.intake);
+    }
+
+    if (state.analysis) {
+      setMap(state.analysis);
+      if (!state.dailyBrief) {
+        setDailyBrief(buildDailyBriefFromAnalysis(state.analysis));
+      }
+    }
+
+    if (state.disabledApprovalIds) {
+      setDisabledApprovals(new Set(state.disabledApprovalIds));
+    }
+
+    if (state.approvalBodyEdits) {
+      setApprovalBodyEdits(state.approvalBodyEdits);
+    }
+
+    if (state.dailyBrief) {
+      setDailyBrief(state.dailyBrief);
+    }
+  }
 
   function toggleApproval(id: string) {
     setDisabledApprovals((current) => {
@@ -181,9 +281,11 @@ function App() {
     const result = await analyzeWithAi(intake);
     if (result.ok) {
       setMap(result.analysis);
+      setDailyBrief(buildDailyBriefFromAnalysis(result.analysis));
       setDisabledApprovals(new Set());
       setApprovalBodyEdits({});
       setStagedRun(undefined);
+      setBriefStatus("idle");
       setAnalyzeStatus("success");
       return;
     }
@@ -211,7 +313,39 @@ function App() {
     setStagedRun(undefined);
   }
 
-  if (!isLoggedIn) {
+  async function handleGenerateBrief() {
+    setBriefStatus("loading");
+    setBriefError(undefined);
+
+    const result = await generateBriefWithAi(map);
+    if (result.ok) {
+      setDailyBrief(result.brief);
+      setBriefStatus("success");
+      return;
+    }
+
+    setDailyBrief(buildDailyBriefFromAnalysis(map));
+    setBriefError(result.error);
+    setBriefStatus("fallback");
+  }
+
+  if (isSupabaseConfigured && sessionLoading) {
+    return (
+      <main className="login-shell">
+        <div className="ambient-field" aria-hidden="true" />
+        <section className="login-panel" aria-busy="true">
+          <span className="spinner" aria-hidden="true" />
+          <p>Loading your map…</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (isSupabaseConfigured && !session) {
+    return <AuthScreen />;
+  }
+
+  if (!isSupabaseConfigured && !isLoggedIn) {
     return (
       <main className="login-shell">
         <div className="ambient-field" aria-hidden="true" />
@@ -245,7 +379,7 @@ function App() {
 
   return (
     <>
-      <main className={`app-shell analyze-${analyzeStatus}`}>
+      <main className={`app-shell view-${view} analyze-${analyzeStatus}`}>
         <div className="ambient-field" aria-hidden="true" />
         <aside className="sidebar" aria-label="LifeMap navigation">
           <a className="brand" href="/" aria-label="LifeMap home">
@@ -256,6 +390,14 @@ function App() {
           </a>
 
           <nav className="nav-list" aria-label="Household sections">
+            <button
+              className={view === "today" ? "nav-item active" : "nav-item"}
+              type="button"
+              onClick={() => setView("today")}
+            >
+              <Sparkles size={18} />
+              <span>Today</span>
+            </button>
             <button
               className={view === "family" ? "nav-item active" : "nav-item"}
               type="button"
@@ -302,9 +444,30 @@ function App() {
               <span>Drafts wait for approval.</span>
             </div>
           </section>
+          {isSupabaseConfigured && session ? (
+            <button
+              className="secondary-button sign-out-button"
+              type="button"
+              onClick={() => getSupabase().auth.signOut()}
+            >
+              Sign out{session.user.email ? ` (${session.user.email})` : ""}
+            </button>
+          ) : null}
         </aside>
 
-        {view === "family" ? (
+        {view === "today" ? (
+          <TodayView
+            approvalCount={selectedApprovals.length}
+            brief={dailyBrief}
+            error={briefError}
+            isDemoMode={!isSupabaseConfigured}
+            map={map}
+            status={briefStatus}
+            onGenerateBrief={handleGenerateBrief}
+            onOpenBrainDump={() => setView("braindump")}
+            onOpenFamilyMap={() => setView("family")}
+          />
+        ) : view === "family" ? (
           <>
             <section className="workspace" aria-labelledby="page-title">
               <header className="topbar">
