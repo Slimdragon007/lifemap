@@ -36,5 +36,15 @@ export default tseslint.config(
         fetch: "readonly"
       }
     }
+  },
+  {
+    files: ["worker/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        fetch: "readonly",
+        Response: "readonly",
+        URL: "readonly"
+      }
+    }
   }
 );

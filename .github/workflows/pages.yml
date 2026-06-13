@@ -33,6 +33,8 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_API_ORIGIN: ${{ vars.VITE_API_ORIGIN }}
         run: npm run build
 
       - name: Configure Pages
