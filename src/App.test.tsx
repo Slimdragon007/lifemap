@@ -107,6 +107,19 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByText("Demo data is stored in this browser only.")).toBeInTheDocument();
   });
 
+  test("uses real app tabs for the approval queue", async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await user.click(screen.getByRole("button", { name: "Approvals" }));
+
+    expect(screen.getByRole("heading", { name: "Approvals" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Approval queue" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Approvals" })).toHaveClass("active");
+  });
+
   test("generates a Daily Brief through the local AI API", async () => {
     const user = userEvent.setup();
     vi.stubGlobal(

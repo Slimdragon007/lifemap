@@ -8,7 +8,6 @@ import {
   FileText,
   Home,
   LockKeyhole,
-  Mail,
   Map,
   MessageSquare,
   Sparkles,
@@ -113,7 +112,7 @@ type StagedRun = {
   stagedAt: string;
 };
 
-type AppView = "today" | "family" | "braindump";
+type AppView = "today" | "family" | "braindump" | "approvals";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 
@@ -382,12 +381,17 @@ function App() {
       <main className={`app-shell view-${view} analyze-${analyzeStatus}`}>
         <div className="ambient-field" aria-hidden="true" />
         <aside className="sidebar" aria-label="LifeMap navigation">
-          <a className="brand" href="/" aria-label="LifeMap home">
+          <button
+            aria-label="LifeMap home"
+            className="brand brand-button"
+            type="button"
+            onClick={() => setView("today")}
+          >
             <span className="brand-mark">
               <Map size={20} />
             </span>
             <span>LifeMap</span>
-          </a>
+          </button>
 
           <nav className="nav-list" aria-label="Household sections">
             <button
@@ -414,18 +418,14 @@ function App() {
               <Brain size={18} />
               <span>Brain dump</span>
             </button>
-            <a className="nav-item" href="/">
-              <Mail size={18} />
-              <span>Inbox</span>
-            </a>
-            <a className="nav-item" href="/">
+            <button
+              className={view === "approvals" ? "nav-item active" : "nav-item"}
+              type="button"
+              onClick={() => setView("approvals")}
+            >
               <Bell size={18} />
-              <span>Reminders</span>
-            </a>
-            <a className="nav-item" href="/">
-              <ShieldCheck size={18} />
-              <span>Privacy</span>
-            </a>
+              <span>Approvals</span>
+            </button>
           </nav>
 
           <div className="area-list" aria-label="Household areas">
@@ -664,34 +664,53 @@ function App() {
               </div>
             </section>
 
-            <aside className="approval-rail" aria-label="Approval queue">
-              <div className="rail-heading">
-                <h2>Approval queue</h2>
-                <span>{selectedApprovals.length} selected</span>
-              </div>
-              {stagedRun ? <StagedSummary run={stagedRun} /> : null}
-              <div className="approval-list">
-                {editedApprovals.map((item) => (
-                  <ApprovalCard
-                    item={item}
-                    key={item.id}
-                    approved={!disabledApprovals.has(item.id)}
-                    onSave={(body) => saveApprovalBody(item.id, body)}
-                    onToggle={() => toggleApproval(item.id)}
-                  />
-                ))}
-              </div>
-              <button
-                className="send-button"
-                type="button"
-                disabled={selectedApprovals.length === 0}
-                onClick={() => setIsReviewOpen(true)}
-              >
-                <Send size={16} />
-                Review selected
-              </button>
-            </aside>
+            <ApprovalQueue
+              disabledApprovals={disabledApprovals}
+              editedApprovals={editedApprovals}
+              selectedCount={selectedApprovals.length}
+              stagedRun={stagedRun}
+              variant="rail"
+              onReview={() => setIsReviewOpen(true)}
+              onSave={saveApprovalBody}
+              onToggle={toggleApproval}
+            />
           </>
+        ) : view === "approvals" ? (
+          <section className="workspace approval-workspace" aria-labelledby="approvals-title">
+            <header className="topbar">
+              <div>
+                <span className="workspace-kicker">
+                  <Bell size={14} />
+                  Approval center
+                </span>
+                <h1 id="approvals-title">Approvals</h1>
+                <p>Review drafts and reminders before anything leaves LifeMap.</p>
+                <span className="storage-note">
+                  Nothing sends automatically.
+                </span>
+              </div>
+              <div className="status-strip" aria-label="Approval status">
+                <StatusPill
+                  label={`${selectedApprovals.length} selected`}
+                  tone="calm"
+                />
+                <StatusPill
+                  label={`${editedApprovals.length} total`}
+                  tone="warning"
+                />
+              </div>
+            </header>
+            <ApprovalQueue
+              disabledApprovals={disabledApprovals}
+              editedApprovals={editedApprovals}
+              selectedCount={selectedApprovals.length}
+              stagedRun={stagedRun}
+              variant="panel"
+              onReview={() => setIsReviewOpen(true)}
+              onSave={saveApprovalBody}
+              onToggle={toggleApproval}
+            />
+          </section>
         ) : (
           <BrainDumpView />
         )}
@@ -758,6 +777,61 @@ function StatusPill({
   tone: "urgent" | "warning" | "calm";
 }) {
   return <span className={`status-pill ${tone}`}>{label}</span>;
+}
+
+function ApprovalQueue({
+  disabledApprovals,
+  editedApprovals,
+  selectedCount,
+  stagedRun,
+  variant,
+  onReview,
+  onSave,
+  onToggle,
+}: {
+  disabledApprovals: Set<string>;
+  editedApprovals: ApprovalItem[];
+  selectedCount: number;
+  stagedRun?: StagedRun;
+  variant: "rail" | "panel";
+  onReview: () => void;
+  onSave: (id: string, body: string) => void;
+  onToggle: (id: string) => void;
+}) {
+  const Component = variant === "rail" ? "aside" : "section";
+
+  return (
+    <Component
+      aria-label="Approval queue"
+      className={variant === "rail" ? "approval-rail" : "panel approval-panel"}
+    >
+      <div className="rail-heading">
+        <h2>Approval queue</h2>
+        <span>{selectedCount} selected</span>
+      </div>
+      {stagedRun ? <StagedSummary run={stagedRun} /> : null}
+      <div className="approval-list">
+        {editedApprovals.map((item) => (
+          <ApprovalCard
+            approved={!disabledApprovals.has(item.id)}
+            item={item}
+            key={item.id}
+            onSave={(body) => onSave(item.id, body)}
+            onToggle={() => onToggle(item.id)}
+          />
+        ))}
+      </div>
+      <button
+        className="send-button"
+        disabled={selectedCount === 0}
+        type="button"
+        onClick={onReview}
+      >
+        <Send size={16} />
+        Review selected
+      </button>
+    </Component>
+  );
 }
 
 function ApprovalCard({
