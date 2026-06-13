@@ -677,6 +677,27 @@ a:focus-visible {
   transform: translateY(-1px);
 }
 
+.ghost-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: #657184;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 820;
+  white-space: nowrap;
+}
+
+.ghost-button:hover {
+  color: var(--ink-strong);
+  background: rgba(255, 255, 255, 0.58);
+}
+
 .spinner {
   width: 14px;
   height: 14px;
@@ -1805,6 +1826,42 @@ button.nav-item {
   margin-bottom: 16px;
 }
 
+.suggestion-review-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid rgba(77, 141, 247, 0.2);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(224, 238, 255, 0.76),
+      rgba(255, 236, 242, 0.58)
+    ),
+    rgba(255, 255, 255, 0.62);
+}
+
+.suggestion-review-bar strong,
+.suggestion-review-bar span {
+  display: block;
+}
+
+.suggestion-review-bar strong {
+  color: var(--ink-strong);
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.suggestion-review-bar span {
+  margin-top: 3px;
+  color: #5f6b7d;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .layer-toolbar > span {
   display: inline-flex;
   align-items: center;
@@ -1973,6 +2030,13 @@ button.nav-item {
   background: rgba(224, 238, 255, 0.82);
   font-size: 11px;
   font-weight: 840;
+}
+
+.suggestion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .event-card p,

@@ -10,6 +10,8 @@ export type StoredDemoState = {
   disabledApprovalIds?: string[];
   approvalBodyEdits?: Record<string, string>;
   dailyBrief?: DailyBrief;
+  savedSuggestionIds?: string[];
+  dismissedSuggestionIds?: string[];
 };
 
 export function loadStoredDemoState(): StoredDemoState {
@@ -58,6 +60,18 @@ export function normalizeStoredDemoState(value: unknown): StoredDemoState {
 
   if (Array.isArray(value.disabledApprovalIds)) {
     state.disabledApprovalIds = value.disabledApprovalIds.filter(
+      (id): id is string => typeof id === "string",
+    );
+  }
+
+  if (Array.isArray(value.savedSuggestionIds)) {
+    state.savedSuggestionIds = value.savedSuggestionIds.filter(
+      (id): id is string => typeof id === "string",
+    );
+  }
+
+  if (Array.isArray(value.dismissedSuggestionIds)) {
+    state.dismissedSuggestionIds = value.dismissedSuggestionIds.filter(
       (id): id is string => typeof id === "string",
     );
   }

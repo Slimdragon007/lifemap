@@ -362,8 +362,21 @@ function buildPrepNote(analysis: LifeMapAnalysis): string | undefined {
 function parseDueDate(value: string): string {
   const numeric = value.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/);
   if (numeric) {
-    const month = numeric[1].padStart(2, "0");
-    const day = numeric[2].padStart(2, "0");
+    const numericMonth = Number(numeric[1]);
+    const numericDay = Number(numeric[2]);
+    if (
+      !Number.isInteger(numericMonth) ||
+      !Number.isInteger(numericDay) ||
+      numericMonth < 1 ||
+      numericMonth > 12 ||
+      numericDay < 1 ||
+      numericDay > 31
+    ) {
+      return "undated";
+    }
+
+    const month = String(numericMonth).padStart(2, "0");
+    const day = String(numericDay).padStart(2, "0");
     const year = normalizeYear(numeric[3]);
     return `${year}-${month}-${day}`;
   }
@@ -377,7 +390,7 @@ function parseDueDate(value: string): string {
     ].join("-");
   }
 
-  return "2026-06-13";
+  return "undated";
 }
 
 function normalizeYear(value?: string): string {

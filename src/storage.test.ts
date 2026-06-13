@@ -37,6 +37,8 @@ describe("demo browser storage", () => {
         sourceEvidence: []
       },
       disabledApprovalIds: ["reminder-slip"],
+      savedSuggestionIds: ["ai-event-slip"],
+      dismissedSuggestionIds: ["ai-vault-noise"],
       approvalBodyEdits: {
         "draft-slip": "Edited draft body",
         "reminder-slip": "Edited reminder body"
@@ -57,6 +59,8 @@ describe("demo browser storage", () => {
         sourceEvidence: []
       },
       disabledApprovalIds: ["reminder-slip"],
+      savedSuggestionIds: ["ai-event-slip"],
+      dismissedSuggestionIds: ["ai-vault-noise"],
       approvalBodyEdits: {
         "draft-slip": "Edited draft body",
         "reminder-slip": "Edited reminder body"
@@ -80,6 +84,21 @@ describe("demo browser storage", () => {
       approvalBodyEdits: {
         "draft-slip": "Edited draft body"
       }
+    });
+  });
+
+  test("normalizes stored suggestion review ids", () => {
+    localStorage.setItem(
+      "lifemap-demo-state",
+      JSON.stringify({
+        savedSuggestionIds: ["ai-event-slip", 42],
+        dismissedSuggestionIds: [false, "ai-vault-noise"]
+      })
+    );
+
+    expect(loadStoredDemoState()).toEqual({
+      savedSuggestionIds: ["ai-event-slip"],
+      dismissedSuggestionIds: ["ai-vault-noise"]
     });
   });
 

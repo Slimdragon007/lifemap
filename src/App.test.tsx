@@ -153,6 +153,44 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByText("6 records")).toBeInTheDocument();
   });
 
+  test("keeps AI suggestions visible until the user saves or dismisses them", async () => {
+    const user = userEvent.setup();
+    saveStoredDemoState({
+      isLoggedIn: true,
+      intake: "stored school note",
+      analysis: aiAnalysis,
+      disabledApprovalIds: []
+    });
+
+    const firstRender = render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Calendar" }));
+
+    expect(screen.getByText("Needs review")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.getByText("Saved to LifeMap")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
+
+    firstRender.unmount();
+    const secondRender = render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Calendar" }));
+    expect(screen.getByText("Saved to LifeMap")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Vault" }));
+    expect(screen.getByText("Parent signature")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Dismiss" }));
+    expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
+    expect(screen.getByText("5 records")).toBeInTheDocument();
+
+    secondRender.unmount();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Vault" }));
+    expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
+    expect(screen.getByText("5 records")).toBeInTheDocument();
+  });
+
   test("generates a Daily Brief through the local AI API", async () => {
     const user = userEvent.setup();
     vi.stubGlobal(

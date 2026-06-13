@@ -135,6 +135,12 @@ function App() {
   const [approvalBodyEdits, setApprovalBodyEdits] = useState<
     Record<string, string>
   >(initialState.approvalBodyEdits ?? {});
+  const [savedSuggestionIds, setSavedSuggestionIds] = useState<Set<string>>(
+    () => new Set(initialState.savedSuggestionIds ?? []),
+  );
+  const [dismissedSuggestionIds, setDismissedSuggestionIds] = useState<
+    Set<string>
+  >(() => new Set(initialState.dismissedSuggestionIds ?? []));
   const editedApprovals = useMemo(
     () =>
       approvals.map((approval) => ({
@@ -170,8 +176,19 @@ function App() {
       disabledApprovalIds: Array.from(disabledApprovals),
       approvalBodyEdits,
       dailyBrief,
+      savedSuggestionIds: Array.from(savedSuggestionIds),
+      dismissedSuggestionIds: Array.from(dismissedSuggestionIds),
     }),
-    [approvalBodyEdits, dailyBrief, disabledApprovals, intake, isLoggedIn, map],
+    [
+      approvalBodyEdits,
+      dailyBrief,
+      disabledApprovals,
+      dismissedSuggestionIds,
+      intake,
+      isLoggedIn,
+      map,
+      savedSuggestionIds,
+    ],
   );
 
   useEffect(() => {
@@ -243,9 +260,48 @@ function App() {
       setApprovalBodyEdits(state.approvalBodyEdits);
     }
 
+    if (state.savedSuggestionIds) {
+      setSavedSuggestionIds(new Set(state.savedSuggestionIds));
+    }
+
+    if (state.dismissedSuggestionIds) {
+      setDismissedSuggestionIds(new Set(state.dismissedSuggestionIds));
+    }
+
     if (state.dailyBrief) {
       setDailyBrief(state.dailyBrief);
     }
+  }
+
+  function saveSuggestion(id: string) {
+    setSavedSuggestionIds((current) => new Set(current).add(id));
+    setDismissedSuggestionIds((current) => {
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  function saveSuggestions(ids: string[]) {
+    setSavedSuggestionIds((current) => {
+      const next = new Set(current);
+      ids.forEach((id) => next.add(id));
+      return next;
+    });
+    setDismissedSuggestionIds((current) => {
+      const next = new Set(current);
+      ids.forEach((id) => next.delete(id));
+      return next;
+    });
+  }
+
+  function dismissSuggestion(id: string) {
+    setDismissedSuggestionIds((current) => new Set(current).add(id));
+    setSavedSuggestionIds((current) => {
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
   }
 
   function toggleApproval(id: string) {
@@ -286,6 +342,8 @@ function App() {
       setDailyBrief(buildDailyBriefFromAnalysis(result.analysis));
       setDisabledApprovals(new Set());
       setApprovalBodyEdits({});
+      setSavedSuggestionIds(new Set());
+      setDismissedSuggestionIds(new Set());
       setStagedRun(undefined);
       setBriefStatus("idle");
       setAnalyzeStatus("success");
@@ -480,9 +538,23 @@ function App() {
             onOpenFamilyMap={() => setView("family")}
           />
         ) : view === "calendar" ? (
-          <CalendarView analysis={map} />
+          <CalendarView
+            analysis={map}
+            dismissedSuggestionIds={dismissedSuggestionIds}
+            savedSuggestionIds={savedSuggestionIds}
+            onDismissSuggestion={dismissSuggestion}
+            onSaveSuggestion={saveSuggestion}
+            onSaveSuggestions={saveSuggestions}
+          />
         ) : view === "vault" ? (
-          <VaultView analysis={map} />
+          <VaultView
+            analysis={map}
+            dismissedSuggestionIds={dismissedSuggestionIds}
+            savedSuggestionIds={savedSuggestionIds}
+            onDismissSuggestion={dismissSuggestion}
+            onSaveSuggestion={saveSuggestion}
+            onSaveSuggestions={saveSuggestions}
+          />
         ) : view === "family" ? (
           <>
             <section className="workspace" aria-labelledby="page-title">

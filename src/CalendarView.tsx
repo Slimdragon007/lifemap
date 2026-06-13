@@ -17,9 +17,21 @@ import type { LifeMapAnalysis } from "./lifemap";
 
 type CalendarViewProps = {
   analysis: LifeMapAnalysis;
+  savedSuggestionIds: Set<string>;
+  dismissedSuggestionIds: Set<string>;
+  onSaveSuggestion: (id: string) => void;
+  onSaveSuggestions: (ids: string[]) => void;
+  onDismissSuggestion: (id: string) => void;
 };
 
-function CalendarView({ analysis }: CalendarViewProps) {
+function CalendarView({
+  analysis,
+  savedSuggestionIds,
+  dismissedSuggestionIds,
+  onSaveSuggestion,
+  onSaveSuggestions,
+  onDismissSuggestion,
+}: CalendarViewProps) {
   const [activeLayers, setActiveLayers] = useState<Set<CalendarLayer>>(
     () => new Set(calendarLayers.map((layer) => layer.id)),
   );
@@ -27,16 +39,32 @@ function CalendarView({ analysis }: CalendarViewProps) {
     () => buildCalendarEventsFromAnalysis(analysis),
     [analysis],
   );
+  const visibleAnalysisEvents = useMemo(
+    () =>
+      analysisEvents.filter((event) => !dismissedSuggestionIds.has(event.id)),
+    [analysisEvents, dismissedSuggestionIds],
+  );
+  const pendingAnalysisEvents = useMemo(
+    () =>
+      visibleAnalysisEvents.filter(
+        (event) => !savedSuggestionIds.has(event.id),
+      ),
+    [savedSuggestionIds, visibleAnalysisEvents],
+  );
   const allEvents = useMemo(
-    () => [...analysisEvents, ...familyEvents],
-    [analysisEvents],
+    () => [...visibleAnalysisEvents, ...familyEvents],
+    [visibleAnalysisEvents],
   );
 
   const visibleEvents = useMemo(
     () =>
       allEvents
         .filter((event) => activeLayers.has(event.layer))
-        .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)),
+        .sort(
+          (a, b) =>
+            sortableDate(a.date).localeCompare(sortableDate(b.date)) ||
+            a.time.localeCompare(b.time),
+        ),
     [activeLayers, allEvents],
   );
 
@@ -75,7 +103,7 @@ function CalendarView({ analysis }: CalendarViewProps) {
             {recurringCareItems.length} recurring
           </span>
           <span className="status-pill warning">
-            {analysisEvents.length} from AI
+            {visibleAnalysisEvents.length} from AI
           </span>
         </div>
       </header>
@@ -89,6 +117,27 @@ function CalendarView({ analysis }: CalendarViewProps) {
             </div>
             <Sparkles size={18} />
           </div>
+
+          {pendingAnalysisEvents.length > 0 ? (
+            <section className="suggestion-review-bar" aria-label="Calendar suggestions">
+              <div>
+                <strong>
+                  LifeMap found {pendingAnalysisEvents.length} calendar{" "}
+                  {pendingAnalysisEvents.length === 1 ? "item" : "items"}.
+                </strong>
+                <span>Review before these become saved family records.</span>
+              </div>
+              <button
+                className="secondary-button compact-button"
+                type="button"
+                onClick={() =>
+                  onSaveSuggestions(pendingAnalysisEvents.map((event) => event.id))
+                }
+              >
+                Save all
+              </button>
+            </section>
+          ) : null}
 
           <div className="layer-toolbar" aria-label="Calendar layers">
             <span>
@@ -114,39 +163,13 @@ function CalendarView({ analysis }: CalendarViewProps) {
 
           <div className="event-timeline">
             {visibleEvents.map((event) => (
-              <article
-                className={
-                  event.id.startsWith("ai-event-")
-                    ? `event-card generated-event layer-${event.layer}`
-                    : `event-card layer-${event.layer}`
-                }
+              <EventCard
+                event={event}
+                isSaved={savedSuggestionIds.has(event.id)}
+                onDismissSuggestion={onDismissSuggestion}
+                onSaveSuggestion={onSaveSuggestion}
                 key={event.id}
-              >
-                <div className="event-date">
-                  <span>{formatMonth(event.date)}</span>
-                  <strong>{formatDay(event.date)}</strong>
-                </div>
-                <div>
-                  <div className="event-card-top">
-                    <h3>{event.title}</h3>
-                    <span>{event.owner}</span>
-                  </div>
-                  {event.id.startsWith("ai-event-") ? (
-                    <span className="generated-label">From AI map</span>
-                  ) : null}
-                  <p>
-                    <Clock3 size={14} />
-                    {event.time}
-                  </p>
-                  <small>Source: {event.source}</small>
-                  {event.needsPrep ? (
-                    <div className="prep-note">
-                      <CheckCircle2 size={14} />
-                      {event.needsPrep}
-                    </div>
-                  ) : null}
-                </div>
-              </article>
+              />
             ))}
           </div>
         </section>
@@ -179,14 +202,106 @@ function CalendarView({ analysis }: CalendarViewProps) {
   );
 }
 
+function EventCard({
+  event,
+  isSaved,
+  onSaveSuggestion,
+  onDismissSuggestion,
+}: {
+  event: ReturnType<typeof buildCalendarEventsFromAnalysis>[number];
+  isSaved: boolean;
+  onSaveSuggestion: (id: string) => void;
+  onDismissSuggestion: (id: string) => void;
+}) {
+  const isGenerated = event.id.startsWith("ai-event-");
+
+  return (
+              <article
+                className={
+                  isGenerated
+                    ? `event-card generated-event layer-${event.layer}`
+                    : `event-card layer-${event.layer}`
+                }
+              >
+                <div className="event-date">
+                  <span>{formatMonth(event.date)}</span>
+                  <strong>{formatDay(event.date)}</strong>
+                </div>
+                <div>
+                  <div className="event-card-top">
+                    <h3>{event.title}</h3>
+                    <span>{event.owner}</span>
+                  </div>
+                  {isGenerated ? (
+                    <span className="generated-label">
+                      {isSaved ? "Saved to LifeMap" : "Needs review"}
+                    </span>
+                  ) : null}
+                  <p>
+                    <Clock3 size={14} />
+                    {event.time}
+                  </p>
+                  <small>Source: {event.source}</small>
+                  {event.needsPrep ? (
+                    <div className="prep-note">
+                      <CheckCircle2 size={14} />
+                      {event.needsPrep}
+                    </div>
+                  ) : null}
+                  {isGenerated && !isSaved ? (
+                    <div className="suggestion-actions">
+                      <button
+                        className="secondary-button compact-button"
+                        type="button"
+                        onClick={() => onSaveSuggestion(event.id)}
+                      >
+                        Save
+                      </button>
+                      <button
+                        className="ghost-button compact-button"
+                        type="button"
+                        onClick={() => onDismissSuggestion(event.id)}
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </article>
+  );
+}
+
+function sortableDate(date: string): string {
+  return date === "undated" ? "9999-12-31" : date;
+}
+
+function displayDate(date: string): Date | undefined {
+  if (date === "undated") {
+    return undefined;
+  }
+
+  const parsed = new Date(`${date}T12:00:00`);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
 function formatMonth(date: string): string {
-  return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", {
+  const parsed = displayDate(date);
+  if (!parsed) {
+    return "Needs";
+  }
+
+  return parsed.toLocaleDateString("en-US", {
     month: "short",
   });
 }
 
 function formatDay(date: string): string {
-  return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", {
+  const parsed = displayDate(date);
+  if (!parsed) {
+    return "date";
+  }
+
+  return parsed.toLocaleDateString("en-US", {
     day: "numeric",
   });
 }

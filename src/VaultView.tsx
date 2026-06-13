@@ -31,9 +31,21 @@ const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
 
 type VaultViewProps = {
   analysis: LifeMapAnalysis;
+  savedSuggestionIds: Set<string>;
+  dismissedSuggestionIds: Set<string>;
+  onSaveSuggestion: (id: string) => void;
+  onSaveSuggestions: (ids: string[]) => void;
+  onDismissSuggestion: (id: string) => void;
 };
 
-function VaultView({ analysis }: VaultViewProps) {
+function VaultView({
+  analysis,
+  savedSuggestionIds,
+  dismissedSuggestionIds,
+  onSaveSuggestion,
+  onSaveSuggestions,
+  onDismissSuggestion,
+}: VaultViewProps) {
   const [activeCategory, setActiveCategory] = useState<VaultCategory | "all">(
     "all",
   );
@@ -41,9 +53,18 @@ function VaultView({ analysis }: VaultViewProps) {
     () => buildVaultItemsFromAnalysis(analysis),
     [analysis],
   );
+  const visibleAnalysisItems = useMemo(
+    () => analysisItems.filter((item) => !dismissedSuggestionIds.has(item.id)),
+    [analysisItems, dismissedSuggestionIds],
+  );
+  const pendingAnalysisItems = useMemo(
+    () =>
+      visibleAnalysisItems.filter((item) => !savedSuggestionIds.has(item.id)),
+    [savedSuggestionIds, visibleAnalysisItems],
+  );
   const allItems = useMemo(
-    () => [...analysisItems, ...vaultItems],
-    [analysisItems],
+    () => [...visibleAnalysisItems, ...vaultItems],
+    [visibleAnalysisItems],
   );
   const visibleItems = useMemo(
     () =>
@@ -77,7 +98,7 @@ function VaultView({ analysis }: VaultViewProps) {
             {urgentItems.length} need attention
           </span>
           <span className="status-pill urgent">
-            {analysisItems.length} from AI
+            {visibleAnalysisItems.length} from AI
           </span>
         </div>
       </header>
@@ -131,6 +152,27 @@ function VaultView({ analysis }: VaultViewProps) {
             <FileText size={18} />
           </div>
 
+          {pendingAnalysisItems.length > 0 ? (
+            <section className="suggestion-review-bar" aria-label="Vault suggestions">
+              <div>
+                <strong>
+                  LifeMap found {pendingAnalysisItems.length} vault{" "}
+                  {pendingAnalysisItems.length === 1 ? "record" : "records"}.
+                </strong>
+                <span>Save only records you want in the household source of truth.</span>
+              </div>
+              <button
+                className="secondary-button compact-button"
+                type="button"
+                onClick={() =>
+                  onSaveSuggestions(pendingAnalysisItems.map((item) => item.id))
+                }
+              >
+                Save all
+              </button>
+            </section>
+          ) : null}
+
           <div className="vault-filter-row" aria-label="Vault categories">
             {vaultFilters.map((filter) => (
               <button
@@ -151,35 +193,13 @@ function VaultView({ analysis }: VaultViewProps) {
 
           <div className="vault-record-list">
             {visibleItems.map((item) => (
-              <article
-                className={
-                  item.id.startsWith("ai-vault-")
-                    ? `vault-card generated-vault-card vault-${item.status.toLowerCase().replace(/\s/g, "-")}`
-                    : `vault-card vault-${item.status.toLowerCase().replace(/\s/g, "-")}`
-                }
+              <VaultCard
+                isSaved={savedSuggestionIds.has(item.id)}
+                item={item}
                 key={item.id}
-              >
-                <div className="vault-card-top">
-                  <span className={`vault-icon vault-icon-${item.category}`}>
-                    {categoryIcon(item.category)}
-                  </span>
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p>{item.owner}</p>
-                  </div>
-                  <span className="vault-status">{item.status}</span>
-                </div>
-                {item.id.startsWith("ai-vault-") ? (
-                  <span className="generated-label">From AI map</span>
-                ) : null}
-                <p>{item.detail}</p>
-                {item.renewalDate ? (
-                  <small>
-                    <CalendarDays size={13} />
-                    Review by {formatShortDate(item.renewalDate)}
-                  </small>
-                ) : null}
-              </article>
+                onDismissSuggestion={onDismissSuggestion}
+                onSaveSuggestion={onSaveSuggestion}
+              />
             ))}
           </div>
         </section>
@@ -234,6 +254,71 @@ function VaultView({ analysis }: VaultViewProps) {
         </aside>
       </div>
     </section>
+  );
+}
+
+function VaultCard({
+  item,
+  isSaved,
+  onSaveSuggestion,
+  onDismissSuggestion,
+}: {
+  item: ReturnType<typeof buildVaultItemsFromAnalysis>[number];
+  isSaved: boolean;
+  onSaveSuggestion: (id: string) => void;
+  onDismissSuggestion: (id: string) => void;
+}) {
+  const isGenerated = item.id.startsWith("ai-vault-");
+
+  return (
+    <article
+      className={
+        isGenerated
+          ? `vault-card generated-vault-card vault-${item.status.toLowerCase().replace(/\s/g, "-")}`
+          : `vault-card vault-${item.status.toLowerCase().replace(/\s/g, "-")}`
+      }
+    >
+      <div className="vault-card-top">
+        <span className={`vault-icon vault-icon-${item.category}`}>
+          {categoryIcon(item.category)}
+        </span>
+        <div>
+          <h3>{item.title}</h3>
+          <p>{item.owner}</p>
+        </div>
+        <span className="vault-status">{item.status}</span>
+      </div>
+      {isGenerated ? (
+        <span className="generated-label">
+          {isSaved ? "Saved to LifeMap" : "Needs review"}
+        </span>
+      ) : null}
+      <p>{item.detail}</p>
+      {item.renewalDate ? (
+        <small>
+          <CalendarDays size={13} />
+          Review by {formatShortDate(item.renewalDate)}
+        </small>
+      ) : null}
+      {isGenerated && !isSaved ? (
+        <div className="suggestion-actions">
+          <button
+            className="secondary-button compact-button"
+            type="button"
+            onClick={() => onSaveSuggestion(item.id)}
+          >
+            Save
+          </button>
+          <button
+            className="ghost-button compact-button"
+            type="button"
+            onClick={() => onDismissSuggestion(item.id)}
+          >
+            Dismiss
+          </button>
+        </div>
+      ) : null}
+    </article>
   );
 }
 
