@@ -102,7 +102,14 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Family Map" }));
+    await user.click(screen.getByRole("button", { name: "Calendar" }));
+    expect(screen.getByRole("heading", { name: "Calendar" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Vault" }));
+    expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Inbox" }));
+    expect(screen.getByRole("heading", { name: "Inbox" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Today" }));
+    await user.click(screen.getByRole("button", { name: "Organized map" }));
     expect(screen.getByRole("heading", { name: "Family admin map" })).toBeInTheDocument();
     expect(screen.getByText("Demo data is stored in this browser only.")).toBeInTheDocument();
   });
@@ -159,7 +166,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Family Map" }));
+    await user.click(screen.getByRole("button", { name: "Organized map" }));
 
     await user.click(screen.getByRole("button", { name: "Analyze intake" }));
 
@@ -192,7 +199,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Family Map" }));
+    await user.click(screen.getByRole("button", { name: "Organized map" }));
     await user.click(screen.getByRole("button", { name: "Analyze intake" }));
 
     expect(await screen.findByText("OPENAI_API_KEY is not configured.")).toBeInTheDocument();
@@ -220,7 +227,7 @@ describe("LifeMap MVP app", () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Family Map" }));
+    await user.click(screen.getByRole("button", { name: "Organized map" }));
     await user.click(screen.getByRole("button", { name: "Analyze intake" }));
 
     expect(
@@ -244,7 +251,7 @@ describe("LifeMap MVP app", () => {
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
     expect(screen.getByText(aiBrief.todaySummary)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Family Map" }));
+    await user.click(screen.getByRole("button", { name: "Organized map" }));
     expect(screen.getByDisplayValue("stored school note")).toBeInTheDocument();
     expect(screen.getByText("Field trip permission slip")).toBeInTheDocument();
     expect(screen.getByRole("switch", { name: "Approve Permission slip due" })).not.toBeChecked();
@@ -261,7 +268,7 @@ describe("LifeMap MVP app", () => {
 
     const { unmount } = render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Family Map" }));
+    await user.click(screen.getByRole("button", { name: "Organized map" }));
     await user.click(screen.getByRole("button", { name: "Edit Permission slip for Casey" }));
     const draftBody = screen.getByLabelText("Draft body for Permission slip for Casey");
     await user.clear(draftBody);
@@ -275,7 +282,7 @@ describe("LifeMap MVP app", () => {
     unmount();
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Family Map" }));
+    await user.click(screen.getByRole("button", { name: "Organized map" }));
     expect(
       screen.getByText("Hi, Casey's signed permission slip will be returned tomorrow.")
     ).toBeInTheDocument();
@@ -292,7 +299,7 @@ describe("LifeMap MVP app", () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Family Map" }));
+    await user.click(screen.getByRole("button", { name: "Organized map" }));
     await user.click(screen.getByRole("button", { name: "Edit Permission slip for Casey" }));
     const draftBody = screen.getByLabelText("Draft body for Permission slip for Casey");
     await user.clear(draftBody);
@@ -317,7 +324,7 @@ describe("LifeMap MVP app", () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Family Map" }));
+    await user.click(screen.getByRole("button", { name: "Organized map" }));
     await user.click(screen.getByRole("button", { name: "Review selected" }));
     await user.click(screen.getByRole("button", { name: "Approve & stage" }));
 
@@ -345,7 +352,7 @@ describe("LifeMap MVP app", () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Family Map" }));
+    await user.click(screen.getByRole("button", { name: "Organized map" }));
     await user.click(screen.getByRole("button", { name: "Review selected" }));
     await user.click(screen.getByRole("button", { name: "Approve & stage" }));
     expect(screen.getByLabelText("Demo staged approvals")).toBeInTheDocument();

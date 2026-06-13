@@ -1,12 +1,13 @@
 import {
+  Archive,
   Bell,
-  Brain,
+  CalendarDays,
   Check,
   CheckCircle2,
   ChevronRight,
   Clock3,
   FileText,
-  Home,
+  Inbox,
   LockKeyhole,
   Map,
   MessageSquare,
@@ -28,10 +29,12 @@ import {
 } from "./lifemap";
 import { loadStoredDemoState, saveStoredDemoState } from "./storage";
 import BrainDumpView from "./BrainDumpView";
+import CalendarView from "./CalendarView";
 import AuthScreen from "./AuthScreen";
 import { useSession } from "./useSession";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import TodayView from "./TodayView";
+import VaultView from "./VaultView";
 import {
   loadRemoteState,
   saveRemoteState,
@@ -112,7 +115,7 @@ type StagedRun = {
   stagedAt: string;
 };
 
-type AppView = "today" | "family" | "braindump" | "approvals";
+type AppView = "today" | "calendar" | "vault" | "inbox" | "approvals" | "family";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 
@@ -403,20 +406,28 @@ function App() {
               <span>Today</span>
             </button>
             <button
-              className={view === "family" ? "nav-item active" : "nav-item"}
+              className={view === "calendar" ? "nav-item active" : "nav-item"}
               type="button"
-              onClick={() => setView("family")}
+              onClick={() => setView("calendar")}
             >
-              <Home size={18} />
-              <span>Family Map</span>
+              <CalendarDays size={18} />
+              <span>Calendar</span>
             </button>
             <button
-              className={view === "braindump" ? "nav-item active" : "nav-item"}
+              className={view === "vault" ? "nav-item active" : "nav-item"}
               type="button"
-              onClick={() => setView("braindump")}
+              onClick={() => setView("vault")}
             >
-              <Brain size={18} />
-              <span>Brain dump</span>
+              <Archive size={18} />
+              <span>Vault</span>
+            </button>
+            <button
+              className={view === "inbox" ? "nav-item active" : "nav-item"}
+              type="button"
+              onClick={() => setView("inbox")}
+            >
+              <Inbox size={18} />
+              <span>Inbox</span>
             </button>
             <button
               className={view === "approvals" ? "nav-item active" : "nav-item"}
@@ -464,9 +475,14 @@ function App() {
             map={map}
             status={briefStatus}
             onGenerateBrief={handleGenerateBrief}
-            onOpenBrainDump={() => setView("braindump")}
+            onOpenApprovals={() => setView("approvals")}
+            onOpenBrainDump={() => setView("inbox")}
             onOpenFamilyMap={() => setView("family")}
           />
+        ) : view === "calendar" ? (
+          <CalendarView />
+        ) : view === "vault" ? (
+          <VaultView />
         ) : view === "family" ? (
           <>
             <section className="workspace" aria-labelledby="page-title">

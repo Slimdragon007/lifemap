@@ -1,8 +1,8 @@
 import {
-  Brain,
   CheckCircle2,
   ChevronRight,
   Clock3,
+  Inbox,
   MessageSquare,
   RefreshCw,
   Sparkles,
@@ -22,6 +22,7 @@ type TodayViewProps = {
   onGenerateBrief: () => void;
   onOpenBrainDump: () => void;
   onOpenFamilyMap: () => void;
+  onOpenApprovals: () => void;
 };
 
 function TodayView({
@@ -34,6 +35,7 @@ function TodayView({
   onGenerateBrief,
   onOpenBrainDump,
   onOpenFamilyMap,
+  onOpenApprovals,
 }: TodayViewProps) {
   return (
     <section className="workspace today-workspace" aria-labelledby="today-title">
@@ -110,7 +112,7 @@ function TodayView({
               <h2 id="loops-title">Open loops</h2>
               <span>{brief.openLoops.length} waiting for clarity</span>
             </div>
-            <Brain size={18} />
+            <Sparkles size={18} />
           </div>
           {brief.openLoops.length > 0 ? (
             <ul className="plain-list">
@@ -129,8 +131,8 @@ function TodayView({
         <section className="panel command-panel" aria-label="LifeMap loop">
           <div className="loop-steps">
             <button type="button" onClick={onOpenBrainDump}>
-              <Brain size={18} />
-              <span>Brain dump</span>
+              <Inbox size={18} />
+              <span>Inbox</span>
               <ChevronRight size={15} />
             </button>
             <button type="button" onClick={onOpenFamilyMap}>
@@ -138,7 +140,7 @@ function TodayView({
               <span>Organized map</span>
               <ChevronRight size={15} />
             </button>
-            <button type="button" onClick={onOpenFamilyMap}>
+            <button type="button" onClick={onOpenApprovals}>
               <CheckCircle2 size={18} />
               <span>{approvalCount} approvals</span>
               <ChevronRight size={15} />

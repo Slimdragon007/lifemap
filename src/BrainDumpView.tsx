@@ -1,4 +1,4 @@
-import { Brain, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, Inbox, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { classifyBrainDumpWithAi } from "./api";
 import {
@@ -67,17 +67,17 @@ function BrainDumpView() {
   );
 
   return (
-    <section className="workspace" aria-labelledby="braindump-title">
+    <section className="workspace" aria-labelledby="inbox-title">
       <header className="topbar">
         <div>
           <span className="workspace-kicker">
-            <Brain size={14} />
-            Mental load capture
+            <Inbox size={14} />
+            AI intake
           </span>
-          <h1 id="braindump-title">Brain dump</h1>
+          <h1 id="inbox-title">Inbox</h1>
           <p>
-            Get everything out of your head. LifeMap sorts it into your next
-            moves.
+            Paste screenshots, forms, emails, or brain dumps. LifeMap sorts
+            them into your calendar, vault, and approvals.
           </p>
           <span className="storage-note">
             Messy is fine — no punctuation needed.
@@ -96,7 +96,7 @@ function BrainDumpView() {
           <div className="panel-heading">
             <div>
               <h2 id="dump-title">What's on your mind?</h2>
-              <span>Source: brain dump</span>
+              <span>Source: pasted intake</span>
             </div>
             <Sparkles size={18} />
           </div>
@@ -145,7 +145,7 @@ function BrainDumpView() {
               <h2 id="sorted-title">Your sorted load</h2>
               <span>{totalItems} items</span>
             </div>
-            <Brain size={18} />
+            <Inbox size={18} />
           </div>
 
           {totalItems === 0 ? (
