@@ -1,4 +1,5 @@
 import { normalizeAnalysis, type LifeMapAnalysis } from "./lifemap";
+import { normalizeMentalLoad, type MentalLoadResult } from "./mentalLoad";
 
 export type AnalyzeApiResult =
   | {
@@ -10,14 +11,27 @@ export type AnalyzeApiResult =
       error: string;
     };
 
-const DEFAULT_ERROR = "LifeMap could not analyze this yet. Try again or edit the intake.";
+export type ClassifyApiResult =
+  | {
+      ok: true;
+      result: MentalLoadResult;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
 
-export async function analyzeWithAi(rawIntake: string): Promise<AnalyzeApiResult> {
+const DEFAULT_ERROR =
+  "LifeMap could not analyze this yet. Try again or edit the intake.";
+
+export async function analyzeWithAi(
+  rawIntake: string,
+): Promise<AnalyzeApiResult> {
   try {
     const response = await fetch(`${getApiOrigin()}/api/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rawIntake })
+      body: JSON.stringify({ rawIntake }),
     });
     const payload: unknown = await response.json();
 
@@ -40,6 +54,36 @@ export async function analyzeWithAi(rawIntake: string): Promise<AnalyzeApiResult
   }
 }
 
+export async function classifyBrainDumpWithAi(
+  rawDump: string,
+): Promise<ClassifyApiResult> {
+  try {
+    const response = await fetch(`${getApiOrigin()}/api/classify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rawDump }),
+    });
+    const payload: unknown = await response.json();
+
+    if (!isRecord(payload)) {
+      return { ok: false, error: DEFAULT_ERROR };
+    }
+
+    if (payload.ok === false) {
+      return { ok: false, error: readError(payload.error) };
+    }
+
+    if (payload.ok === true) {
+      const normalized = normalizeMentalLoad(payload.result);
+      return normalized.ok ? normalized : { ok: false, error: DEFAULT_ERROR };
+    }
+
+    return { ok: false, error: DEFAULT_ERROR };
+  } catch {
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+}
+
 function getApiOrigin(): string {
   const hostname =
     typeof window === "undefined" || window.location.hostname.length === 0
@@ -50,7 +94,9 @@ function getApiOrigin(): string {
 }
 
 function readError(error: unknown): string {
-  return typeof error === "string" && error.trim().length > 0 ? error : DEFAULT_ERROR;
+  return typeof error === "string" && error.trim().length > 0
+    ? error
+    : DEFAULT_ERROR;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

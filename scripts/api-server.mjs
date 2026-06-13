@@ -3,27 +3,35 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const INVALID_INPUT_ERROR = "Paste an email, form text, screenshot notes, or task details first.";
+const INVALID_INPUT_ERROR =
+  "Paste an email, form text, screenshot notes, or task details first.";
 const MISSING_KEY_ERROR = "OPENAI_API_KEY is not configured.";
-const AI_FAILURE_ERROR = "LifeMap could not analyze this yet. Try again or edit the intake.";
+const AI_FAILURE_ERROR =
+  "LifeMap could not analyze this yet. Try again or edit the intake.";
 const DEFAULT_MODEL = "gpt-5.5";
 const PORT = 8787;
 const HOST = "0.0.0.0";
 
-export async function analyzePayload(payload, env = process.env, fetchImpl = fetch) {
-  const rawIntake = typeof payload?.rawIntake === "string" ? payload.rawIntake.trim() : "";
+export async function analyzePayload(
+  payload,
+  env = process.env,
+  fetchImpl = fetch,
+) {
+  const rawIntake =
+    typeof payload?.rawIntake === "string" ? payload.rawIntake.trim() : "";
   if (!rawIntake) {
     return {
       status: 400,
-      body: { ok: false, error: INVALID_INPUT_ERROR }
+      body: { ok: false, error: INVALID_INPUT_ERROR },
     };
   }
 
-  const apiKey = typeof env.OPENAI_API_KEY === "string" ? env.OPENAI_API_KEY.trim() : "";
+  const apiKey =
+    typeof env.OPENAI_API_KEY === "string" ? env.OPENAI_API_KEY.trim() : "";
   if (!apiKey) {
     return {
       status: 500,
-      body: { ok: false, error: MISSING_KEY_ERROR }
+      body: { ok: false, error: MISSING_KEY_ERROR },
     };
   }
 
@@ -32,15 +40,17 @@ export async function analyzePayload(payload, env = process.env, fetchImpl = fet
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(buildOpenAiRequest(rawIntake, env.OPENAI_MODEL || DEFAULT_MODEL))
+      body: JSON.stringify(
+        buildOpenAiRequest(rawIntake, env.OPENAI_MODEL || DEFAULT_MODEL),
+      ),
     });
 
     if (!response.ok) {
       return {
         status: 502,
-        body: { ok: false, error: AI_FAILURE_ERROR }
+        body: { ok: false, error: AI_FAILURE_ERROR },
       };
     }
 
@@ -52,23 +62,74 @@ export async function analyzePayload(payload, env = process.env, fetchImpl = fet
     if (!normalized) {
       return {
         status: 502,
-        body: { ok: false, error: AI_FAILURE_ERROR }
+        body: { ok: false, error: AI_FAILURE_ERROR },
       };
     }
 
     return {
       status: 200,
-      body: { ok: true, analysis: normalized }
+      body: { ok: true, analysis: normalized },
     };
   } catch {
     return {
       status: 502,
-      body: { ok: false, error: AI_FAILURE_ERROR }
+      body: { ok: false, error: AI_FAILURE_ERROR },
     };
   }
 }
 
-export function createApiServer(env = { ...loadEnvFiles(), ...process.env }, fetchImpl = fetch) {
+export async function classifyPayload(
+  payload,
+  env = process.env,
+  fetchImpl = fetch,
+) {
+  const rawDump =
+    typeof payload?.rawDump === "string" ? payload.rawDump.trim() : "";
+  if (!rawDump) {
+    return { status: 400, body: { ok: false, error: INVALID_INPUT_ERROR } };
+  }
+
+  const apiKey =
+    typeof env.OPENAI_API_KEY === "string" ? env.OPENAI_API_KEY.trim() : "";
+  if (!apiKey) {
+    return { status: 500, body: { ok: false, error: MISSING_KEY_ERROR } };
+  }
+
+  try {
+    const response = await fetchImpl("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(
+        buildClassifyRequest(rawDump, env.OPENAI_MODEL || DEFAULT_MODEL),
+      ),
+    });
+
+    if (!response.ok) {
+      return { status: 502, body: { ok: false, error: AI_FAILURE_ERROR } };
+    }
+
+    const responseJson = await response.json();
+    const outputText = extractOutputText(responseJson);
+    const parsed = JSON.parse(outputText);
+    const normalized = normalizeMentalLoad(parsed);
+
+    if (!normalized) {
+      return { status: 502, body: { ok: false, error: AI_FAILURE_ERROR } };
+    }
+
+    return { status: 200, body: { ok: true, result: normalized } };
+  } catch {
+    return { status: 502, body: { ok: false, error: AI_FAILURE_ERROR } };
+  }
+}
+
+export function createApiServer(
+  env = { ...loadEnvFiles(), ...process.env },
+  fetchImpl = fetch,
+) {
   return createServer(async (request, response) => {
     setCorsHeaders(response);
 
@@ -78,14 +139,20 @@ export function createApiServer(env = { ...loadEnvFiles(), ...process.env }, fet
       return;
     }
 
-    if (request.method !== "POST" || request.url !== "/api/analyze") {
+    if (
+      request.method !== "POST" ||
+      (request.url !== "/api/analyze" && request.url !== "/api/classify")
+    ) {
       writeJson(response, 404, { ok: false, error: "Not found." });
       return;
     }
 
     try {
       const payload = JSON.parse(await readRequestBody(request));
-      const result = await analyzePayload(payload, env, fetchImpl);
+      const result =
+        request.url === "/api/classify"
+          ? await classifyPayload(payload, env, fetchImpl)
+          : await analyzePayload(payload, env, fetchImpl);
       writeJson(response, result.status, result.body);
     } catch {
       writeJson(response, 400, { ok: false, error: INVALID_INPUT_ERROR });
@@ -101,22 +168,139 @@ function buildOpenAiRequest(rawIntake, model) {
       {
         role: "system",
         content:
-          "You are LifeMap, an AI family admin assistant. Extract only actionable household logistics from messy emails, forms, screenshots, or pasted notes. Return empty arrays when a category is absent. Never invent private details that are not implied by the source. Keep nextActions to the three highest-leverage actions."
+          "You are LifeMap, an AI family admin assistant. Extract only actionable household logistics from messy emails, forms, screenshots, or pasted notes. Return empty arrays when a category is absent. Never invent private details that are not implied by the source. Keep nextActions to the three highest-leverage actions.",
       },
       {
         role: "user",
-        content: rawIntake
-      }
+        content: rawIntake,
+      },
     ],
     text: {
       format: {
         type: "json_schema",
         name: "lifemap_analysis",
         strict: true,
-        schema: lifeMapSchema
-      }
-    }
+        schema: lifeMapSchema,
+      },
+    },
   };
+}
+
+const LOAD_ITEM_TYPES = [
+  "task",
+  "decision",
+  "reminder",
+  "worry",
+  "goal",
+  "project",
+  "relationship",
+  "finance",
+  "household",
+  "health",
+  "idea",
+  "someday",
+  "emotional-weight",
+];
+
+const RECOMMENDATIONS = [
+  "do-now",
+  "schedule",
+  "delegate",
+  "automate",
+  "clarify",
+  "drop",
+  "park",
+];
+
+function buildClassifyRequest(rawDump, model) {
+  return {
+    model,
+    store: false,
+    input: [
+      {
+        role: "system",
+        content:
+          "You are LifeMap. The user is dumping everything on their mind. Split it into distinct items — one item per discrete thought, never merge unrelated thoughts. For each item set a type and a recommendation from the allowed enums, estimate emotionalWeight 0 (light) to 5 (heavy), and put the exact supporting text from the dump in sourceQuote. Never invent items that are not present in the dump.",
+      },
+      {
+        role: "user",
+        content: rawDump,
+      },
+    ],
+    text: {
+      format: {
+        type: "json_schema",
+        name: "lifemap_mental_load",
+        strict: true,
+        schema: mentalLoadSchema,
+      },
+    },
+  };
+}
+
+const mentalLoadSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["items"],
+  properties: {
+    items: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: [
+          "id",
+          "title",
+          "type",
+          "recommendation",
+          "emotionalWeight",
+          "sourceQuote",
+        ],
+        properties: {
+          id: { type: "string" },
+          title: { type: "string" },
+          type: { type: "string", enum: LOAD_ITEM_TYPES },
+          recommendation: { type: "string", enum: RECOMMENDATIONS },
+          emotionalWeight: { type: "integer", minimum: 0, maximum: 5 },
+          sourceQuote: { type: "string" },
+        },
+      },
+    },
+  },
+};
+
+function normalizeMentalLoad(value) {
+  if (!isRecord(value) || !Array.isArray(value.items)) {
+    return undefined;
+  }
+  const items = value.items.map(parseLoadItem);
+  return items.every((item) => item !== undefined) ? { items } : undefined;
+}
+
+function parseLoadItem(value) {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const base = readObject(value, [
+    "id",
+    "title",
+    "type",
+    "recommendation",
+    "sourceQuote",
+  ]);
+  if (
+    !base ||
+    !LOAD_ITEM_TYPES.includes(base.type) ||
+    !RECOMMENDATIONS.includes(base.recommendation)
+  ) {
+    return undefined;
+  }
+  const weight =
+    typeof value.emotionalWeight === "number" &&
+    !Number.isNaN(value.emotionalWeight)
+      ? Math.max(0, Math.min(5, Math.round(value.emotionalWeight)))
+      : 0;
+  return { ...base, emotionalWeight: weight };
 }
 
 const lifeMapSchema = {
@@ -129,7 +313,7 @@ const lifeMapSchema = {
     "nextActions",
     "reminders",
     "draftMessages",
-    "sourceEvidence"
+    "sourceEvidence",
   ],
   properties: {
     dueItems: {
@@ -142,9 +326,9 @@ const lifeMapSchema = {
           id: { type: "string" },
           title: { type: "string" },
           dueDate: { type: "string" },
-          sourceQuote: { type: "string" }
-        }
-      }
+          sourceQuote: { type: "string" },
+        },
+      },
     },
     missingInfo: {
       type: "array",
@@ -156,9 +340,9 @@ const lifeMapSchema = {
           id: { type: "string" },
           label: { type: "string" },
           reason: { type: "string" },
-          sourceQuote: { type: "string" }
-        }
-      }
+          sourceQuote: { type: "string" },
+        },
+      },
     },
     waitingOn: {
       type: "array",
@@ -169,9 +353,9 @@ const lifeMapSchema = {
         properties: {
           id: { type: "string" },
           name: { type: "string" },
-          reason: { type: "string" }
-        }
-      }
+          reason: { type: "string" },
+        },
+      },
     },
     nextActions: {
       type: "array",
@@ -182,9 +366,9 @@ const lifeMapSchema = {
         properties: {
           id: { type: "string" },
           label: { type: "string" },
-          owner: { type: "string" }
-        }
-      }
+          owner: { type: "string" },
+        },
+      },
     },
     reminders: {
       type: "array",
@@ -196,9 +380,9 @@ const lifeMapSchema = {
           id: { type: "string" },
           title: { type: "string" },
           body: { type: "string" },
-          status: { type: "string", enum: ["Scheduled", "Needs review"] }
-        }
-      }
+          status: { type: "string", enum: ["Scheduled", "Needs review"] },
+        },
+      },
     },
     draftMessages: {
       type: "array",
@@ -211,9 +395,9 @@ const lifeMapSchema = {
           recipient: { type: "string" },
           subject: { type: "string" },
           body: { type: "string" },
-          status: { type: "string", enum: ["Scheduled", "Needs review"] }
-        }
-      }
+          status: { type: "string", enum: ["Scheduled", "Needs review"] },
+        },
+      },
     },
     sourceEvidence: {
       type: "array",
@@ -225,11 +409,11 @@ const lifeMapSchema = {
           id: { type: "string" },
           type: { type: "string" },
           label: { type: "string" },
-          quote: { type: "string" }
-        }
-      }
-    }
-  }
+          quote: { type: "string" },
+        },
+      },
+    },
+  },
 };
 
 function extractOutputText(responseJson) {
@@ -280,7 +464,7 @@ function normalizeAnalysis(value) {
     nextActions: nextActions.slice(0, 3),
     reminders,
     draftMessages,
-    sourceEvidence
+    sourceEvidence,
   };
 }
 
@@ -399,7 +583,10 @@ function writeJson(response, status, body) {
 function loadEnvFiles() {
   return [".env.local", ".env"].reduce((env, filename) => {
     try {
-      return { ...env, ...parseEnvFile(readFileSync(resolve(process.cwd(), filename), "utf8")) };
+      return {
+        ...env,
+        ...parseEnvFile(readFileSync(resolve(process.cwd(), filename), "utf8")),
+      };
     } catch {
       return env;
     }
