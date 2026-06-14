@@ -138,6 +138,7 @@ type StagedRun = {
 
 type AppView =
   | "today"
+  | "capture"
   | "calendar"
   | "vault"
   | "review"
@@ -229,7 +230,6 @@ function App() {
       activeSetupBuckets.find((bucket) => bucket.id === selectedSetupBucketId),
     [activeSetupBuckets, selectedSetupBucketId],
   );
-  const [isCaptureOpen, setIsCaptureOpen] = useState(false);
   const [captureRoute, setCaptureRoute] = useState<CaptureRoute>();
   const [remoteLoadedFor, setRemoteLoadedFor] = useState<string>();
   const { session, loading: sessionLoading } = useSession();
@@ -469,7 +469,7 @@ function App() {
     }
 
     setCaptureRoute(route);
-    setIsCaptureOpen(true);
+    setView("capture");
   }
 
   function followCaptureRoute() {
@@ -477,7 +477,6 @@ function App() {
       return;
     }
 
-    setIsCaptureOpen(false);
     setView(captureRoute.destination);
   }
 
@@ -617,7 +616,11 @@ function App() {
             </button>
             <button
               aria-label="Capture"
-              className="nav-capture-button"
+              className={
+                view === "capture"
+                  ? "nav-capture-button active"
+                  : "nav-capture-button"
+              }
               type="button"
               onClick={() => openCapture()}
             >
@@ -716,6 +719,30 @@ function App() {
             onOpenCalendar={() => setView("calendar")}
             onOpenCapture={openCapture}
             onOpenVault={() => setView("vault")}
+          />
+        ) : view === "capture" ? (
+          <CaptureWorkspace
+            analyzeError={analyzeError}
+            analyzeStatus={analyzeStatus}
+            captureRoute={captureRoute}
+            examples={sampleIntakes}
+            intake={intake}
+            map={map}
+            onAnalyze={handleAnalyze}
+            onClose={() => {
+              setCaptureRoute(undefined);
+              setView("today");
+            }}
+            onIntakeChange={(nextIntake) => {
+              setIntake(nextIntake);
+              if (analyzeStatus !== "loading") {
+                setAnalyzeStatus("idle");
+                setAnalyzeError(undefined);
+              }
+            }}
+            onLoadExample={loadSampleIntake}
+            onReview={() => setView("review")}
+            onRoute={followCaptureRoute}
           />
         ) : view === "calendar" ? (
           <CalendarView
@@ -1031,34 +1058,6 @@ function App() {
           />
         )}
       </main>
-      {isCaptureOpen ? (
-        <CaptureSheet
-          analyzeError={analyzeError}
-          analyzeStatus={analyzeStatus}
-          captureRoute={captureRoute}
-          examples={sampleIntakes}
-          intake={intake}
-          map={map}
-          onAnalyze={handleAnalyze}
-          onClose={() => {
-            setCaptureRoute(undefined);
-            setIsCaptureOpen(false);
-          }}
-          onIntakeChange={(nextIntake) => {
-            setIntake(nextIntake);
-            if (analyzeStatus !== "loading") {
-              setAnalyzeStatus("idle");
-              setAnalyzeError(undefined);
-            }
-          }}
-          onLoadExample={loadSampleIntake}
-          onReview={() => {
-            setIsCaptureOpen(false);
-            setView("review");
-          }}
-          onRoute={followCaptureRoute}
-        />
-      ) : null}
       {isReviewOpen ? (
         <ReviewDialog
           approvals={selectedApprovals}
@@ -1101,7 +1100,7 @@ function App() {
   );
 }
 
-function CaptureSheet({
+function CaptureWorkspace({
   analyzeError,
   analyzeStatus,
   captureRoute,
@@ -1131,19 +1130,11 @@ function CaptureSheet({
   const hasIntake = intake.trim().length > 0;
 
   return (
-    <div className="sheet-layer" role="presentation">
-      <button
-        aria-label="Close LifeMap AI capture"
-        className="sheet-backdrop"
-        type="button"
-        onClick={onClose}
-      />
-      <section
-        aria-labelledby="capture-sheet-title"
-        aria-modal="true"
-        className="capture-sheet"
-        role="dialog"
-      >
+    <section
+      aria-labelledby="capture-sheet-title"
+      className="workspace capture-workspace"
+    >
+      <div className="capture-sheet">
         <div className="brain-dump-composer lifemap-ai-composer">
           <header className="composer-header">
             <div>
@@ -1172,7 +1163,12 @@ function CaptureSheet({
                 {map.nextActions.length} actions
               </span>
             </div>
-            <button className="sheet-close" type="button" onClick={onClose}>
+            <button
+              aria-label="Back to Today"
+              className="sheet-close"
+              type="button"
+              onClick={onClose}
+            >
               Close
             </button>
           </header>
@@ -1288,8 +1284,8 @@ function CaptureSheet({
             </section>
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }
 

@@ -278,6 +278,7 @@ p {
 }
 
 .app-shell.view-today,
+.app-shell.view-capture,
 .app-shell.view-calendar,
 .app-shell.view-vault,
 .app-shell.view-review,
@@ -2898,6 +2899,7 @@ button.nav-item {
 
 @media (max-width: 1180px) {
   .app-shell.view-today,
+  .app-shell.view-capture,
   .app-shell.view-calendar,
   .app-shell.view-vault,
   .app-shell.view-review,
@@ -3097,6 +3099,7 @@ button.nav-item {
 /* Tap-first app shell */
 .app-shell,
 .app-shell.view-today,
+.app-shell.view-capture,
 .app-shell.view-calendar,
 .app-shell.view-vault,
 .app-shell.view-review,
@@ -3182,7 +3185,8 @@ button.nav-item {
 }
 
 .bottom-nav .nav-item.active,
-.bottom-nav .nav-item:hover {
+.bottom-nav .nav-item:hover,
+.nav-capture-button.active {
   color: var(--blue-strong);
   background:
     linear-gradient(
@@ -3210,6 +3214,10 @@ button.nav-item {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.26),
     0 18px 44px rgba(47, 98, 216, 0.2);
+}
+
+.nav-capture-button.active {
+  transform: none;
 }
 
 .nav-capture-button svg {
@@ -4189,30 +4197,6 @@ button.nav-item {
   color: var(--sage);
 }
 
-.sheet-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 70;
-  display: grid;
-  align-items: end;
-  justify-items: center;
-  padding: 16px 12px max(14px, env(safe-area-inset-bottom));
-}
-
-.sheet-backdrop {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  background:
-    radial-gradient(
-      760px 520px at 70% 18%,
-      rgba(77, 126, 255, 0.16),
-      transparent 68%
-    ),
-    var(--color-backdrop-capture);
-  backdrop-filter: blur(18px) saturate(1.05);
-}
-
 .capture-sheet {
   position: relative;
   z-index: 1;
@@ -4239,6 +4223,18 @@ button.nav-item {
       rgba(255, 244, 236, 0.9)
     );
   box-shadow: var(--shadow-command), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.capture-workspace {
+  display: grid;
+  justify-items: center;
+}
+
+.capture-workspace .capture-sheet {
+  width: min(100%, 980px);
+  max-height: none;
+  overflow: visible;
+  border-radius: var(--radius-command);
 }
 
 .brain-dump-composer {
@@ -5840,6 +5836,7 @@ body {
 @media (min-width: 1100px) {
   .app-shell,
   .app-shell.view-today,
+  .app-shell.view-capture,
   .app-shell.view-calendar,
   .app-shell.view-vault,
   .app-shell.view-review,

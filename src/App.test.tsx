@@ -112,14 +112,12 @@ describe("LifeMap MVP app", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Capture anything" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "School form" }));
-    expect(screen.getByRole("dialog", { name: "Ask LifeMap AI" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ask LifeMap AI" })).toBeInTheDocument();
     expect(screen.getByDisplayValue(/Westview Elementary/i)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Close" }));
-    expect(screen.queryByRole("dialog", { name: "Ask LifeMap AI" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Back to Today" }));
+    expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Capture" }));
-    expect(screen.getByRole("dialog", { name: "Ask LifeMap AI" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Close" }));
-    expect(screen.queryByRole("dialog", { name: "Ask LifeMap AI" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ask LifeMap AI" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Calendar" }));
     expect(screen.getByRole("heading", { name: "Calendar" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Vault" }));
@@ -328,7 +326,7 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Records IDs + cards" }));
     await user.click(screen.getByRole("button", { name: "Start records capture" }));
 
-    expect(screen.getByRole("dialog", { name: "Ask LifeMap AI" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ask LifeMap AI" })).toBeInTheDocument();
     expect(screen.getByDisplayValue(/Vault records starter/)).toBeInTheDocument();
     expect(screen.getByDisplayValue(/Passports and IDs/)).toBeInTheDocument();
   });
@@ -365,15 +363,17 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Records IDs + cards" }));
     await user.click(screen.getByRole("button", { name: "Start records capture" }));
 
-    const sheet = screen.getByRole("dialog", { name: "Ask LifeMap AI" });
-    await user.click(within(sheet).getByRole("button", { name: "Analyze intake" }));
+    const capture = screen.getByRole("heading", { name: "Ask LifeMap AI" })
+      .closest("section");
+    expect(capture).not.toBeNull();
+    await user.click(within(capture as HTMLElement).getByRole("button", { name: "Analyze intake" }));
 
     expect(
-      await within(sheet).findByText("Route this into Vault so records and missing details stay findable."),
+      await within(capture as HTMLElement).findByText("Route this into Vault so records and missing details stay findable."),
     ).toBeInTheDocument();
-    await user.click(within(sheet).getByRole("button", { name: "Open Vault" }));
+    await user.click(within(capture as HTMLElement).getByRole("button", { name: "Open Vault" }));
 
-    expect(screen.queryByRole("dialog", { name: "Ask LifeMap AI" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Ask LifeMap AI" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
     expect(screen.getByText("Parent signature")).toBeInTheDocument();
   });
@@ -406,9 +406,10 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
     await user.click(screen.getByRole("button", { name: "Capture" }));
 
-    const sheet = screen.getByRole("dialog", { name: "Ask LifeMap AI" });
-    expect(sheet).toBeInTheDocument();
-    await user.click(within(sheet).getByRole("button", { name: "Analyze intake" }));
+    const capture = screen.getByRole("heading", { name: "Ask LifeMap AI" })
+      .closest("section");
+    expect(capture).not.toBeNull();
+    await user.click(within(capture as HTMLElement).getByRole("button", { name: "Analyze intake" }));
 
     expect(
       await screen.findByText(
@@ -417,7 +418,7 @@ describe("LifeMap MVP app", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Review drafts" }));
 
-    expect(screen.queryByRole("dialog", { name: "Ask LifeMap AI" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Ask LifeMap AI" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
   });
 
@@ -592,7 +593,7 @@ describe("LifeMap MVP app", () => {
 
     await user.click(screen.getByRole("button", { name: "Capture a new update" }));
 
-    expect(screen.getByRole("dialog", { name: "Ask LifeMap AI" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ask LifeMap AI" })).toBeInTheDocument();
   });
 
   test("lets a Today priority become a real action", async () => {
