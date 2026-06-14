@@ -24,7 +24,7 @@ type BucketDetailViewProps = {
   profile: SetupProfile;
   onBack: () => void;
   onOpenCalendar: () => void;
-  onOpenCapture: () => void;
+  onOpenCapture: (rawIntake?: string) => void;
   onOpenVault: () => void;
 };
 
@@ -97,6 +97,81 @@ const bucketIcons: Record<SetupBucketId, typeof ShieldCheck> = {
   "money-admin": Archive,
 };
 
+const bucketCaptureStarters: Record<SetupBucketId, string> = {
+  "family-profiles": `Family profiles starter
+
+People or pets to organize:
+- Alex:
+- Casey:
+- Milo:
+
+Add emergency contacts, school or care notes, medications, allergies, pickup permissions, and anything someone else would need in a stressful moment.`,
+  "school-command": `School command center starter
+
+School note, portal screenshot, or schedule:
+- Child:
+- School:
+- Due date:
+
+Paste permission slips, lunch schedules, pickup changes, teacher requests, missing signatures, fees, and anything that needs a reminder.`,
+  "pet-care": `Pet care starter
+
+Pet:
+- Vaccine or medication:
+- Due date:
+- Vet or boarding facility:
+
+Paste vaccine reminders, boarding requirements, medication timing, food notes, and care instructions.`,
+  "travel-command": `Travel command center starter
+
+Trip:
+- Dates:
+- Destination:
+
+Paste flight confirmations, packing notes, TSA PreCheck or rewards reminders, passports, hotel details, rental car info, and missing reservations.`,
+  "vault-records": `Vault records starter
+
+Record or document:
+- Passports and IDs:
+- Insurance cards:
+- Emergency cards:
+- Renewal dates:
+
+Paste card details, document notes, expiration dates, missing files, or the next thing you always search for.`,
+  "health-loop": `Health and medication loop starter
+
+Appointment, medication, or vaccine:
+- Person or pet:
+- Date:
+- Provider:
+
+Paste doctor notes, medication changes, pharmacy details, vaccine reminders, prep instructions, and follow-up tasks.`,
+  "home-admin": `Home admin loop starter
+
+Home task:
+- What needs attention:
+- Due date:
+- Owner:
+
+Paste bills, repairs, subscriptions, service appointments, recurring chores, and anything waiting on a household decision.`,
+  "meal-loop": `Meal and lunch loop starter
+
+Meal or lunch note:
+- Week:
+- People:
+- Constraints:
+
+Paste school lunch schedules, allergies, grocery staples, meal plans, snack needs, and recurring prep tasks.`,
+  "money-admin": `Money and renewal loop starter
+
+Money item:
+- Fee, renewal, or reimbursement:
+- Amount:
+- Due date:
+
+Paste insurance renewals, school fees, deposits, reimbursements, payment deadlines, and missing receipts.`,
+};
+
 function BucketDetailView({
   bucket,
   profile,
@@ -112,6 +187,8 @@ function BucketDetailView({
     onOpenVault,
   });
   const householdSummary = formatHouseholdSummary(profile);
+  const captureStarter = bucketCaptureStarters[bucket.id];
+  const captureLabel = getCaptureLabel(bucket.id);
 
   return (
     <section
@@ -184,7 +261,7 @@ function BucketDetailView({
             <Inbox size={18} />
           </div>
           <div className="bucket-guidance-list">
-            <button type="button" onClick={onOpenCapture}>
+            <button type="button" onClick={() => onOpenCapture()}>
               <Inbox size={17} />
               <span>Capture a messy note</span>
               <ChevronRight size={14} />
@@ -192,6 +269,11 @@ function BucketDetailView({
             <button type="button" onClick={onOpenCalendar}>
               <CalendarDays size={17} />
               <span>Check timing and reminders</span>
+              <ChevronRight size={14} />
+            </button>
+            <button type="button" onClick={() => onOpenCapture(captureStarter)}>
+              <Inbox size={17} />
+              <span>{captureLabel}</span>
               <ChevronRight size={14} />
             </button>
             <button type="button" onClick={onOpenVault}>
@@ -210,7 +292,7 @@ function getDestination(
   bucket: RecommendedBucket,
   actions: {
     onOpenCalendar: () => void;
-    onOpenCapture: () => void;
+    onOpenCapture: (rawIntake?: string) => void;
     onOpenVault: () => void;
   },
 ) {
@@ -224,7 +306,7 @@ function getDestination(
   if (bucket.destination === "capture") {
     return {
       label: "Open Capture",
-      onOpen: actions.onOpenCapture,
+      onOpen: () => actions.onOpenCapture(bucketCaptureStarters[bucket.id]),
     };
   }
 
@@ -232,6 +314,14 @@ function getDestination(
     label: "Open Vault",
     onOpen: actions.onOpenVault,
   };
+}
+
+function getCaptureLabel(id: SetupBucketId) {
+  if (id === "vault-records") {
+    return "Start records capture";
+  }
+
+  return "Start guided capture";
 }
 
 function formatHouseholdSummary(profile: SetupProfile) {

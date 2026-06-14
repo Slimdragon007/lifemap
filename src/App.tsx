@@ -697,7 +697,7 @@ function App() {
             profile={setupProfile}
             onBack={() => setView("today")}
             onOpenCalendar={() => setView("calendar")}
-            onOpenCapture={() => openCapture()}
+            onOpenCapture={openCapture}
             onOpenVault={() => setView("vault")}
           />
         ) : view === "calendar" ? (

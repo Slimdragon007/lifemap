@@ -303,6 +303,36 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
   });
 
+  test("starts capture with a bucket-specific note", async () => {
+    const user = userEvent.setup();
+    saveStoredDemoState({
+      isLoggedIn: true,
+      setupProfile: {
+        adults: 2,
+        children: 2,
+        pets: 1,
+        travels: true,
+        focusAreas: ["school", "records"],
+      },
+      setupBucketIds: [
+        "family-profiles",
+        "school-command",
+        "vault-records",
+        "pet-care",
+        "travel-command",
+      ],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Records IDs + cards" }));
+    await user.click(screen.getByRole("button", { name: "Start records capture" }));
+
+    expect(screen.getByRole("dialog", { name: "Ask LifeMap AI" })).toBeInTheDocument();
+    expect(screen.getByDisplayValue(/Vault records starter/)).toBeInTheDocument();
+    expect(screen.getByDisplayValue(/Passports and IDs/)).toBeInTheDocument();
+  });
+
   test("uses real app tabs for the review queue", async () => {
     const user = userEvent.setup();
 
