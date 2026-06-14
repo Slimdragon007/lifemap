@@ -2247,6 +2247,38 @@ button.nav-item {
   line-height: 1.35;
 }
 
+.vault-feedback-card {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid rgba(127, 162, 132, 0.22);
+  border-radius: var(--radius);
+  color: #315e38;
+  background: rgba(239, 245, 236, 0.84);
+  box-shadow: 0 10px 24px rgba(18, 24, 38, 0.05);
+}
+
+.vault-feedback-card strong,
+.vault-feedback-card span {
+  display: block;
+}
+
+.vault-feedback-card strong {
+  color: #315e38;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.vault-feedback-card span {
+  margin-top: 3px;
+  color: #54745a;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .layer-toolbar > span {
   display: inline-flex;
   align-items: center;

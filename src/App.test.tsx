@@ -452,6 +452,29 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByText("6 records")).toBeInTheDocument();
   });
 
+  test("confirms when a vault suggestion is saved", async () => {
+    const user = userEvent.setup();
+    saveStoredDemoState({
+      isLoggedIn: true,
+      intake: "stored school note",
+      analysis: aiAnalysis,
+      disabledApprovalIds: [],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Vault" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Saved Parent signature to Vault.",
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Private details stay hidden until opened.",
+    );
+    expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument();
+  });
+
   test("keeps AI suggestions visible until the user saves or dismisses them", async () => {
     const user = userEvent.setup();
     saveStoredDemoState({
@@ -479,6 +502,9 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Vault" }));
     expect(screen.getByText("Parent signature")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Dismiss" }));
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Suggestion dismissed.",
+    );
     expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
     expect(screen.getByText("5 records")).toBeInTheDocument();
 

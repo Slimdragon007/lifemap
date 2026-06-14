@@ -43,6 +43,11 @@ type VaultViewProps = {
   onDismissSuggestion: (id: string) => void;
 };
 
+type VaultFeedback = {
+  title: string;
+  body: string;
+};
+
 function VaultView({
   analysis,
   savedSuggestionIds,
@@ -59,6 +64,7 @@ function VaultView({
   );
   const [selectedVaultItem, setSelectedVaultItem] = useState<VaultItem>();
   const [isSensitiveVisible, setIsSensitiveVisible] = useState(false);
+  const [feedback, setFeedback] = useState<VaultFeedback>();
   const analysisItems = useMemo(
     () => buildVaultItemsFromAnalysis(analysis),
     [analysis],
@@ -102,6 +108,32 @@ function VaultView({
   function openVaultItem(item: VaultItem) {
     setSelectedVaultItem(item);
     setIsSensitiveVisible(false);
+  }
+
+  function saveSuggestion(item: VaultItem) {
+    onSaveSuggestion(item.id);
+    setFeedback({
+      title: `Saved ${item.title} to Vault.`,
+      body: "Private details stay hidden until opened.",
+    });
+  }
+
+  function saveAllSuggestions() {
+    onSaveSuggestions(pendingAnalysisItems.map((item) => item.id));
+    setFeedback({
+      title: `Saved ${pendingAnalysisItems.length} ${
+        pendingAnalysisItems.length === 1 ? "record" : "records"
+      } to Vault.`,
+      body: "They now live in the household source of truth.",
+    });
+  }
+
+  function dismissSuggestion(item: VaultItem) {
+    onDismissSuggestion(item.id);
+    setFeedback({
+      title: "Suggestion dismissed.",
+      body: "LifeMap will keep it out of your household source of truth.",
+    });
   }
 
   return (
@@ -214,12 +246,20 @@ function VaultView({
               <button
                 className="secondary-button compact-button"
                 type="button"
-                onClick={() =>
-                  onSaveSuggestions(pendingAnalysisItems.map((item) => item.id))
-                }
+                onClick={saveAllSuggestions}
               >
                 Save all
               </button>
+            </section>
+          ) : null}
+
+          {feedback ? (
+            <section className="vault-feedback-card" role="status">
+              <CheckCircle2 size={18} />
+              <div>
+                <strong>{feedback.title}</strong>
+                <span>{feedback.body}</span>
+              </div>
             </section>
           ) : null}
 
@@ -247,9 +287,9 @@ function VaultView({
                 isSaved={savedSuggestionIds.has(item.id)}
                 item={item}
                 key={item.id}
-                onDismissSuggestion={onDismissSuggestion}
+                onDismissSuggestion={() => dismissSuggestion(item)}
                 onOpenDetails={() => openVaultItem(item)}
-                onSaveSuggestion={onSaveSuggestion}
+                onSaveSuggestion={() => saveSuggestion(item)}
               />
             ))}
           </div>
@@ -325,8 +365,8 @@ function VaultCard({
 }: {
   item: VaultItem;
   isSaved: boolean;
-  onSaveSuggestion: (id: string) => void;
-  onDismissSuggestion: (id: string) => void;
+  onSaveSuggestion: () => void;
+  onDismissSuggestion: () => void;
   onOpenDetails: () => void;
 }) {
   const isGenerated = item.id.startsWith("ai-vault-");
@@ -370,14 +410,14 @@ function VaultCard({
           <button
             className="secondary-button compact-button"
             type="button"
-            onClick={() => onSaveSuggestion(item.id)}
+            onClick={onSaveSuggestion}
           >
             Save
           </button>
           <button
             className="ghost-button compact-button"
             type="button"
-            onClick={() => onDismissSuggestion(item.id)}
+            onClick={onDismissSuggestion}
           >
             Dismiss
           </button>
