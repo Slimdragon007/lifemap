@@ -1,0 +1,1429 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LifeMap Build Map</title>
+    <style>
+      :root {
+        --deep-slate: #121826;
+        --deep-slate-2: #1b2435;
+        --warm-bone: #f3efe6;
+        --soft-ivory: #faf7f2;
+        --intelligence-blue: #3a6bff;
+        --clay: #d26a4a;
+        --muted-plum: #5a4661;
+        --sage: #7fa284;
+        --ink: #172033;
+        --muted: #6e7580;
+        --line: rgba(18, 24, 38, 0.12);
+        --shadow: 0 18px 55px rgba(18, 24, 38, 0.14);
+        --radius: 22px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "SF Pro Text", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 18% 5%, rgba(58, 107, 255, 0.16), transparent 30rem),
+          radial-gradient(circle at 78% 6%, rgba(210, 106, 74, 0.16), transparent 30rem),
+          linear-gradient(135deg, var(--soft-ivory), var(--warm-bone));
+        min-height: 100vh;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 64px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+        gap: 24px;
+        align-items: stretch;
+      }
+
+      .hero-panel,
+      .control-panel,
+      .detail-panel,
+      .section-panel,
+      .timeline-panel {
+        background: rgba(250, 247, 242, 0.82);
+        border: 1px solid rgba(18, 24, 38, 0.1);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .hero-panel {
+        border-radius: 32px;
+        padding: 34px;
+        min-height: 380px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-panel::after {
+        content: "";
+        position: absolute;
+        inset: auto -80px -140px auto;
+        width: 320px;
+        height: 320px;
+        border-radius: 999px;
+        background:
+          linear-gradient(135deg, rgba(58, 107, 255, 0.14), rgba(210, 106, 74, 0.18)),
+          var(--warm-bone);
+        filter: blur(4px);
+      }
+
+      .brand-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .brand-mark {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        background:
+          linear-gradient(135deg, rgba(58, 107, 255, 0.92), rgba(210, 106, 74, 0.9)),
+          var(--deep-slate);
+        box-shadow: 0 18px 38px rgba(18, 24, 38, 0.22);
+        display: grid;
+        place-items: center;
+        color: white;
+        position: relative;
+      }
+
+      .brand-mark::before,
+      .brand-mark::after {
+        content: "";
+        position: absolute;
+        inset: 17px 14px;
+        border: 3px solid currentColor;
+        border-top: 0;
+        border-right: 0;
+        border-radius: 2px;
+        transform: skewY(-16deg);
+      }
+
+      .brand-mark::after {
+        inset: 17px 15px 17px 29px;
+        border-left: 0;
+        border-right: 3px solid currentColor;
+        transform: skewY(16deg);
+        opacity: 0.8;
+      }
+
+      .brand-copy h1 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(32px, 5vw, 66px);
+        line-height: 0.95;
+        letter-spacing: 0;
+        color: var(--deep-slate);
+      }
+
+      .brand-copy p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .hero h2 {
+        margin: 52px 0 14px;
+        max-width: 760px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(36px, 6vw, 76px);
+        line-height: 0.96;
+        letter-spacing: 0;
+        color: var(--deep-slate);
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero-lede {
+        margin: 0;
+        max-width: 620px;
+        color: #3f4856;
+        font-size: clamp(16px, 2vw, 20px);
+        line-height: 1.55;
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .btn {
+        border: 0;
+        border-radius: 999px;
+        min-height: 44px;
+        padding: 0 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 760;
+        letter-spacing: 0;
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          background 180ms ease,
+          border-color 180ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn-primary {
+        background: var(--deep-slate);
+        color: white;
+        box-shadow: 0 12px 28px rgba(18, 24, 38, 0.22);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.76);
+        color: var(--deep-slate);
+        border: 1px solid rgba(18, 24, 38, 0.12);
+      }
+
+      .control-panel {
+        border-radius: 32px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .readiness-card {
+        background: var(--deep-slate);
+        color: white;
+        border-radius: 24px;
+        padding: 22px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .readiness-card::before {
+        content: "";
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(58, 107, 255, 0.42), rgba(210, 106, 74, 0.44));
+        right: -90px;
+        top: -120px;
+      }
+
+      .readiness-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 16px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .readiness-top p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 13px;
+      }
+
+      .readiness-top strong {
+        display: block;
+        margin-top: 4px;
+        font-size: clamp(34px, 8vw, 58px);
+        line-height: 1;
+        font-family: Georgia, "Times New Roman", serif;
+      }
+
+      .progress-track {
+        width: 100%;
+        height: 12px;
+        margin-top: 22px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+      }
+
+      .progress-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--intelligence-blue), var(--clay));
+        transition: width 420ms ease;
+      }
+
+      .mode-toggle,
+      .filters {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .mode-toggle {
+        padding: 5px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.62);
+      }
+
+      .mode-toggle button,
+      .filter-btn {
+        min-height: 36px;
+        border: 0;
+        border-radius: 999px;
+        padding: 0 13px;
+        color: #424b58;
+        background: transparent;
+        font-size: 13px;
+        font-weight: 740;
+      }
+
+      .mode-toggle button.is-active,
+      .filter-btn.is-active {
+        background: var(--deep-slate);
+        color: white;
+        box-shadow: 0 10px 24px rgba(18, 24, 38, 0.16);
+      }
+
+      .filter-btn {
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid var(--line);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .stat {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.62);
+        border-radius: 18px;
+        padding: 14px;
+      }
+
+      .stat span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 720;
+      }
+
+      .stat strong {
+        display: block;
+        margin-top: 4px;
+        color: var(--deep-slate);
+        font-size: 22px;
+      }
+
+      .main-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 24px;
+        align-items: start;
+        margin-top: 24px;
+      }
+
+      .section-panel,
+      .timeline-panel,
+      .detail-panel {
+        border-radius: 28px;
+      }
+
+      .map-stack {
+        display: grid;
+        gap: 18px;
+      }
+
+      .section-panel {
+        padding: 22px;
+      }
+
+      .section-heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .section-heading h3 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--deep-slate);
+      }
+
+      .section-heading p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .section-count {
+        white-space: nowrap;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 760;
+      }
+
+      .node-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .node {
+        text-align: left;
+        min-height: 154px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.74);
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 18px;
+        box-shadow: 0 14px 32px rgba(18, 24, 38, 0.06);
+        transition:
+          transform 180ms ease,
+          border-color 180ms ease,
+          box-shadow 180ms ease,
+          background 180ms ease;
+      }
+
+      .node:hover,
+      .node:focus-visible {
+        transform: translateY(-2px);
+        border-color: rgba(58, 107, 255, 0.42);
+        box-shadow: 0 18px 36px rgba(18, 24, 38, 0.12);
+        outline: none;
+      }
+
+      .node.is-selected {
+        border-color: rgba(58, 107, 255, 0.78);
+        box-shadow: 0 0 0 3px rgba(58, 107, 255, 0.13), 0 18px 36px rgba(18, 24, 38, 0.12);
+      }
+
+      .node-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 12px;
+      }
+
+      .node-kicker {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 820;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .node h4 {
+        margin: 7px 0 0;
+        font-size: 16px;
+        line-height: 1.2;
+        color: var(--deep-slate);
+      }
+
+      .node p {
+        margin: 0;
+        color: #556070;
+        font-size: 13px;
+        line-height: 1.42;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        padding: 0 9px;
+        border-radius: 999px;
+        color: var(--deep-slate);
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+        border: 1px solid transparent;
+      }
+
+      .status-done {
+        background: rgba(127, 162, 132, 0.18);
+        border-color: rgba(127, 162, 132, 0.28);
+      }
+
+      .status-local {
+        background: rgba(58, 107, 255, 0.13);
+        border-color: rgba(58, 107, 255, 0.22);
+      }
+
+      .status-deploy {
+        background: rgba(210, 106, 74, 0.14);
+        border-color: rgba(210, 106, 74, 0.25);
+      }
+
+      .status-next {
+        background: rgba(90, 70, 97, 0.14);
+        border-color: rgba(90, 70, 97, 0.24);
+      }
+
+      .status-later {
+        background: rgba(18, 24, 38, 0.08);
+        border-color: rgba(18, 24, 38, 0.12);
+      }
+
+      .detail-panel {
+        padding: 22px;
+        position: sticky;
+        top: 18px;
+      }
+
+      .detail-panel h3 {
+        margin: 0;
+        color: var(--deep-slate);
+        font-size: 22px;
+      }
+
+      .detail-panel .chip {
+        margin-top: 12px;
+      }
+
+      .detail-block {
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+      }
+
+      .detail-block strong {
+        display: block;
+        color: var(--deep-slate);
+        font-size: 13px;
+        margin-bottom: 7px;
+      }
+
+      .detail-block p,
+      .detail-block li {
+        color: #4d5665;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .detail-block p {
+        margin: 0;
+      }
+
+      .detail-block ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .system-map {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(120px, 1fr));
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      .system-node {
+        border-radius: 18px;
+        padding: 14px;
+        min-height: 112px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.68);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        justify-content: space-between;
+      }
+
+      .system-node strong {
+        color: var(--deep-slate);
+        font-size: 14px;
+      }
+
+      .system-node span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .timeline-panel {
+        padding: 22px;
+      }
+
+      .timeline {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .timeline-step {
+        border-radius: 18px;
+        padding: 15px;
+        min-height: 154px;
+        background: rgba(255, 255, 255, 0.68);
+        border: 1px solid var(--line);
+      }
+
+      .timeline-step strong {
+        display: block;
+        color: var(--deep-slate);
+        margin-bottom: 8px;
+      }
+
+      .timeline-step p {
+        margin: 0;
+        color: #566071;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .next-moves {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .move {
+        border-radius: 18px;
+        padding: 15px;
+        color: white;
+        min-height: 138px;
+        background: var(--deep-slate);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .move:nth-child(2) {
+        background: var(--intelligence-blue);
+      }
+
+      .move:nth-child(3) {
+        background: var(--clay);
+      }
+
+      .move:nth-child(4) {
+        background: var(--muted-plum);
+      }
+
+      .move:nth-child(5) {
+        background: var(--sage);
+      }
+
+      .move span {
+        display: block;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 11px;
+        font-weight: 820;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .move strong {
+        display: block;
+        margin-top: 22px;
+        font-size: 15px;
+        line-height: 1.28;
+      }
+
+      .drawer {
+        position: fixed;
+        inset: auto 18px 18px auto;
+        width: min(520px, calc(100% - 36px));
+        max-height: min(640px, calc(100vh - 36px));
+        overflow: auto;
+        border-radius: 28px;
+        padding: 22px;
+        background: var(--deep-slate);
+        color: white;
+        box-shadow: 0 28px 80px rgba(18, 24, 38, 0.34);
+        transform: translateY(calc(100% + 24px));
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          transform 260ms ease,
+          opacity 260ms ease;
+        z-index: 30;
+      }
+
+      .drawer.is-open {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .drawer-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 16px;
+      }
+
+      .drawer h3 {
+        margin: 0;
+        font-size: 24px;
+      }
+
+      .drawer p {
+        color: rgba(255, 255, 255, 0.72);
+        line-height: 1.5;
+      }
+
+      .drawer-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .drawer-item {
+        border-radius: 18px;
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.09);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .drawer-item strong {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .drawer-item span {
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .close-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.08);
+        color: white;
+        font-size: 20px;
+        line-height: 1;
+      }
+
+      .mini-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .mini-links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.68);
+        border: 1px solid var(--line);
+        color: var(--deep-slate);
+        font-size: 12px;
+        font-weight: 780;
+        text-decoration: none;
+      }
+
+      .empty-state {
+        display: none;
+        padding: 28px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px dashed rgba(18, 24, 38, 0.2);
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .empty-state.is-visible {
+        display: block;
+      }
+
+      @media (max-width: 980px) {
+        .hero,
+        .main-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .detail-panel {
+          position: relative;
+          top: auto;
+        }
+
+        .system-map,
+        .timeline,
+        .next-moves {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 660px) {
+        .shell {
+          width: min(100% - 20px, 1180px);
+          padding: 10px 0 40px;
+        }
+
+        .hero-panel,
+        .control-panel,
+        .section-panel,
+        .timeline-panel,
+        .detail-panel {
+          border-radius: 22px;
+        }
+
+        .hero-panel {
+          padding: 22px;
+          min-height: auto;
+        }
+
+        .brand-mark {
+          width: 48px;
+          height: 48px;
+          border-radius: 15px;
+        }
+
+        .brand-copy h1 {
+          font-size: 34px;
+        }
+
+        .hero h2 {
+          margin-top: 34px;
+        }
+
+        .stats-grid,
+        .node-grid,
+        .system-map,
+        .timeline,
+        .next-moves {
+          grid-template-columns: 1fr;
+        }
+
+        .node {
+          min-height: 132px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-panel">
+          <div class="brand-row">
+            <div class="brand" aria-label="LifeMap">
+              <div class="brand-mark" aria-hidden="true"></div>
+              <div class="brand-copy">
+                <h1>LifeMap</h1>
+                <p>Build map for the founder demo</p>
+              </div>
+            </div>
+          </div>
+          <h2 id="page-title">Where the build is right now.</h2>
+          <p class="hero-lede">
+            A live founder tracker for what is already working, what is only on the
+            local machine, what is deployed to Cloudflare, what is blocked, and
+            the next moves to turn LifeMap into a presentable MVP.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" type="button" data-open-drawer>
+              What changed recently?
+            </button>
+            <a class="btn btn-secondary" href="#next-moves">Jump to next 5 moves</a>
+          </div>
+        </div>
+
+        <aside class="control-panel" aria-label="Build map controls">
+          <section class="readiness-card">
+            <div class="readiness-top">
+              <div>
+                <p>MVP readiness estimate</p>
+                <strong id="readiness-percent">0%</strong>
+              </div>
+              <span class="chip status-local">Founder tracker</span>
+            </div>
+            <div
+              class="progress-track"
+              role="progressbar"
+              aria-label="MVP readiness"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <div class="progress-fill" id="readiness-fill"></div>
+            </div>
+          </section>
+
+          <div>
+            <p class="section-count">View mode</p>
+            <div class="mode-toggle" role="group" aria-label="Toggle founder or technical view">
+              <button class="is-active" type="button" data-mode="founder">Founder view</button>
+              <button type="button" data-mode="technical">Technical view</button>
+            </div>
+          </div>
+
+          <div>
+            <p class="section-count">Filter status</p>
+            <div class="filters" role="group" aria-label="Filter build nodes">
+              <button class="filter-btn is-active" type="button" data-filter="all">All</button>
+              <button class="filter-btn" type="button" data-filter="done">Done</button>
+              <button class="filter-btn" type="button" data-filter="local">Local only</button>
+              <button class="filter-btn" type="button" data-filter="deploy">Needs deploy</button>
+              <button class="filter-btn" type="button" data-filter="next">Next</button>
+            </div>
+          </div>
+
+          <div class="stats-grid" id="stats-grid" aria-label="Status counts"></div>
+        </aside>
+      </section>
+
+      <section class="main-grid" aria-label="Interactive build map">
+        <div class="map-stack">
+          <section class="section-panel" aria-labelledby="current-state-title">
+            <div class="section-heading">
+              <div>
+                <h3 id="current-state-title">Current Build State</h3>
+                <p>Local, Cloudflare, API, Supabase, and verification status.</p>
+              </div>
+              <span class="section-count" data-count-for="current"></span>
+            </div>
+            <div class="node-grid" data-section="current"></div>
+          </section>
+
+          <section class="section-panel" aria-labelledby="product-map-title">
+            <div class="section-heading">
+              <div>
+                <h3 id="product-map-title">Product Map</h3>
+                <p>The user-facing surfaces and how real each one is today.</p>
+              </div>
+              <span class="section-count" data-count-for="product"></span>
+            </div>
+            <div class="node-grid" data-section="product"></div>
+          </section>
+
+          <section class="timeline-panel" aria-labelledby="timeline-title">
+            <div class="section-heading">
+              <div>
+                <h3 id="timeline-title">Progress Timeline</h3>
+                <p>A plain-English read on done, local-only, deploy, next, and later.</p>
+              </div>
+            </div>
+            <div class="timeline">
+              <article class="timeline-step">
+                <strong>Done</strong>
+                <p>Core app shell, Atlas visual direction, fake/easy demo login, local AI path, Vault, Calendar, Review, More, Launch Plan, tests, and build.</p>
+              </article>
+              <article class="timeline-step">
+                <strong>Local only</strong>
+                <p>The latest Today, Vault, and Capture UX polish exists locally. It is not the same as the currently deployed Pages build.</p>
+              </article>
+              <article class="timeline-step">
+                <strong>Needs deploy</strong>
+                <p>Cloudflare Pages needs the newest frontend build, then the live Pages app needs to be checked against the Worker API.</p>
+              </article>
+              <article class="timeline-step">
+                <strong>Next build</strong>
+                <p>Guided setup buckets, clearer first-run flow, Vault 2.0, travel logistics, and live Daily Brief verification.</p>
+              </article>
+              <article class="timeline-step">
+                <strong>Later</strong>
+                <p>Email forwarding, OCR, document upload security, family sharing, deeper calendar integrations, and automatic reminders.</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="section-panel" aria-labelledby="system-map-title">
+            <div class="section-heading">
+              <div>
+                <h3 id="system-map-title">System Map</h3>
+                <p>How the pieces connect when the app is deployed correctly.</p>
+              </div>
+            </div>
+            <div class="system-map" aria-label="LifeMap system architecture">
+              <div class="system-node">
+                <strong>React + Vite</strong>
+                <span>Frontend app and local founder demo.</span>
+                <span class="chip status-done">Done</span>
+              </div>
+              <div class="system-node">
+                <strong>Cloudflare Pages</strong>
+                <span>Hosts the frontend. Live build is behind local.</span>
+                <span class="chip status-deploy">Needs deploy</span>
+              </div>
+              <div class="system-node">
+                <strong>Worker API</strong>
+                <span>Separate AI endpoint and health route.</span>
+                <span class="chip status-done">Done</span>
+              </div>
+              <div class="system-node">
+                <strong>OpenAI</strong>
+                <span>Server-side structured extraction and brief generation.</span>
+                <span class="chip status-deploy">Verify live</span>
+              </div>
+              <div class="system-node">
+                <strong>Supabase</strong>
+                <span>Auth and persistence seam. Keep RLS hardening next.</span>
+                <span class="chip status-local">Partial</span>
+              </div>
+            </div>
+            <div class="mini-links" aria-label="Useful preview links">
+              <a href="http://127.0.0.1:5173/">Local app</a>
+              <a href="https://lifemap-d33.pages.dev/">Cloudflare Pages</a>
+              <a href="https://lifemap-api.m-haslim.workers.dev/health">Worker health</a>
+            </div>
+          </section>
+
+          <section class="timeline-panel" id="next-moves" aria-labelledby="next-moves-title">
+            <div class="section-heading">
+              <div>
+                <h3 id="next-moves-title">Next 5 Moves</h3>
+                <p>The sequence that gets this from promising local demo to testable MVP.</p>
+              </div>
+            </div>
+            <div class="next-moves">
+              <article class="move">
+                <span>Move 1</span>
+                <strong>Deploy latest UI to Cloudflare Pages.</strong>
+              </article>
+              <article class="move">
+                <span>Move 2</span>
+                <strong>Verify live AI analyze and Daily Brief through the Worker API.</strong>
+              </article>
+              <article class="move">
+                <span>Move 3</span>
+                <strong>Add guided setup buckets for family, pets, travel, school, health, and home.</strong>
+              </article>
+              <article class="move">
+                <span>Move 4</span>
+                <strong>Build Vault 2.0 for passports, insurance, IDs, medication, vaccines, and travel rewards.</strong>
+              </article>
+              <article class="move">
+                <span>Move 5</span>
+                <strong>Harden Cloudflare and Supabase: envs, RLS, auth, and production smoke checks.</strong>
+              </article>
+            </div>
+          </section>
+        </div>
+
+        <aside class="detail-panel" aria-live="polite" aria-label="Selected build node details">
+          <h3 id="detail-title">Select a build node</h3>
+          <span id="detail-status" class="chip status-local">Ready</span>
+          <div class="detail-block">
+            <strong>What it means</strong>
+            <p id="detail-summary">Click any card to see what is built, what is blocked, and the next action.</p>
+          </div>
+          <div class="detail-block">
+            <strong>Evidence</strong>
+            <ul id="detail-evidence"></ul>
+          </div>
+          <div class="detail-block">
+            <strong>Next action</strong>
+            <p id="detail-next"></p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <aside class="drawer" id="recent-drawer" aria-label="What changed recently" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <h3>What changed recently?</h3>
+          <p>
+            This is the latest UX slice that exists locally and should be redeployed
+            before phone testing or founder presentation.
+          </p>
+        </div>
+        <button class="close-btn" type="button" data-close-drawer aria-label="Close drawer">x</button>
+      </div>
+      <div class="drawer-list">
+        <div class="drawer-item">
+          <strong>Today became more action-oriented.</strong>
+          <span>Priority cards can open action sheets, Daily Brief has a fuller detail state, and the screen points to what matters today.</span>
+        </div>
+        <div class="drawer-item">
+          <strong>Vault became calmer and more private.</strong>
+          <span>Profiles and record details are tucked away until tapped, so sensitive info is not splashed across the screen.</span>
+        </div>
+        <div class="drawer-item">
+          <strong>Capture is the core input loop.</strong>
+          <span>Brain dumps and messy family-admin intake remain the fastest way to turn real-life chaos into next actions.</span>
+        </div>
+        <div class="drawer-item">
+          <strong>Bottom navigation is moving toward phone-native behavior.</strong>
+          <span>The intended stable tabs are Today, Vault, Capture, Calendar, Review, and More.</span>
+        </div>
+        <div class="drawer-item">
+          <strong>Verification was green before this docs artifact.</strong>
+          <span>Lint, typecheck, tests, and build were passing on the current implementation pass. This file does not change app code.</span>
+        </div>
+      </div>
+    </aside>
+
+    <script>
+      const statusMeta = {
+        done: { label: "Done", className: "status-done", weight: 1 },
+        local: { label: "Local only", className: "status-local", weight: 0.5 },
+        deploy: { label: "Needs deploy", className: "status-deploy", weight: 0.25 },
+        next: { label: "Next", className: "status-next", weight: 0.12 },
+        later: { label: "Later", className: "status-later", weight: 0 }
+      };
+
+      const buildNodes = [
+        {
+          id: "local-app",
+          section: "current",
+          category: "Current State",
+          title: "Local app",
+          status: "done",
+          founder: "The newest LifeMap experience is working locally on the Mac, including the recent Today, Vault, and Capture UX slice.",
+          technical: "React/Vite app runs locally on port 5173. Local preview should use 127.0.0.1 on the Mac and LAN IP for iPhone.",
+          evidence: ["Local app has latest UI changes.", "Bottom navigation and founder Launch Plan exist.", "No deploy is required to inspect the local HTML map."],
+          next: "Use the local app as the source of truth before redeploying Pages."
+        },
+        {
+          id: "cloudflare-pages",
+          section: "current",
+          category: "Current State",
+          title: "Cloudflare Pages",
+          status: "deploy",
+          founder: "The public demo exists, but it still needs the newest frontend build before it matches what we are seeing locally.",
+          technical: "Pages URL is live at lifemap-d33.pages.dev. It needs a fresh frontend deploy after local verification.",
+          evidence: ["Cloudflare Pages project exists.", "Live frontend can be opened.", "Latest UX slice has not been confirmed on the live URL."],
+          next: "Deploy the latest dist build, then test on Mac and iPhone."
+        },
+        {
+          id: "worker-api",
+          section: "current",
+          category: "Current State",
+          title: "Worker API",
+          status: "done",
+          founder: "The AI server path is separate from the frontend, which is good for security because the OpenAI key stays server-side.",
+          technical: "Cloudflare Worker API has a health route and should back analyze/brief calls when Pages env points to it.",
+          evidence: ["Worker health endpoint exists.", "OpenAI key is not client-side.", "CORS origin config is separate from Pages."],
+          next: "After Pages deploy, verify analyze and Daily Brief against the Worker."
+        },
+        {
+          id: "supabase",
+          section: "current",
+          category: "Current State",
+          title: "Supabase auth and persistence",
+          status: "local",
+          founder: "Supabase is in the build path, but we should treat auth and persistence as partially verified until live testing is complete.",
+          technical: "Supabase client/env seam exists. RLS and production persistence should be re-audited before real users.",
+          evidence: ["Project and test user were set up.", "App can keep demo/local fallback behavior.", "Security hardening remains a pre-launch task."],
+          next: "Confirm env vars, login, logout, persisted data restore, and RLS before wider testing."
+        },
+        {
+          id: "tests-build",
+          section: "current",
+          category: "Current State",
+          title: "Tests and build",
+          status: "done",
+          founder: "The core checks were green before this standalone map, which means the product code is in a good place to deploy next.",
+          technical: "lint, typecheck, test, and build passed on the recent app implementation pass. This HTML file is docs-only.",
+          evidence: ["No React app changes in this task.", "No package manager changes.", "No production secrets added."],
+          next: "Run the full check suite again before the actual Cloudflare deploy."
+        },
+        {
+          id: "latest-ux",
+          section: "current",
+          category: "Current State",
+          title: "Latest UX slice",
+          status: "local",
+          founder: "Today, Vault, and Capture are moving in the right direction, but the live app needs a redeploy before others can test it.",
+          technical: "Local working tree contains UX changes. Do not assume the Cloudflare Pages URL has them until redeployed.",
+          evidence: ["Today action sheets.", "Vault hidden detail pattern.", "Phone-native nav direction."],
+          next: "Deploy latest UI and then compare local versus Pages."
+        },
+        {
+          id: "today",
+          section: "product",
+          category: "Product Map",
+          title: "Today",
+          status: "local",
+          founder: "Today is becoming the return-home screen: Daily Brief, top priorities, and clear next actions.",
+          technical: "TodayView has recent interaction polish, but live AI response failures still need production verification.",
+          evidence: ["Daily Brief detail state exists.", "Priority action behavior exists.", "Needs live Worker verification."],
+          next: "Make the Daily Brief useful even when AI fails, then verify production API calls."
+        },
+        {
+          id: "capture",
+          section: "product",
+          category: "Product Map",
+          title: "Capture",
+          status: "local",
+          founder: "Capture is the core loop: paste messy life context, then LifeMap turns it into organized next actions.",
+          technical: "The app has a brain-dump/intake flow and a fallback parser. Server-side extraction is available when API works.",
+          evidence: ["Messy intake flow exists.", "Fallback parser protects demos.", "AI path needs live verification after deploy."],
+          next: "Make Capture feel like one obvious button, not a confusing destination."
+        },
+        {
+          id: "vault",
+          section: "product",
+          category: "Product Map",
+          title: "Vault",
+          status: "local",
+          founder: "Vault is the money surface: insurance, passports, IDs, meds, vaccines, school, pets, and travel records.",
+          technical: "Vault categories and generated items exist. The next version should add real record models and secure storage.",
+          evidence: ["Vault categories exist.", "Details can stay hidden until tapped.", "Sensitive data needs production security design."],
+          next: "Build Vault 2.0 with record types, private reveal, emergency view, and travel docs."
+        },
+        {
+          id: "calendar",
+          section: "product",
+          category: "Product Map",
+          title: "Calendar",
+          status: "done",
+          founder: "Calendar gives LifeMap a spatial view of the week, which helps parents see deadlines and appointments quickly.",
+          technical: "Calendar projects analysis items into a schedule-like surface. Real calendar sync is later.",
+          evidence: ["Calendar tab exists.", "Analysis can feed schedule items.", "No Google/Apple Calendar writeback yet."],
+          next: "Keep it useful as a read-only planning view before adding integrations."
+        },
+        {
+          id: "review",
+          section: "product",
+          category: "Product Map",
+          title: "Review",
+          status: "done",
+          founder: "Review keeps the safety promise: LifeMap drafts and stages actions, but the user approves before anything happens.",
+          technical: "Approval queue and toggles exist. Nothing should send automatically.",
+          evidence: ["Approval-gated workflow exists.", "Draft messages remain user-controlled.", "Good security story for MVP."],
+          next: "Keep approval visible and tactile."
+        },
+        {
+          id: "more-launch",
+          section: "product",
+          category: "Product Map",
+          title: "More and Launch Plan",
+          status: "done",
+          founder: "More now has founder tracking so you can see what is done and what comes next from inside the app.",
+          technical: "Launch Plan view persists checkbox state in browser storage only.",
+          evidence: ["Launch Plan view exists.", "Founder-only state is local.", "Bottom nav stays unchanged."],
+          next: "Keep founder tooling tucked away from the customer flow."
+        },
+        {
+          id: "guided-setup",
+          section: "product",
+          category: "Product Map",
+          title: "Guided setup buckets",
+          status: "next",
+          founder: "New users should answer a few questions and LifeMap should recommend the right buckets automatically.",
+          technical: "Needs a first-run setup state model, bucket recommendations, and local/Supabase persistence path.",
+          evidence: ["Founder request is clear.", "Buckets include family, pets, travel, school, health, home, records.", "Not implemented yet."],
+          next: "Add onboarding that creates the first personalized map in under two minutes."
+        }
+      ];
+
+      const state = {
+        mode: "founder",
+        filter: "all",
+        selectedId: buildNodes[0].id
+      };
+
+      const bySection = {
+        current: document.querySelector('[data-section="current"]'),
+        product: document.querySelector('[data-section="product"]')
+      };
+
+      const detailTitle = document.getElementById("detail-title");
+      const detailStatus = document.getElementById("detail-status");
+      const detailSummary = document.getElementById("detail-summary");
+      const detailEvidence = document.getElementById("detail-evidence");
+      const detailNext = document.getElementById("detail-next");
+      const readinessPercent = document.getElementById("readiness-percent");
+      const readinessFill = document.getElementById("readiness-fill");
+      const progressTrack = document.querySelector(".progress-track");
+      const statsGrid = document.getElementById("stats-grid");
+      const drawer = document.getElementById("recent-drawer");
+
+      function visibleNodes() {
+        if (state.filter === "all") {
+          return buildNodes;
+        }
+        return buildNodes.filter((node) => node.status === state.filter);
+      }
+
+      function renderNodes() {
+        Object.values(bySection).forEach((section) => {
+          section.innerHTML = "";
+        });
+
+        const visible = visibleNodes();
+        buildNodes.forEach((node) => {
+          if (state.filter !== "all" && node.status !== state.filter) {
+            return;
+          }
+
+          const meta = statusMeta[node.status];
+          const button = document.createElement("button");
+          button.className = `node ${node.id === state.selectedId ? "is-selected" : ""}`;
+          button.type = "button";
+          button.dataset.nodeId = node.id;
+          button.setAttribute("aria-label", `Open details for ${node.title}`);
+          button.innerHTML = `
+            <div class="node-top">
+              <div>
+                <span class="node-kicker">${node.category}</span>
+                <h4>${node.title}</h4>
+              </div>
+              <span class="chip ${meta.className}">${meta.label}</span>
+            </div>
+            <p>${node[state.mode]}</p>
+          `;
+          button.addEventListener("click", () => selectNode(node.id));
+          bySection[node.section].appendChild(button);
+        });
+
+        document.querySelectorAll("[data-count-for]").forEach((counter) => {
+          const section = counter.getAttribute("data-count-for");
+          const count = visible.filter((node) => node.section === section).length;
+          counter.textContent = `${count} shown`;
+        });
+      }
+
+      function selectNode(id) {
+        state.selectedId = id;
+        const node = buildNodes.find((item) => item.id === id) || buildNodes[0];
+        const meta = statusMeta[node.status];
+
+        detailTitle.textContent = node.title;
+        detailStatus.textContent = meta.label;
+        detailStatus.className = `chip ${meta.className}`;
+        detailSummary.textContent = node[state.mode];
+        detailEvidence.innerHTML = node.evidence.map((item) => `<li>${item}</li>`).join("");
+        detailNext.textContent = node.next;
+
+        renderNodes();
+      }
+
+      function renderStats() {
+        const statuses = ["done", "local", "deploy", "next"];
+        statsGrid.innerHTML = statuses
+          .map((status) => {
+            const count = buildNodes.filter((node) => node.status === status).length;
+            return `
+              <div class="stat">
+                <span>${statusMeta[status].label}</span>
+                <strong>${count}</strong>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      function renderReadiness() {
+        const mvpNodes = buildNodes.filter((node) => node.status !== "later");
+        const totalWeight = mvpNodes.reduce((sum, node) => sum + statusMeta[node.status].weight, 0);
+        const percent = Math.round((totalWeight / mvpNodes.length) * 100);
+        readinessPercent.textContent = `${percent}%`;
+        readinessFill.style.width = `${percent}%`;
+        progressTrack.setAttribute("aria-valuenow", String(percent));
+      }
+
+      document.querySelectorAll("[data-mode]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.mode = button.dataset.mode;
+          document.querySelectorAll("[data-mode]").forEach((item) => {
+            item.classList.toggle("is-active", item === button);
+          });
+          selectNode(state.selectedId);
+        });
+      });
+
+      document.querySelectorAll("[data-filter]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.filter = button.dataset.filter;
+          document.querySelectorAll("[data-filter]").forEach((item) => {
+            item.classList.toggle("is-active", item === button);
+          });
+          const selected = buildNodes.find((node) => node.id === state.selectedId);
+          if (state.filter !== "all" && selected && selected.status !== state.filter) {
+            const firstVisible = visibleNodes()[0] || buildNodes[0];
+            state.selectedId = firstVisible.id;
+          }
+          selectNode(state.selectedId);
+        });
+      });
+
+      document.querySelector("[data-open-drawer]").addEventListener("click", () => {
+        drawer.classList.add("is-open");
+        drawer.setAttribute("aria-hidden", "false");
+      });
+
+      document.querySelector("[data-close-drawer]").addEventListener("click", () => {
+        drawer.classList.remove("is-open");
+        drawer.setAttribute("aria-hidden", "true");
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          drawer.classList.remove("is-open");
+          drawer.setAttribute("aria-hidden", "true");
+        }
+      });
+
+      renderStats();
+      renderReadiness();
+      selectNode(state.selectedId);
+    </script>
+  </body>
+</html>

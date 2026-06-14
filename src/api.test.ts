@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { analyzeWithAi, generateBriefWithAi } from "./api";
+import { analyzeWithAi, generateBriefWithAi, resolveApiOrigin } from "./api";
 import type { DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
 
@@ -49,6 +49,44 @@ const dailyBrief: DailyBrief = {
   conflicts: [],
   groundingNote: "Grounded in the school email.",
 };
+
+describe("resolveApiOrigin", () => {
+  test("uses configured origins first and trims trailing slashes", () => {
+    expect(
+      resolveApiOrigin("https://example-worker.workers.dev/", {
+        hostname: "lifemap-d33.pages.dev",
+        protocol: "https:",
+      }),
+    ).toBe("https://example-worker.workers.dev");
+  });
+
+  test("uses the production Worker on the deployed Cloudflare Pages host", () => {
+    expect(
+      resolveApiOrigin(undefined, {
+        hostname: "lifemap-d33.pages.dev",
+        protocol: "https:",
+      }),
+    ).toBe("https://lifemap-api.m-haslim.workers.dev");
+  });
+
+  test("keeps local development pointed at the local API server", () => {
+    expect(
+      resolveApiOrigin(undefined, {
+        hostname: "127.0.0.1",
+        protocol: "http:",
+      }),
+    ).toBe("http://127.0.0.1:8787");
+  });
+
+  test("does not guess an API for unrelated https hosts", () => {
+    expect(
+      resolveApiOrigin(undefined, {
+        hostname: "example.com",
+        protocol: "https:",
+      }),
+    ).toBeUndefined();
+  });
+});
 
 describe("analyzeWithAi", () => {
   afterEach(() => {

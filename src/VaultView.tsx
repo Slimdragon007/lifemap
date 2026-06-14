@@ -1,9 +1,13 @@
 import {
   Archive,
   CalendarDays,
+  CheckCircle2,
+  ChevronDown,
+  Eye,
   FileText,
   HeartPulse,
   IdCard,
+  LockKeyhole,
   PawPrint,
   ShieldCheck,
   Stethoscope,
@@ -16,6 +20,7 @@ import {
   recurringCareItems,
   vaultItems,
   type VaultCategory,
+  type VaultItem,
 } from "./familyOS";
 import type { LifeMapAnalysis } from "./lifemap";
 
@@ -49,6 +54,11 @@ function VaultView({
   const [activeCategory, setActiveCategory] = useState<VaultCategory | "all">(
     "all",
   );
+  const [expandedProfileIds, setExpandedProfileIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [selectedVaultItem, setSelectedVaultItem] = useState<VaultItem>();
+  const [isSensitiveVisible, setIsSensitiveVisible] = useState(false);
   const analysisItems = useMemo(
     () => buildVaultItemsFromAnalysis(analysis),
     [analysis],
@@ -77,6 +87,23 @@ function VaultView({
     (item) => item.status === "Needs update" || item.status === "Expires soon",
   );
 
+  function toggleProfile(id: string) {
+    setExpandedProfileIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function openVaultItem(item: VaultItem) {
+    setSelectedVaultItem(item);
+    setIsSensitiveVisible(false);
+  }
+
   return (
     <section className="workspace vault-workspace" aria-labelledby="vault-title">
       <header className="topbar">
@@ -86,18 +113,17 @@ function VaultView({
             Household source of truth
           </span>
           <h1 id="vault-title">Vault</h1>
-          <p>Insurance cards, IDs, vaccines, school records, and pet documents.</p>
+          <p>Insurance cards, IDs, passports, vaccines, school, pets, and travel records.</p>
           <span className="storage-note">
-            Current AI missing-info records appear here until secure document
-            storage is connected.
+            Sensitive details stay tucked away until you open a record.
           </span>
         </div>
         <div className="status-strip" aria-label="Vault summary">
           <span className="status-pill calm">{allItems.length} records</span>
           <span className="status-pill warning">
-            {urgentItems.length} need attention
+            {urgentItems.length} quick looks
           </span>
-          <span className="status-pill urgent">
+          <span className="status-pill calm">
             {visibleAnalysisItems.length} from AI
           </span>
         </div>
@@ -115,15 +141,38 @@ function VaultView({
 
           <div className="profile-list">
             {familyMembers.map((member) => (
-              <article className="profile-card" key={member.id}>
-                <span className={`profile-avatar profile-${member.profileType}`}>
-                  {member.initials}
-                </span>
-                <div>
-                  <div className="profile-card-top">
-                    <h3>{member.name}</h3>
-                    <span>{member.role}</span>
-                  </div>
+              <article
+                className={
+                  expandedProfileIds.has(member.id)
+                    ? "profile-card profile-card-expanded"
+                    : "profile-card"
+                }
+                key={member.id}
+              >
+                <button
+                  aria-expanded={expandedProfileIds.has(member.id)}
+                  className="profile-card-toggle"
+                  type="button"
+                  onClick={() => toggleProfile(member.id)}
+                >
+                  <span className={`profile-avatar profile-${member.profileType}`}>
+                    {member.initials}
+                  </span>
+                  <span>
+                    <span className="profile-card-top">
+                      <h3>{member.name}</h3>
+                      <span>{member.role}</span>
+                    </span>
+                    <small>
+                      {expandedProfileIds.has(member.id)
+                        ? "Details are visible"
+                        : "Tap to reveal private details"}
+                    </small>
+                  </span>
+                  <ChevronDown size={17} />
+                </button>
+                {expandedProfileIds.has(member.id) ? (
+                  <div className="profile-hidden-details">
                   <dl className="profile-details">
                     {member.details.map((detail) => (
                       <div key={`${member.id}-${detail.label}`}>
@@ -137,7 +186,8 @@ function VaultView({
                       <li key={note}>{note}</li>
                     ))}
                   </ul>
-                </div>
+                  </div>
+                ) : null}
               </article>
             ))}
           </div>
@@ -198,6 +248,7 @@ function VaultView({
                 item={item}
                 key={item.id}
                 onDismissSuggestion={onDismissSuggestion}
+                onOpenDetails={() => openVaultItem(item)}
                 onSaveSuggestion={onSaveSuggestion}
               />
             ))}
@@ -253,6 +304,14 @@ function VaultView({
           </div>
         </aside>
       </div>
+      {selectedVaultItem ? (
+        <VaultDetailDialog
+          isSensitiveVisible={isSensitiveVisible}
+          item={selectedVaultItem}
+          onClose={() => setSelectedVaultItem(undefined)}
+          onReveal={() => setIsSensitiveVisible(true)}
+        />
+      ) : null}
     </section>
   );
 }
@@ -262,11 +321,13 @@ function VaultCard({
   isSaved,
   onSaveSuggestion,
   onDismissSuggestion,
+  onOpenDetails,
 }: {
-  item: ReturnType<typeof buildVaultItemsFromAnalysis>[number];
+  item: VaultItem;
   isSaved: boolean;
   onSaveSuggestion: (id: string) => void;
   onDismissSuggestion: (id: string) => void;
+  onOpenDetails: () => void;
 }) {
   const isGenerated = item.id.startsWith("ai-vault-");
 
@@ -293,7 +354,11 @@ function VaultCard({
           {isSaved ? "Saved to LifeMap" : "Needs review"}
         </span>
       ) : null}
-      <p>{item.detail}</p>
+      <p>
+        {isGenerated && !isSaved
+          ? "AI suggestion ready for review."
+          : "Private details hidden until opened."}
+      </p>
       {item.renewalDate ? (
         <small>
           <CalendarDays size={13} />
@@ -318,7 +383,90 @@ function VaultCard({
           </button>
         </div>
       ) : null}
+      <button
+        aria-label={`Open details for ${item.title}`}
+        className="ghost-button compact-button vault-detail-button"
+        type="button"
+        onClick={onOpenDetails}
+      >
+        Open details
+      </button>
     </article>
+  );
+}
+
+function VaultDetailDialog({
+  isSensitiveVisible,
+  item,
+  onClose,
+  onReveal,
+}: {
+  isSensitiveVisible: boolean;
+  item: VaultItem;
+  onClose: () => void;
+  onReveal: () => void;
+}) {
+  return (
+    <div className="modal-backdrop">
+      <section
+        aria-labelledby="vault-detail-title"
+        aria-modal="true"
+        className="review-dialog vault-detail-dialog"
+        role="dialog"
+      >
+        <div className="review-dialog-top">
+          <div>
+            <h2 id="vault-detail-title">{item.title}</h2>
+            <p>
+              {item.owner} · {item.category}
+            </p>
+          </div>
+          <button
+            className="secondary-button compact-button"
+            type="button"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+
+        <article className="vault-private-card">
+          <div>
+            <LockKeyhole size={18} />
+            <span>Private details</span>
+          </div>
+          <p>{isSensitiveVisible ? item.detail : "Hidden until you reveal them."}</p>
+          {isSensitiveVisible ? (
+            <span className="vault-private-state">
+              <CheckCircle2 size={14} />
+              Visible for this session
+            </span>
+          ) : (
+            <button className="secondary-button compact-button" type="button" onClick={onReveal}>
+              <Eye size={15} />
+              Reveal details
+            </button>
+          )}
+        </article>
+
+        <div className="brief-detail-grid">
+          <article className="brief-detail-card">
+            <span>Status</span>
+            <h3>{item.status}</h3>
+            <p>
+              {item.renewalDate
+                ? `Review by ${formatShortDate(item.renewalDate)}.`
+                : "No renewal date saved yet."}
+            </p>
+          </article>
+          <article className="brief-detail-card">
+            <span>Trust note</span>
+            <h3>Human approved</h3>
+            <p>LifeMap can suggest records, but saving stays user-controlled.</p>
+          </article>
+        </div>
+      </section>
+    </div>
   );
 }
 

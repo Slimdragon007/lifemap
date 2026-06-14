@@ -10,6 +10,7 @@ import {
   Inbox,
   LockKeyhole,
   Map,
+  ListChecks,
   MessageSquare,
   Sparkles,
   Send,
@@ -20,17 +21,18 @@ import { useEffect, useMemo, useState } from "react";
 import { analyzeWithAi, generateBriefWithAi } from "./api";
 import {
   buildDailyBriefFromAnalysis,
+  type BriefPriority,
   type DailyBrief,
 } from "./dailyBrief";
 import {
-  analyzeIntake,
   buildApprovalQueue,
   type ApprovalItem,
+  type LifeMapAnalysis,
 } from "./lifemap";
 import { loadStoredDemoState, saveStoredDemoState } from "./storage";
-import BrainDumpView from "./BrainDumpView";
 import CalendarView from "./CalendarView";
 import AuthScreen from "./AuthScreen";
+import LaunchPlanView from "./LaunchPlanView";
 import { useSession } from "./useSession";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import TodayView from "./TodayView";
@@ -40,19 +42,14 @@ import {
   saveRemoteState,
   type RemoteStateClient,
 } from "./remoteState";
+import {
+  presentationAnalysis,
+  presentationBrief,
+  presentationIntake,
+} from "./demoSeed";
 import type { StoredDemoState } from "./storage";
 
-const starterIntake = `From: nurse@WestviewPeds.com
-To: Alex Kim
-Subject: Immunization record + camp form
-
-Hi Alex,
-Casey is missing the Meningococcal (MCV4) vaccine.
-Please get this done and send us
-the updated record by 6/10.
-Also attached is the Summer Camp
-Medical Form.
-Thanks!`;
+const starterIntake = presentationIntake;
 
 const householdAreas = [
   { label: "School", count: 4 },
@@ -78,22 +75,16 @@ Missing:
 Teacher note: Please return the form in the blue folder or email it to Ms. Rivera.`,
   },
   {
-    label: "Medical bill",
-    rawIntake: `From: billing@BrightSmilesDental.com
-To: Alex Kim
-Subject: Casey Kim balance due
+    label: "Doctor appointment",
+    rawIntake: `Portal note from Valley Pediatrics:
 
-Hi Alex,
-Casey's dental sealant visit has a remaining patient balance of $86.40.
-Please pay by 7/2 to avoid a late fee.
-
-We are still waiting on the updated insurance group number before we can rebill.
-You can reply to this email with the insurance card photo.
-Thanks,
-Bright Smiles Billing`,
+Milo Kim follow-up visit is scheduled for Thursday at 3:30 PM.
+Bring the updated medication list and insurance card.
+Missing: pharmacy name for the refill.
+Waiting on Jordan to confirm pickup from school.`,
   },
   {
-    label: "Travel doc",
+    label: "Passport renewal",
     rawIntake: `Text from passport renewal checklist:
 
 Jordan Kim passport renewal for August trip.
@@ -108,6 +99,25 @@ Bring:
 Missing from the packet: printed DS-11 form and photo.
 Waiting on Taylor to confirm they can attend the appointment.`,
   },
+  {
+    label: "Pet vaccine",
+    rawIntake: `Reminder from Desert Paw Vet:
+
+Milo is due for bordetella and rabies boosters before boarding next month.
+Appointment options: Monday 9:00 AM or Wednesday 4:15 PM.
+Bring previous vaccine record if you have it.
+Waiting on boarding facility to confirm which shots they require.`,
+  },
+  {
+    label: "Travel packing",
+    rawIntake: `Notes for Maui trip:
+
+Flight to OGG is June 27.
+Need TSA PreCheck numbers for Alex and Jordan before check-in.
+Pack sunscreen, kids' rash guards, medication, passports, chargers, and swim goggles.
+Missing: rental car confirmation and hotel crib request.
+Ask Taylor to send the rewards account login.`,
+  },
 ];
 
 type StagedRun = {
@@ -115,9 +125,17 @@ type StagedRun = {
   stagedAt: string;
 };
 
-type AppView = "today" | "calendar" | "vault" | "inbox" | "approvals" | "family";
+type AppView =
+  | "today"
+  | "calendar"
+  | "vault"
+  | "review"
+  | "more"
+  | "family"
+  | "launchPlan";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
+type PriorityActionState = "completed" | "snoozed";
 
 function App() {
   const [initialState] = useState(loadStoredDemoState);
@@ -125,9 +143,7 @@ function App() {
     initialState.isLoggedIn ?? false,
   );
   const [intake, setIntake] = useState(initialState.intake ?? starterIntake);
-  const [map, setMap] = useState(
-    initialState.analysis ?? analyzeIntake(starterIntake),
-  );
+  const [map, setMap] = useState(initialState.analysis ?? presentationAnalysis);
   const approvals = useMemo(() => buildApprovalQueue(map), [map]);
   const [disabledApprovals, setDisabledApprovals] = useState<Set<string>>(
     () => new Set(initialState.disabledApprovalIds ?? []),
@@ -161,11 +177,18 @@ function App() {
   >("idle");
   const [analyzeError, setAnalyzeError] = useState<string>();
   const [dailyBrief, setDailyBrief] = useState<DailyBrief>(
-    initialState.dailyBrief ?? buildDailyBriefFromAnalysis(map),
+    initialState.dailyBrief ?? presentationBrief,
   );
   const [briefStatus, setBriefStatus] = useState<BriefStatus>("idle");
   const [briefError, setBriefError] = useState<string>();
+  const [isBriefOpen, setIsBriefOpen] = useState(false);
+  const [selectedPriority, setSelectedPriority] = useState<BriefPriority>();
+  const [priorityActionStates, setPriorityActionStates] = useState<
+    Partial<Record<string, PriorityActionState>>
+  >({});
+  const [toastMessage, setToastMessage] = useState<string>();
   const [view, setView] = useState<AppView>("today");
+  const [isCaptureOpen, setIsCaptureOpen] = useState(false);
   const [remoteLoadedFor, setRemoteLoadedFor] = useState<string>();
   const { session, loading: sessionLoading } = useSession();
   const storedState = useMemo<StoredDemoState>(
@@ -194,6 +217,15 @@ function App() {
   useEffect(() => {
     saveStoredDemoState(storedState);
   }, [storedState]);
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setToastMessage(undefined), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [toastMessage]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !session) {
@@ -344,6 +376,7 @@ function App() {
       setApprovalBodyEdits({});
       setSavedSuggestionIds(new Set());
       setDismissedSuggestionIds(new Set());
+      setPriorityActionStates({});
       setStagedRun(undefined);
       setBriefStatus("idle");
       setAnalyzeStatus("success");
@@ -373,6 +406,16 @@ function App() {
     setStagedRun(undefined);
   }
 
+  function openCapture(rawIntake?: string) {
+    if (rawIntake) {
+      loadSampleIntake(rawIntake);
+    } else {
+      setAnalyzeError(undefined);
+    }
+
+    setIsCaptureOpen(true);
+  }
+
   async function handleGenerateBrief() {
     setBriefStatus("loading");
     setBriefError(undefined);
@@ -387,6 +430,38 @@ function App() {
     setDailyBrief(buildDailyBriefFromAnalysis(map));
     setBriefError(result.error);
     setBriefStatus("fallback");
+  }
+
+  function completeSelectedPriority() {
+    if (!selectedPriority) {
+      return;
+    }
+
+    setPriorityActionStates((current) => ({
+      ...current,
+      [selectedPriority.id]: "completed",
+    }));
+    setToastMessage(`${selectedPriority.label} marked done.`);
+    setSelectedPriority(undefined);
+  }
+
+  function snoozeSelectedPriority() {
+    if (!selectedPriority) {
+      return;
+    }
+
+    setPriorityActionStates((current) => ({
+      ...current,
+      [selectedPriority.id]: "snoozed",
+    }));
+    setToastMessage(`${selectedPriority.label} moved to tomorrow.`);
+    setSelectedPriority(undefined);
+  }
+
+  function routeSelectedPriority(destination: AppView, message: string) {
+    setView(destination);
+    setToastMessage(message);
+    setSelectedPriority(undefined);
   }
 
   if (isSupabaseConfigured && sessionLoading) {
@@ -414,12 +489,12 @@ function App() {
             <span className="brand-mark login-mark">
               <Map size={22} />
             </span>
-            <span>Private family admin AI</span>
+            <span>Private household operating system</span>
           </div>
           <h1 id="login-title">LifeMap</h1>
           <p>
-            Turn messy family admin into due dates, missing info, next actions,
-            reminders, and drafts.
+            Turn real-life logistics into a calm map of what is due, what is
+            missing, who you are waiting on, and what needs approval.
           </p>
           <button
             className="primary-button login-button"
@@ -441,7 +516,7 @@ function App() {
     <>
       <main className={`app-shell view-${view} analyze-${analyzeStatus}`}>
         <div className="ambient-field" aria-hidden="true" />
-        <aside className="sidebar" aria-label="LifeMap navigation">
+        <aside className="sidebar app-nav-shell" aria-label="LifeMap navigation">
           <button
             aria-label="LifeMap home"
             className="brand brand-button"
@@ -454,7 +529,7 @@ function App() {
             <span>LifeMap</span>
           </button>
 
-          <nav className="nav-list" aria-label="Household sections">
+          <nav className="nav-list bottom-nav" aria-label="Household sections">
             <button
               className={view === "today" ? "nav-item active" : "nav-item"}
               type="button"
@@ -472,6 +547,15 @@ function App() {
               <span>Calendar</span>
             </button>
             <button
+              aria-label="Capture"
+              className="nav-capture-button"
+              type="button"
+              onClick={() => openCapture()}
+            >
+              <Inbox size={22} />
+              <span>Capture</span>
+            </button>
+            <button
               className={view === "vault" ? "nav-item active" : "nav-item"}
               type="button"
               onClick={() => setView("vault")}
@@ -480,20 +564,24 @@ function App() {
               <span>Vault</span>
             </button>
             <button
-              className={view === "inbox" ? "nav-item active" : "nav-item"}
+              className={view === "review" ? "nav-item active" : "nav-item"}
               type="button"
-              onClick={() => setView("inbox")}
-            >
-              <Inbox size={18} />
-              <span>Inbox</span>
-            </button>
-            <button
-              className={view === "approvals" ? "nav-item active" : "nav-item"}
-              type="button"
-              onClick={() => setView("approvals")}
+              onClick={() => setView("review")}
             >
               <Bell size={18} />
-              <span>Approvals</span>
+              <span>Review</span>
+            </button>
+            <button
+              className={
+                view === "more" || view === "family" || view === "launchPlan"
+                  ? "nav-item active"
+                  : "nav-item"
+              }
+              type="button"
+              onClick={() => setView("more")}
+            >
+              <Map size={18} />
+              <span>More</span>
             </button>
           </nav>
 
@@ -529,13 +617,18 @@ function App() {
             approvalCount={selectedApprovals.length}
             brief={dailyBrief}
             error={briefError}
-            isDemoMode={!isSupabaseConfigured}
             map={map}
+            priorityActionStates={priorityActionStates}
             status={briefStatus}
+            captureExamples={sampleIntakes}
             onGenerateBrief={handleGenerateBrief}
-            onOpenApprovals={() => setView("approvals")}
-            onOpenBrainDump={() => setView("inbox")}
+            onOpenApprovals={() => setView("review")}
+            onOpenBrief={() => setIsBriefOpen(true)}
+            onOpenBrainDump={openCapture}
+            onOpenCalendar={() => setView("calendar")}
             onOpenFamilyMap={() => setView("family")}
+            onOpenPriority={setSelectedPriority}
+            onOpenVault={() => setView("vault")}
           />
         ) : view === "calendar" ? (
           <CalendarView
@@ -557,15 +650,18 @@ function App() {
           />
         ) : view === "family" ? (
           <>
-            <section className="workspace" aria-labelledby="page-title">
+            <section className="workspace family-workspace" aria-labelledby="page-title">
               <header className="topbar">
                 <div>
                   <span className="workspace-kicker">
                     <Sparkles size={14} />
-                    AI intake workspace
+                    LifeMap AI command center
                   </span>
                   <h1 id="page-title">Family admin map</h1>
-                  <p>School, medical, and household tasks organized.</p>
+                  <p>
+                    A calm control room for messy family admin: due dates,
+                    missing records, waiting-on, next actions, and approvals.
+                  </p>
                   <span className="storage-note">
                     Demo data is stored in this browser only.
                   </span>
@@ -585,6 +681,25 @@ function App() {
                   />
                 </div>
               </header>
+
+              <div className="family-loop-bar" aria-label="LifeMap workflow">
+                <span>
+                  <Inbox size={14} />
+                  Capture
+                </span>
+                <span>
+                  <Sparkles size={14} />
+                  Organize map
+                </span>
+                <span>
+                  <Bell size={14} />
+                  Review approvals
+                </span>
+                <span>
+                  <CheckCircle2 size={14} />
+                  Stage next moves
+                </span>
+              </div>
 
               <div className="work-grid">
                 <section
@@ -644,8 +759,13 @@ function App() {
                     onChange={(event) => setIntake(event.target.value)}
                   />
                   <div className="intake-actions">
-                    <button className="secondary-button" type="button">
-                      Save source
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      onClick={() => openCapture()}
+                    >
+                      <Inbox size={16} />
+                      Open LifeMap AI
                     </button>
                     <button
                       className="primary-button"
@@ -763,15 +883,15 @@ function App() {
               onToggle={toggleApproval}
             />
           </>
-        ) : view === "approvals" ? (
-          <section className="workspace approval-workspace" aria-labelledby="approvals-title">
+        ) : view === "review" ? (
+          <section className="workspace approval-workspace" aria-labelledby="review-title">
             <header className="topbar">
               <div>
                 <span className="workspace-kicker">
                   <Bell size={14} />
                   Approval center
                 </span>
-                <h1 id="approvals-title">Approvals</h1>
+                <h1 id="review-title">Review</h1>
                 <p>Review drafts and reminders before anything leaves LifeMap.</p>
                 <span className="storage-note">
                   Nothing sends automatically.
@@ -799,10 +919,42 @@ function App() {
               onToggle={toggleApproval}
             />
           </section>
+        ) : view === "launchPlan" ? (
+          <LaunchPlanView onBack={() => setView("more")} />
         ) : (
-          <BrainDumpView />
+          <MoreView
+            isSupabaseConfigured={isSupabaseConfigured}
+            sessionEmail={session?.user.email}
+            onOpenFamilyMap={() => setView("family")}
+            onOpenCapture={() => openCapture()}
+            onOpenLaunchPlan={() => setView("launchPlan")}
+            onSignOut={() => getSupabase().auth.signOut()}
+          />
         )}
       </main>
+      {isCaptureOpen ? (
+        <CaptureSheet
+          analyzeError={analyzeError}
+          analyzeStatus={analyzeStatus}
+          examples={sampleIntakes}
+          intake={intake}
+          map={map}
+          onAnalyze={handleAnalyze}
+          onClose={() => setIsCaptureOpen(false)}
+          onIntakeChange={(nextIntake) => {
+            setIntake(nextIntake);
+            if (analyzeStatus !== "loading") {
+              setAnalyzeStatus("idle");
+              setAnalyzeError(undefined);
+            }
+          }}
+          onLoadExample={loadSampleIntake}
+          onReview={() => {
+            setIsCaptureOpen(false);
+            setView("review");
+          }}
+        />
+      ) : null}
       {isReviewOpen ? (
         <ReviewDialog
           approvals={selectedApprovals}
@@ -810,7 +962,572 @@ function App() {
           onStage={stageSelectedApprovals}
         />
       ) : null}
+      {isBriefOpen ? (
+        <DailyBriefDialog
+          brief={dailyBrief}
+          onClose={() => setIsBriefOpen(false)}
+          onOpenApprovals={() => {
+            setIsBriefOpen(false);
+            setView("review");
+          }}
+        />
+      ) : null}
+      {selectedPriority ? (
+        <PriorityActionDialog
+          priority={selectedPriority}
+          onAddToCalendar={() =>
+            routeSelectedPriority(
+              "calendar",
+              "Calendar suggestions stay review-gated.",
+            )
+          }
+          onClose={() => setSelectedPriority(undefined)}
+          onComplete={completeSelectedPriority}
+          onDraftMessage={() =>
+            routeSelectedPriority("review", "Drafts wait in Review.")
+          }
+          onSaveToVault={() =>
+            routeSelectedPriority("vault", "Supporting info routed to Vault.")
+          }
+          onSnooze={snoozeSelectedPriority}
+        />
+      ) : null}
+      {toastMessage ? <Toast message={toastMessage} /> : null}
     </>
+  );
+}
+
+function CaptureSheet({
+  analyzeError,
+  analyzeStatus,
+  examples,
+  intake,
+  map,
+  onAnalyze,
+  onClose,
+  onIntakeChange,
+  onLoadExample,
+  onReview,
+}: {
+  analyzeError?: string;
+  analyzeStatus: "idle" | "loading" | "success" | "error" | "fallback";
+  examples: typeof sampleIntakes;
+  intake: string;
+  map: LifeMapAnalysis;
+  onAnalyze: () => void;
+  onClose: () => void;
+  onIntakeChange: (intake: string) => void;
+  onLoadExample: (rawIntake: string) => void;
+  onReview: () => void;
+}) {
+  const hasIntake = intake.trim().length > 0;
+
+  return (
+    <div className="sheet-layer" role="presentation">
+      <button
+        aria-label="Close LifeMap AI capture"
+        className="sheet-backdrop"
+        type="button"
+        onClick={onClose}
+      />
+      <section
+        aria-labelledby="capture-sheet-title"
+        aria-modal="true"
+        className="capture-sheet"
+        role="dialog"
+      >
+        <div className="brain-dump-composer lifemap-ai-composer">
+          <header className="composer-header">
+            <div>
+              <span className="workspace-kicker">
+                <Sparkles size={14} />
+                LifeMap AI
+              </span>
+              <h1 id="capture-sheet-title">Ask LifeMap AI</h1>
+              <p>
+                Paste the messy email, screenshot notes, form, or travel list.
+                LifeMap turns it into due items, missing info, waiting-on,
+                next actions, reminders, and drafts.
+              </p>
+              <span className="storage-note">
+                Drafts stay approval-gated. Nothing sends automatically.
+              </span>
+            </div>
+            <div className="status-strip" aria-label="Current map summary">
+              <span className="status-pill urgent">
+                {map.dueItems.length} due
+              </span>
+              <span className="status-pill warning">
+                {map.missingInfo.length} missing
+              </span>
+              <span className="status-pill calm">
+                {map.nextActions.length} actions
+              </span>
+            </div>
+            <button className="sheet-close" type="button" onClick={onClose}>
+              Close
+            </button>
+          </header>
+
+          <div className="example-chip-row" aria-label="Try an example">
+            {examples.map((example) => (
+              <button
+                className="example-chip"
+                key={example.label}
+                type="button"
+                onClick={() => onLoadExample(example.rawIntake)}
+              >
+                {example.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="composer-grid">
+            <section className="panel intake-panel" aria-labelledby="ai-intake-title">
+              <div className="panel-heading">
+                <div>
+                  <h2 id="ai-intake-title">Paste anything messy</h2>
+                  <span>Life admin, school, health, home, pets, or travel</span>
+                </div>
+                <Inbox size={18} />
+              </div>
+              <textarea
+                aria-label="Messy life admin intake"
+                value={intake}
+                wrap="soft"
+                onChange={(event) => onIntakeChange(event.target.value)}
+              />
+              <div className="intake-actions">
+                <button
+                  className="primary-button"
+                  type="button"
+                  disabled={analyzeStatus === "loading" || !hasIntake}
+                  onClick={onAnalyze}
+                >
+                  {analyzeStatus === "loading" ? (
+                    <>
+                      <span className="spinner" aria-hidden="true" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      Analyze intake
+                      <ChevronRight size={16} />
+                    </>
+                  )}
+                </button>
+                {analyzeStatus === "success" ? (
+                  <button className="secondary-button" type="button" onClick={onReview}>
+                    Review drafts
+                  </button>
+                ) : null}
+              </div>
+              <CaptureAnalyzeNotice
+                error={analyzeError}
+                map={map}
+                status={analyzeStatus}
+              />
+            </section>
+
+            <section
+              className="panel map-panel capture-result-panel"
+              aria-labelledby="capture-result-title"
+            >
+              <div className="panel-heading">
+                <div>
+                  <h2 id="capture-result-title">What LifeMap will organize</h2>
+                  <span>Results route into Today, Vault, Calendar, and Review.</span>
+                </div>
+                <ShieldCheck size={18} />
+              </div>
+              <div className="capture-summary-grid" aria-label="Current analysis counts">
+                <div>
+                  <strong>{map.dueItems.length}</strong>
+                  <span>due</span>
+                </div>
+                <div>
+                  <strong>{map.missingInfo.length}</strong>
+                  <span>missing</span>
+                </div>
+                <div>
+                  <strong>{map.waitingOn.length}</strong>
+                  <span>waiting</span>
+                </div>
+                <div>
+                  <strong>{map.nextActions.length}</strong>
+                  <span>actions</span>
+                </div>
+              </div>
+              <ol className="capture-route-list">
+                <li>Today gets the top priorities.</li>
+                <li>Vault keeps records and missing documents.</li>
+                <li>Calendar shows deadlines and appointments.</li>
+                <li>Review holds reminders and drafts for approval.</li>
+              </ol>
+            </section>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function CaptureAnalyzeNotice({
+  status,
+  error,
+  map,
+}: {
+  status: "idle" | "loading" | "success" | "error" | "fallback";
+  error?: string;
+  map: LifeMapAnalysis;
+}) {
+  if (status === "loading") {
+    return (
+      <p className="analyze-notice" aria-live="polite">
+        LifeMap AI is turning this into your map...
+      </p>
+    );
+  }
+
+  if (status === "success") {
+    return (
+      <div className="capture-success-card" role="status" aria-live="polite">
+        <CheckCircle2 size={18} />
+        <p>
+          I found {map.dueItems.length} due{" "}
+          {pluralize("item", map.dueItems.length)}, {map.missingInfo.length}{" "}
+          missing {pluralize("record", map.missingInfo.length)},{" "}
+          {map.waitingOn.length} {pluralize("person", map.waitingOn.length)}{" "}
+          waiting, and {map.nextActions.length} next{" "}
+          {pluralize("action", map.nextActions.length)}.
+        </p>
+      </div>
+    );
+  }
+
+  if (status === "fallback") {
+    return (
+      <p className="analyze-notice error" aria-live="polite">
+        <span>{error}</span>
+        <span>Showing the local parser so the workflow still works.</span>
+      </p>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <p className="analyze-notice error" aria-live="polite">
+        {error}
+      </p>
+    );
+  }
+
+  return null;
+}
+
+function pluralize(label: string, count: number) {
+  return count === 1 ? label : `${label}s`;
+}
+
+function MoreView({
+  isSupabaseConfigured,
+  sessionEmail,
+  onOpenFamilyMap,
+  onOpenCapture,
+  onOpenLaunchPlan,
+  onSignOut,
+}: {
+  isSupabaseConfigured: boolean;
+  sessionEmail?: string;
+  onOpenFamilyMap: () => void;
+  onOpenCapture: () => void;
+  onOpenLaunchPlan: () => void;
+  onSignOut: () => void;
+}) {
+  return (
+    <section className="workspace more-workspace" aria-labelledby="more-title">
+      <header className="topbar compact-topbar">
+        <div>
+          <span className="workspace-kicker">
+            <Map size={14} />
+            LifeMap controls
+          </span>
+          <h1 id="more-title">More</h1>
+          <p>Deep admin tools, privacy notes, and demo controls.</p>
+        </div>
+      </header>
+
+      <div className="more-grid">
+        <button
+          aria-label="Open family admin map"
+          className="more-card"
+          type="button"
+          onClick={onOpenFamilyMap}
+        >
+          <span className="brand-mark">
+            <Sparkles size={18} />
+          </span>
+          <strong>Family admin map</strong>
+          <span>Open the full extraction workspace for emails and forms.</span>
+          <ChevronRight size={16} />
+        </button>
+        <button
+          aria-label="Open LifeMap AI capture"
+          className="more-card"
+          type="button"
+          onClick={onOpenCapture}
+        >
+          <span className="brand-mark">
+            <Inbox size={18} />
+          </span>
+          <strong>LifeMap AI capture</strong>
+          <span>Paste messy context and turn it into an organized map.</span>
+          <ChevronRight size={16} />
+        </button>
+        <button
+          aria-label="Open launch plan"
+          className="more-card"
+          type="button"
+          onClick={onOpenLaunchPlan}
+        >
+          <span className="brand-mark">
+            <ListChecks size={18} />
+          </span>
+          <strong>Launch Plan</strong>
+          <span>Review MVP readiness, to-dos, and founder demo progress.</span>
+          <ChevronRight size={16} />
+        </button>
+        <article className="more-card more-card-static">
+          <span className="brand-mark">
+            <LockKeyhole size={18} />
+          </span>
+          <strong>Private by default</strong>
+          <span>
+            Drafts and reminders stay approval-gated. Nothing sends
+            automatically.
+          </span>
+        </article>
+        {isSupabaseConfigured ? (
+          <button className="more-card" type="button" onClick={onSignOut}>
+            <span className="brand-mark">
+              <UserRoundCheck size={18} />
+            </span>
+            <strong>Sign out</strong>
+            <span>{sessionEmail ?? "Signed in with Supabase"}</span>
+            <ChevronRight size={16} />
+          </button>
+        ) : (
+          <article className="more-card more-card-static">
+            <span className="brand-mark">
+              <ShieldCheck size={18} />
+            </span>
+            <strong>Browser-only demo</strong>
+            <span>Demo data is stored in this browser only.</span>
+          </article>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function DailyBriefDialog({
+  brief,
+  onClose,
+  onOpenApprovals,
+}: {
+  brief: DailyBrief;
+  onClose: () => void;
+  onOpenApprovals: () => void;
+}) {
+  return (
+    <div className="modal-backdrop">
+      <section
+        aria-labelledby="daily-brief-dialog-title"
+        aria-modal="true"
+        className="review-dialog action-dialog"
+        role="dialog"
+      >
+        <div className="review-dialog-top">
+          <div>
+            <h2 id="daily-brief-dialog-title">Daily Brief details</h2>
+            <p>
+              A calmer view of what matters today, what is open, and what can
+              wait.
+            </p>
+          </div>
+          <button
+            className="secondary-button compact-button"
+            type="button"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="brief-detail-grid">
+          <article className="brief-detail-card primary-brief-detail">
+            <span>Today</span>
+            <h3>{brief.todaySummary}</h3>
+            <p>{brief.groundingNote}</p>
+          </article>
+          <BriefDetailList
+            emptyText="No top priorities right now."
+            items={brief.topPriorities.map((priority) => ({
+              id: priority.id,
+              title: priority.label,
+              detail: priority.reason,
+            }))}
+            title="Top 3"
+          />
+          <BriefDetailList
+            emptyText="No blocked loops in the current map."
+            items={brief.openLoops.map((loop) => ({
+              id: loop.id,
+              title: loop.label,
+              detail: loop.blockedBy,
+            }))}
+            title="Open loops"
+          />
+          <BriefDetailList
+            emptyText="Nothing has been marked as waitable yet."
+            items={brief.canWait.map((item) => ({
+              id: item.id,
+              title: item.label,
+              detail: item.reason,
+            }))}
+            title="Can wait"
+          />
+        </div>
+
+        <div className="review-actions">
+          <button className="secondary-button" type="button" onClick={onClose}>
+            Back to Today
+          </button>
+          <button className="primary-button" type="button" onClick={onOpenApprovals}>
+            Review approvals
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function BriefDetailList({
+  emptyText,
+  items,
+  title,
+}: {
+  emptyText: string;
+  items: Array<{ id: string; title: string; detail: string }>;
+  title: string;
+}) {
+  return (
+    <article className="brief-detail-card">
+      <span>{title}</span>
+      {items.length > 0 ? (
+        <ul>
+          {items.map((item) => (
+            <li key={item.id}>
+              <strong>{item.title}</strong>
+              <small>{item.detail}</small>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>{emptyText}</p>
+      )}
+    </article>
+  );
+}
+
+function PriorityActionDialog({
+  priority,
+  onAddToCalendar,
+  onClose,
+  onComplete,
+  onDraftMessage,
+  onSaveToVault,
+  onSnooze,
+}: {
+  priority: BriefPriority;
+  onAddToCalendar: () => void;
+  onClose: () => void;
+  onComplete: () => void;
+  onDraftMessage: () => void;
+  onSaveToVault: () => void;
+  onSnooze: () => void;
+}) {
+  return (
+    <div className="modal-backdrop">
+      <section
+        aria-labelledby="priority-action-dialog-title"
+        aria-modal="true"
+        className="review-dialog action-dialog"
+        role="dialog"
+      >
+        <div className="review-dialog-top">
+          <div>
+            <h2 id="priority-action-dialog-title">{priority.label}</h2>
+            <p>{priority.reason}</p>
+          </div>
+          <button
+            className="secondary-button compact-button"
+            type="button"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="priority-action-grid">
+          <button className="priority-action-button" type="button" onClick={onComplete}>
+            <CheckCircle2 size={18} />
+            <span>
+              <strong>Mark complete</strong>
+              <small>Clear it from today's mental load.</small>
+            </span>
+          </button>
+          <button className="priority-action-button" type="button" onClick={onSnooze}>
+            <Clock3 size={18} />
+            <span>
+              <strong>Snooze to tomorrow</strong>
+              <small>Keep it visible without making today louder.</small>
+            </span>
+          </button>
+          <button className="priority-action-button" type="button" onClick={onSaveToVault}>
+            <ShieldCheck size={18} />
+            <span>
+              <strong>Save info to Vault</strong>
+              <small>Move supporting details into the source of truth.</small>
+            </span>
+          </button>
+          <button className="priority-action-button" type="button" onClick={onAddToCalendar}>
+            <CalendarDays size={18} />
+            <span>
+              <strong>Add to Calendar</strong>
+              <small>Stage a time-based suggestion for review.</small>
+            </span>
+          </button>
+          <button className="priority-action-button wide" type="button" onClick={onDraftMessage}>
+            <MessageSquare size={18} />
+            <span>
+              <strong>Draft a message</strong>
+              <small>LifeMap prepares it, but you approve before anything sends.</small>
+            </span>
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function Toast({ message }: { message: string }) {
+  return (
+    <div className="lifemap-toast" role="status" aria-live="polite">
+      <Sparkles size={16} />
+      <span>{message}</span>
+    </div>
   );
 }
 
@@ -897,6 +1614,10 @@ function ApprovalQueue({
         <h2>Approval queue</h2>
         <span>{selectedCount} selected</span>
       </div>
+      <p className="rail-copy">
+        Every reminder and message pauses here before anything leaves your
+        hands.
+      </p>
       {stagedRun ? <StagedSummary run={stagedRun} /> : null}
       <div className="approval-list">
         {editedApprovals.map((item) => (

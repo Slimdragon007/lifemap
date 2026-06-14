@@ -8,6 +8,7 @@
     "dev:web": "vite --host 0.0.0.0 --port 5173",
     "dev:api": "node scripts/api-server.mjs",
     "deploy:api": "wrangler deploy",
+    "verify:production": "node scripts/verify-production.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest run",

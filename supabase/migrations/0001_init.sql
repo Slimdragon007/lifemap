@@ -120,6 +120,19 @@ alter table public.briefings       enable row level security;
 alter table public.user_memory     enable row level security;
 alter table public.mental_models   enable row level security;
 
+-- Supabase 2026 Data API behavior requires explicit table grants for new
+-- public tables. RLS below still controls which rows each user can access.
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on
+  public.profiles,
+  public.domains,
+  public.life_items,
+  public.intake_analyses,
+  public.briefings,
+  public.user_memory
+to authenticated;
+grant select on public.mental_models to authenticated;
+
 -- Owner-only policies for user-scoped tables.
 create policy "own profile"        on public.profiles
   for all using (auth.uid() = id) with check (auth.uid() = id);

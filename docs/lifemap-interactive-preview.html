@@ -1,0 +1,2182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LifeMap Interactive Preview</title>
+    <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+      :root {
+        --deep-slate: #121826;
+        --slate-2: #1b2334;
+        --warm-bone: #f3efe6;
+        --soft-ivory: #faf7f2;
+        --intelligence-blue: #3a6bff;
+        --blue-soft: #dce7ff;
+        --clay: #d26a4a;
+        --clay-soft: #f7ded5;
+        --muted-plum: #5a4661;
+        --plum-soft: #efe7f0;
+        --sage: #7fa284;
+        --sage-soft: #e7f0e8;
+        --ink: #161b25;
+        --muted: #6b7280;
+        --line: rgba(18, 24, 38, 0.11);
+        --shadow: 0 18px 50px rgba(18, 24, 38, 0.16);
+        --shadow-soft: 0 10px 28px rgba(18, 24, 38, 0.1);
+        --radius: 20px;
+        --radius-sm: 14px;
+        color-scheme: light;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-height: 100%;
+        background:
+          radial-gradient(circle at 18% 12%, rgba(58, 107, 255, 0.16), transparent 28%),
+          radial-gradient(circle at 82% 18%, rgba(210, 106, 74, 0.18), transparent 28%),
+          linear-gradient(135deg, #f8f3ea 0%, #fdfaf6 42%, #edf3ff 100%);
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        color: var(--ink);
+      }
+
+      button,
+      textarea,
+      input {
+        font: inherit;
+      }
+
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+
+      .page {
+        min-height: 100vh;
+        padding: 34px;
+        display: grid;
+        place-items: center;
+      }
+
+      .prototype-stage {
+        width: min(1180px, 100%);
+        display: grid;
+        grid-template-columns: minmax(260px, 0.9fr) minmax(360px, 440px) minmax(260px, 0.86fr);
+        gap: 34px;
+        align-items: center;
+      }
+
+      .brand-panel,
+      .notes-panel {
+        padding: 8px 4px;
+      }
+
+      .brand-mark {
+        width: 92px;
+        height: 92px;
+        border-radius: 26px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 28px;
+        color: white;
+        background:
+          linear-gradient(145deg, rgba(58, 107, 255, 0.8), rgba(210, 106, 74, 0.85)),
+          var(--deep-slate);
+        box-shadow: 0 22px 38px rgba(18, 24, 38, 0.24);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .brand-mark::before {
+        content: "";
+        width: 58px;
+        height: 42px;
+        border-left: 5px solid #7aa2ff;
+        border-bottom: 5px solid #7aa2ff;
+        border-radius: 4px;
+        transform: translateX(-5px);
+      }
+
+      .brand-mark::after {
+        content: "";
+        position: absolute;
+        width: 43px;
+        height: 38px;
+        border-top: 5px solid #efae8f;
+        border-right: 5px solid #efae8f;
+        transform: rotate(45deg) translate(6px, -4px);
+        border-radius: 3px;
+      }
+
+      .brand-title {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(44px, 7vw, 74px);
+        line-height: 0.95;
+        margin: 0 0 24px;
+        color: var(--deep-slate);
+        letter-spacing: 0;
+      }
+
+      .brand-subtitle {
+        font-size: 22px;
+        line-height: 1.38;
+        margin: 0 0 26px;
+        color: var(--deep-slate);
+        max-width: 300px;
+      }
+
+      .brand-subtitle em {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1.12em;
+      }
+
+      .brand-copy {
+        color: #364054;
+        line-height: 1.65;
+        margin: 0 0 34px;
+        max-width: 330px;
+      }
+
+      .principle-list {
+        display: grid;
+        gap: 18px;
+      }
+
+      .principle {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .principle span {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        color: var(--deep-slate);
+      }
+
+      .principle strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .principle small {
+        display: block;
+        color: #5c6574;
+        line-height: 1.45;
+      }
+
+      .phone-frame {
+        width: min(430px, 100%);
+        margin: 0 auto;
+        border-radius: 52px;
+        padding: 13px;
+        background: #090d16;
+        box-shadow:
+          0 28px 80px rgba(18, 24, 38, 0.35),
+          inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+      }
+
+      .phone-screen {
+        position: relative;
+        height: 820px;
+        max-height: calc(100vh - 94px);
+        min-height: 720px;
+        overflow: hidden;
+        border-radius: 40px;
+        background: var(--soft-ivory);
+      }
+
+      .phone-status {
+        height: 38px;
+        padding: 12px 24px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--deep-slate);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .dynamic-island {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        width: 118px;
+        height: 30px;
+        border-radius: 99px;
+        background: #05070b;
+        transform: translateX(-50%);
+      }
+
+      .status-icons {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+      }
+
+      .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .app-shell {
+        position: absolute;
+        inset: 38px 0 0;
+        display: grid;
+        grid-template-rows: 1fr 78px;
+      }
+
+      .view {
+        overflow-y: auto;
+        padding: 18px 19px 22px;
+        display: none;
+        scrollbar-width: none;
+      }
+
+      .view::-webkit-scrollbar {
+        display: none;
+      }
+
+      .view.active {
+        display: block;
+        animation: page-in 280ms ease both;
+      }
+
+      @keyframes page-in {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .app-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .wordmark {
+        display: block;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 22px;
+        color: var(--deep-slate);
+        margin-bottom: 12px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      .app-header h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 36px;
+        line-height: 0.95;
+        margin: 0 0 5px;
+        color: var(--deep-slate);
+        letter-spacing: 0;
+      }
+
+      .app-header p {
+        margin: 0;
+        color: #727887;
+        font-size: 13px;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-button {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        color: var(--deep-slate);
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid var(--line);
+        box-shadow: 0 8px 18px rgba(18, 24, 38, 0.06);
+        transition:
+          transform 160ms ease,
+          background 160ms ease,
+          box-shadow 160ms ease;
+      }
+
+      .icon-button:hover,
+      .icon-button:focus-visible {
+        background: white;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .avatar {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: white;
+        background: linear-gradient(145deg, #2f3a50, var(--deep-slate));
+        font-weight: 800;
+        font-size: 12px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.82);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .daily-card {
+        padding: 18px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--intelligence-blue);
+      }
+
+      .card-topline,
+      .section-heading,
+      .record-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--deep-slate);
+      }
+
+      .card-title h2,
+      .section-heading h2 {
+        margin: 0;
+        font-size: 15px;
+      }
+
+      .ai-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--muted-plum);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .daily-copy {
+        margin: 14px 0 14px;
+        display: grid;
+        gap: 5px;
+        font-size: 13px;
+        line-height: 1.4;
+        color: #303847;
+      }
+
+      .text-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        width: fit-content;
+        padding: 9px 11px;
+        border-radius: 12px;
+        color: var(--intelligence-blue);
+        background: var(--blue-soft);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .quiet-note {
+        margin: 12px 0 0;
+        color: #647086;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .section {
+        margin-bottom: 20px;
+      }
+
+      .section-heading {
+        margin-bottom: 10px;
+      }
+
+      .section-heading span {
+        color: #7a8291;
+        font-size: 12px;
+      }
+
+      .priority-list,
+      .record-list,
+      .care-list,
+      .approval-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .priority-card,
+      .record-card,
+      .care-card,
+      .approval-card,
+      .profile-card {
+        width: 100%;
+        text-align: left;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.88);
+        border-radius: 18px;
+        box-shadow: 0 8px 20px rgba(18, 24, 38, 0.06);
+        transition:
+          transform 150ms ease,
+          border-color 150ms ease,
+          box-shadow 150ms ease;
+      }
+
+      .priority-card {
+        padding: 12px;
+        display: grid;
+        grid-template-columns: 40px 1fr auto;
+        gap: 11px;
+        align-items: center;
+      }
+
+      .priority-card:hover,
+      .record-card:hover,
+      .profile-card:hover,
+      .care-card:hover {
+        transform: translateY(-1px);
+        border-color: rgba(58, 107, 255, 0.34);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .priority-icon,
+      .record-icon,
+      .tile-icon {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        background: var(--blue-soft);
+        color: var(--intelligence-blue);
+      }
+
+      .tone-clay {
+        background: var(--clay-soft);
+        color: var(--clay);
+      }
+
+      .tone-plum {
+        background: var(--plum-soft);
+        color: var(--muted-plum);
+      }
+
+      .tone-sage {
+        background: var(--sage-soft);
+        color: var(--sage);
+      }
+
+      .priority-card span.label,
+      .record-card span.label {
+        display: block;
+        color: #7a8291;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .priority-card strong,
+      .record-card strong {
+        display: block;
+        margin: 2px 0;
+        font-size: 13px;
+        color: var(--deep-slate);
+      }
+
+      .priority-card small,
+      .record-card small {
+        display: block;
+        color: #6c7483;
+        font-size: 11px;
+        line-height: 1.35;
+      }
+
+      .status-badge {
+        padding: 7px 9px;
+        border-radius: 999px;
+        white-space: nowrap;
+        background: var(--clay-soft);
+        color: var(--clay);
+        font-size: 10px;
+        font-weight: 850;
+      }
+
+      .status-badge.blue {
+        background: var(--blue-soft);
+        color: var(--intelligence-blue);
+      }
+
+      .status-badge.sage {
+        background: var(--sage-soft);
+        color: #55775c;
+      }
+
+      .area-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .area-tile {
+        min-height: 86px;
+        padding: 12px 8px;
+        display: grid;
+        gap: 5px;
+        justify-items: center;
+        align-content: center;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.86);
+        border: 1px solid var(--line);
+        color: var(--deep-slate);
+        box-shadow: 0 8px 18px rgba(18, 24, 38, 0.05);
+        transition:
+          transform 150ms ease,
+          background 150ms ease;
+      }
+
+      .area-tile:hover {
+        transform: translateY(-2px);
+        background: white;
+      }
+
+      .area-tile strong {
+        font-size: 12px;
+      }
+
+      .area-tile span {
+        color: #758092;
+        font-size: 10px;
+      }
+
+      .capture-card {
+        padding: 15px;
+        margin-bottom: 18px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 14px;
+        background:
+          linear-gradient(135deg, rgba(58, 107, 255, 0.1), rgba(210, 106, 74, 0.11)),
+          rgba(255, 255, 255, 0.86);
+      }
+
+      .capture-card h2 {
+        margin: 0 0 5px;
+        font-size: 15px;
+      }
+
+      .capture-card p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .primary-button,
+      .secondary-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 0 15px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 850;
+        transition:
+          transform 160ms ease,
+          opacity 160ms ease,
+          box-shadow 160ms ease;
+      }
+
+      .primary-button {
+        color: white;
+        background: var(--deep-slate);
+        box-shadow: 0 12px 24px rgba(18, 24, 38, 0.22);
+      }
+
+      .primary-button.clay {
+        background: var(--clay);
+      }
+
+      .secondary-button {
+        color: var(--deep-slate);
+        background: white;
+        border: 1px solid var(--line);
+      }
+
+      .primary-button:hover,
+      .secondary-button:hover {
+        transform: translateY(-1px);
+      }
+
+      .bottom-nav {
+        position: relative;
+        padding: 8px 12px 14px;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 5px;
+        align-items: end;
+        border-top: 1px solid rgba(18, 24, 38, 0.1);
+        background: rgba(250, 247, 242, 0.92);
+        backdrop-filter: blur(16px);
+      }
+
+      .nav-button {
+        min-height: 52px;
+        display: grid;
+        place-items: center;
+        gap: 3px;
+        color: #7b8495;
+        background: transparent;
+        border-radius: 16px;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .nav-button.active {
+        color: var(--deep-slate);
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      .floating-capture {
+        position: absolute;
+        top: -26px;
+        left: 50%;
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: white;
+        background: var(--deep-slate);
+        transform: translateX(-50%);
+        box-shadow: 0 16px 34px rgba(18, 24, 38, 0.32);
+        z-index: 2;
+      }
+
+      .nav-spacer {
+        visibility: hidden;
+      }
+
+      .setup-banner {
+        padding: 14px;
+        margin-bottom: 16px;
+        display: grid;
+        gap: 12px;
+        background: var(--deep-slate);
+        color: white;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .setup-banner strong {
+        font-size: 14px;
+      }
+
+      .setup-banner span {
+        color: rgba(255, 255, 255, 0.76);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .setup-banner .secondary-button {
+        width: fit-content;
+        color: var(--deep-slate);
+      }
+
+      .filter-row,
+      .chip-row {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+      }
+
+      .filter-row::-webkit-scrollbar,
+      .chip-row::-webkit-scrollbar {
+        display: none;
+      }
+
+      .filter-chip,
+      .setup-chip {
+        flex: 0 0 auto;
+        min-height: 34px;
+        padding: 0 13px;
+        border-radius: 999px;
+        color: #4d5668;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid var(--line);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .filter-chip.active,
+      .setup-chip.active {
+        color: white;
+        background: var(--deep-slate);
+        border-color: var(--deep-slate);
+      }
+
+      .record-card {
+        padding: 13px;
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        gap: 12px;
+      }
+
+      .record-top {
+        align-items: flex-start;
+      }
+
+      .profile-card {
+        padding: 13px;
+      }
+
+      .profile-summary {
+        display: grid;
+        grid-template-columns: 42px 1fr auto;
+        gap: 11px;
+        align-items: center;
+      }
+
+      .profile-avatar {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 16px;
+        color: white;
+        background: var(--muted-plum);
+        font-weight: 900;
+        font-size: 13px;
+      }
+
+      .profile-summary strong {
+        display: block;
+        color: var(--deep-slate);
+        font-size: 13px;
+      }
+
+      .profile-summary small {
+        color: #6f7888;
+        font-size: 11px;
+      }
+
+      .profile-details {
+        display: none;
+        margin: 12px 0 0;
+        padding: 12px;
+        border-radius: 15px;
+        background: rgba(18, 24, 38, 0.04);
+      }
+
+      .profile-card.open .profile-details {
+        display: grid;
+        gap: 8px;
+        animation: page-in 180ms ease both;
+      }
+
+      .detail-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 11px;
+        color: #6a7281;
+      }
+
+      .detail-line strong {
+        color: var(--deep-slate);
+      }
+
+      .week-strip {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 7px;
+        margin-bottom: 16px;
+      }
+
+      .day-pill {
+        min-height: 60px;
+        display: grid;
+        justify-items: center;
+        align-content: center;
+        gap: 4px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid var(--line);
+        color: #6c7484;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .day-pill.active {
+        color: white;
+        background: var(--deep-slate);
+      }
+
+      .day-pill strong {
+        font-size: 15px;
+      }
+
+      .care-card,
+      .approval-card {
+        padding: 13px;
+      }
+
+      .care-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .care-card h3,
+      .approval-card h3 {
+        margin: 0 0 4px;
+        color: var(--deep-slate);
+        font-size: 14px;
+      }
+
+      .care-card p,
+      .approval-card p {
+        margin: 0;
+        color: #687283;
+        font-size: 12px;
+        line-height: 1.42;
+      }
+
+      .care-actions,
+      .approval-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .tiny-button {
+        min-height: 32px;
+        padding: 0 11px;
+        border-radius: 999px;
+        color: var(--deep-slate);
+        background: rgba(18, 24, 38, 0.06);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .tiny-button.active {
+        color: white;
+        background: var(--sage);
+      }
+
+      .approval-card textarea,
+      .capture-sheet textarea {
+        width: 100%;
+        min-height: 84px;
+        margin-top: 10px;
+        padding: 12px;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        color: var(--deep-slate);
+        background: rgba(255, 255, 255, 0.82);
+        outline: none;
+        line-height: 1.45;
+      }
+
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .switch {
+        width: 44px;
+        height: 26px;
+        padding: 3px;
+        border-radius: 999px;
+        background: var(--deep-slate);
+      }
+
+      .switch span {
+        display: block;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: white;
+        transition: transform 160ms ease;
+      }
+
+      .switch.off {
+        background: #cfd4dd;
+      }
+
+      .switch.off span {
+        transform: translateX(18px);
+      }
+
+      .more-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .more-card {
+        padding: 14px;
+        display: grid;
+        grid-template-columns: 38px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.82);
+        text-align: left;
+      }
+
+      .more-card strong {
+        display: block;
+        color: var(--deep-slate);
+        font-size: 13px;
+      }
+
+      .more-card small {
+        color: #6c7484;
+        font-size: 11px;
+      }
+
+      .notes-panel h2 {
+        margin: 0 0 18px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 26px;
+        color: var(--deep-slate);
+      }
+
+      .palette-list {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 30px;
+      }
+
+      .swatch-row {
+        display: grid;
+        grid-template-columns: 58px 1fr;
+        gap: 13px;
+        align-items: center;
+      }
+
+      .swatch {
+        height: 54px;
+        border-radius: 14px;
+        border: 1px solid rgba(18, 24, 38, 0.12);
+        box-shadow: 0 8px 18px rgba(18, 24, 38, 0.08);
+      }
+
+      .swatch-row strong {
+        display: block;
+        color: var(--deep-slate);
+        font-size: 13px;
+      }
+
+      .swatch-row small {
+        color: #6b7280;
+        font-size: 12px;
+      }
+
+      .direction-card {
+        padding: 18px;
+        border-radius: var(--radius);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.62);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .direction-card h3 {
+        margin: 0 0 12px;
+        color: var(--deep-slate);
+        font-size: 15px;
+      }
+
+      .direction-card ul {
+        margin: 0;
+        padding: 0 0 0 17px;
+        color: #4f596b;
+        line-height: 1.65;
+        font-size: 13px;
+      }
+
+      .sheet-backdrop {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: flex-end;
+        background: rgba(18, 24, 38, 0.28);
+        z-index: 10;
+      }
+
+      .sheet-backdrop.show {
+        display: flex;
+      }
+
+      .sheet {
+        width: 100%;
+        max-height: 82%;
+        overflow-y: auto;
+        padding: 18px;
+        border-radius: 28px 28px 0 0;
+        background: var(--soft-ivory);
+        box-shadow: 0 -20px 50px rgba(18, 24, 38, 0.22);
+        animation: sheet-in 220ms ease both;
+      }
+
+      @keyframes sheet-in {
+        from {
+          transform: translateY(28px);
+          opacity: 0.6;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .sheet-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .sheet-header h2 {
+        margin: 0 0 5px;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--deep-slate);
+        font-size: 25px;
+      }
+
+      .sheet-header p {
+        margin: 0;
+        color: #6d7585;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .sheet-actions {
+        display: grid;
+        gap: 9px;
+      }
+
+      .action-row {
+        width: 100%;
+        min-height: 48px;
+        padding: 0 13px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: white;
+        color: var(--deep-slate);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .action-row span {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+      }
+
+      .setup-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+        margin: 12px 0 16px;
+      }
+
+      .setup-option {
+        min-height: 82px;
+        padding: 12px;
+        display: grid;
+        gap: 8px;
+        justify-items: start;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.82);
+        color: var(--deep-slate);
+        text-align: left;
+      }
+
+      .setup-option.active {
+        border-color: rgba(58, 107, 255, 0.52);
+        background: #edf3ff;
+      }
+
+      .setup-option strong {
+        font-size: 13px;
+      }
+
+      .setup-option small {
+        color: #687285;
+        line-height: 1.35;
+      }
+
+      .toast {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 96px;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        color: white;
+        background: var(--deep-slate);
+        box-shadow: var(--shadow);
+        z-index: 20;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .toast.show {
+        display: flex;
+        animation: toast-in 260ms ease both;
+      }
+
+      @keyframes toast-in {
+        from {
+          transform: translateY(12px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        border-top-color: white;
+        animation: spin 700ms linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .muted-link {
+        color: var(--intelligence-blue);
+        background: transparent;
+        font-weight: 850;
+        padding: 0;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          transition-duration: 1ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+
+      @media (max-width: 980px) {
+        .page {
+          padding: 18px;
+        }
+
+        .prototype-stage {
+          grid-template-columns: 1fr;
+          gap: 22px;
+        }
+
+        .brand-panel,
+        .notes-panel {
+          max-width: 430px;
+          margin: 0 auto;
+        }
+
+        .brand-panel {
+          display: none;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .page {
+          padding: 0;
+          display: block;
+          background: var(--soft-ivory);
+        }
+
+        .prototype-stage {
+          display: block;
+        }
+
+        .phone-frame {
+          width: 100%;
+          min-height: 100vh;
+          padding: 0;
+          border-radius: 0;
+          box-shadow: none;
+          background: var(--soft-ivory);
+        }
+
+        .phone-screen {
+          min-height: 100vh;
+          height: 100vh;
+          max-height: none;
+          border-radius: 0;
+        }
+
+        .dynamic-island {
+          top: 8px;
+        }
+
+        .notes-panel {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div class="prototype-stage">
+        <aside class="brand-panel" aria-label="LifeMap brand direction">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <h1 class="brand-title">LifeMap</h1>
+          <p class="brand-subtitle">AI chief of staff for <em>real life.</em></p>
+          <p class="brand-copy">
+            A calmer operating system for family logistics: school, health,
+            pets, travel, records, care loops, and the next few actions.
+          </p>
+          <div class="principle-list">
+            <div class="principle">
+              <span><i data-lucide="sparkles"></i></span>
+              <div>
+                <strong>Capture first</strong>
+                <small>Messy inputs become a trusted map.</small>
+              </div>
+            </div>
+            <div class="principle">
+              <span><i data-lucide="lock-keyhole"></i></span>
+              <div>
+                <strong>Private by design</strong>
+                <small>Important details stay hidden until tapped.</small>
+              </div>
+            </div>
+            <div class="principle">
+              <span><i data-lucide="users-round"></i></span>
+              <div>
+                <strong>Built for families</strong>
+                <small>The beautiful chaos gets a daily shape.</small>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <section class="phone-frame" aria-label="Interactive LifeMap app preview">
+          <div class="phone-screen">
+            <div class="dynamic-island" aria-hidden="true"></div>
+            <div class="phone-status" aria-hidden="true">
+              <span>9:41</span>
+              <span class="status-icons">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </span>
+            </div>
+
+            <div class="app-shell">
+              <section class="view active" data-view="today" aria-labelledby="today-title">
+                <header class="app-header">
+                  <div>
+                    <span class="wordmark">LifeMap</span>
+                    <h1 id="today-title">Today</h1>
+                    <p>Friday, June 13</p>
+                  </div>
+                  <div class="header-actions">
+                    <button class="icon-button" type="button" data-action="open-setup" aria-label="Open setup">
+                      <i data-lucide="sliders-horizontal"></i>
+                    </button>
+                    <button class="icon-button" type="button" data-action="open-review" aria-label="Open review">
+                      <i data-lucide="bell"></i>
+                    </button>
+                    <span class="avatar" aria-label="Alex Kim">AK</span>
+                  </div>
+                </header>
+
+                <div class="setup-banner" id="setupBanner">
+                  <strong>Recommended starter map is ready</strong>
+                  <span>Kids, pets, travel, health, school, and documents create the first LifeMap buckets.</span>
+                  <button class="secondary-button" type="button" data-action="open-setup">
+                    Tune setup
+                    <i data-lucide="chevron-right"></i>
+                  </button>
+                </div>
+
+                <section class="daily-card panel" aria-label="Daily Brief">
+                  <div class="card-topline">
+                    <div class="card-title">
+                      <i data-lucide="sparkles"></i>
+                      <h2>Daily Brief</h2>
+                    </div>
+                    <span class="ai-label"><i data-lucide="wand-sparkles"></i>AI</span>
+                  </div>
+                  <div class="daily-copy" id="dailyCopy">
+                    <span>3 things need your attention today.</span>
+                    <span>1 care loop is coming up.</span>
+                    <span>Everyone is on track.</span>
+                  </div>
+                  <button class="text-link" type="button" data-action="open-brief">
+                    View full brief
+                    <i data-lucide="chevron-right"></i>
+                  </button>
+                  <p class="quiet-note">
+                    Based only on saved LifeMap items. Nothing sends or schedules without review.
+                  </p>
+                </section>
+
+                <section class="section" aria-labelledby="capture-title">
+                  <div class="capture-card panel">
+                    <div>
+                      <h2 id="capture-title">Capture something messy</h2>
+                      <p>Paste a school email, doctor note, travel reminder, or chaotic brain dump.</p>
+                    </div>
+                    <button class="primary-button" type="button" data-action="open-capture">
+                      Capture
+                    </button>
+                  </div>
+                </section>
+
+                <section class="section" aria-labelledby="priority-title">
+                  <div class="section-heading">
+                    <h2 id="priority-title">Top priorities</h2>
+                    <span>Tap one</span>
+                  </div>
+                  <div class="priority-list" id="priorityList"></div>
+                </section>
+
+                <section class="section" aria-labelledby="lifemap-title">
+                  <div class="section-heading">
+                    <h2 id="lifemap-title">Your LifeMap</h2>
+                    <span>Starter buckets</span>
+                  </div>
+                  <div class="area-grid">
+                    <button class="area-tile" type="button" data-nav="vault">
+                      <i data-lucide="shield-check"></i>
+                      <strong>Vault</strong>
+                      <span>24 items</span>
+                    </button>
+                    <button class="area-tile" type="button" data-nav="calendar">
+                      <i data-lucide="plane"></i>
+                      <strong>Travel</strong>
+                      <span>3 trips</span>
+                    </button>
+                    <button class="area-tile" type="button" data-nav="vault">
+                      <i data-lucide="heart-pulse"></i>
+                      <strong>Health</strong>
+                      <span>2 updates</span>
+                    </button>
+                    <button class="area-tile" type="button" data-nav="calendar">
+                      <i data-lucide="calendar-days"></i>
+                      <strong>School</strong>
+                      <span>5 tasks</span>
+                    </button>
+                  </div>
+                </section>
+              </section>
+
+              <section class="view" data-view="vault" aria-labelledby="vault-title">
+                <header class="app-header">
+                  <div>
+                    <span class="wordmark">LifeMap</span>
+                    <h1 id="vault-title">Vault</h1>
+                    <p>Private records, profiles, documents, and emergency basics.</p>
+                  </div>
+                  <button class="icon-button" type="button" data-action="open-record" data-record="passport" aria-label="Open passport">
+                    <i data-lucide="lock-keyhole"></i>
+                  </button>
+                </header>
+
+                <section class="daily-card panel">
+                  <div class="card-topline">
+                    <div class="card-title">
+                      <i data-lucide="shield-check"></i>
+                      <h2>Household source of truth</h2>
+                    </div>
+                    <span class="status-badge blue">Calm check</span>
+                  </div>
+                  <p class="quiet-note">
+                    2 records need a quick look. Sensitive values stay hidden until opened.
+                  </p>
+                </section>
+
+                <section class="section">
+                  <div class="section-heading">
+                    <h2>Family profiles</h2>
+                    <span>Tap to reveal</span>
+                  </div>
+                  <div class="priority-list">
+                    <button class="profile-card" type="button" data-profile>
+                      <div class="profile-summary">
+                        <span class="profile-avatar">CK</span>
+                        <div>
+                          <strong>Casey Kim</strong>
+                          <small>School, allergy, forms</small>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                      </div>
+                      <div class="profile-details">
+                        <div class="detail-line"><span>School</span><strong>Westview Elementary</strong></div>
+                        <div class="detail-line"><span>Health note</span><strong>Peanut allergy</strong></div>
+                        <div class="detail-line"><span>Lunch</span><strong>Pizza Friday exception</strong></div>
+                      </div>
+                    </button>
+                    <button class="profile-card" type="button" data-profile>
+                      <div class="profile-summary">
+                        <span class="profile-avatar" style="background: var(--clay)">M</span>
+                        <div>
+                          <strong>Milo</strong>
+                          <small>Pet vaccines, vet, food</small>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                      </div>
+                      <div class="profile-details">
+                        <div class="detail-line"><span>Vet</span><strong>Desert Paws</strong></div>
+                        <div class="detail-line"><span>Rabies</span><strong>Due Jun 20</strong></div>
+                        <div class="detail-line"><span>Food</span><strong>Salmon sensitive</strong></div>
+                      </div>
+                    </button>
+                  </div>
+                </section>
+
+                <section class="section">
+                  <div class="section-heading">
+                    <h2>Documents & records</h2>
+                    <span id="recordCount">7 visible</span>
+                  </div>
+                  <div class="filter-row" id="vaultFilters"></div>
+                  <div class="record-list" id="recordList"></div>
+                </section>
+              </section>
+
+              <section class="view" data-view="calendar" aria-labelledby="calendar-title">
+                <header class="app-header">
+                  <div>
+                    <span class="wordmark">LifeMap</span>
+                    <h1 id="calendar-title">Calendar</h1>
+                    <p>Time, appointments, school dates, and care rhythms.</p>
+                  </div>
+                  <button class="icon-button" type="button" data-action="open-capture" aria-label="Capture event">
+                    <i data-lucide="plus"></i>
+                  </button>
+                </header>
+
+                <div class="week-strip" aria-label="Week preview">
+                  <div class="day-pill"><span>M</span><strong>9</strong></div>
+                  <div class="day-pill"><span>T</span><strong>10</strong></div>
+                  <div class="day-pill"><span>W</span><strong>11</strong></div>
+                  <div class="day-pill"><span>T</span><strong>12</strong></div>
+                  <div class="day-pill active"><span>F</span><strong>13</strong></div>
+                  <div class="day-pill"><span>S</span><strong>14</strong></div>
+                  <div class="day-pill"><span>S</span><strong>15</strong></div>
+                </div>
+
+                <section class="section">
+                  <div class="section-heading">
+                    <h2>Coming up</h2>
+                    <span>Tap to manage</span>
+                  </div>
+                  <div class="care-list">
+                    <article class="care-card panel">
+                      <div class="care-top">
+                        <div>
+                          <h3>Vet rabies booster</h3>
+                          <p>Milo at Desert Paws. Bring vaccine booklet.</p>
+                        </div>
+                        <span class="status-badge">Jun 20</span>
+                      </div>
+                      <div class="care-actions">
+                        <button class="tiny-button" type="button" data-care="complete">Complete</button>
+                        <button class="tiny-button" type="button" data-care="snooze">Snooze</button>
+                        <button class="tiny-button" type="button" data-care="vault">Save note</button>
+                      </div>
+                    </article>
+                    <article class="care-card panel">
+                      <div class="care-top">
+                        <div>
+                          <h3>Passport renewal prep</h3>
+                          <p>DS-11, photo, birth certificate, and parent IDs.</p>
+                        </div>
+                        <span class="status-badge blue">Travel</span>
+                      </div>
+                      <div class="care-actions">
+                        <button class="tiny-button" type="button" data-action="open-record" data-record="passport">Open docs</button>
+                        <button class="tiny-button" type="button" data-care="snooze">Move date</button>
+                      </div>
+                    </article>
+                  </div>
+                </section>
+              </section>
+
+              <section class="view" data-view="review" aria-labelledby="review-title">
+                <header class="app-header">
+                  <div>
+                    <span class="wordmark">LifeMap</span>
+                    <h1 id="review-title">Review</h1>
+                    <p>Approve reminders, drafts, and saves before anything happens.</p>
+                  </div>
+                  <button class="icon-button" type="button" data-action="stage-approvals" aria-label="Stage approvals">
+                    <i data-lucide="check-check"></i>
+                  </button>
+                </header>
+
+                <section class="section">
+                  <div class="section-heading">
+                    <h2>Approval queue</h2>
+                    <span>3 pending</span>
+                  </div>
+                  <div class="approval-list">
+                    <article class="approval-card panel">
+                      <div class="toggle-row">
+                        <div>
+                          <h3>Email Ms. Rivera</h3>
+                          <p>Ask whether the field trip form can be emailed.</p>
+                        </div>
+                        <button class="switch" type="button" aria-label="Toggle approval" data-switch><span></span></button>
+                      </div>
+                      <textarea>Hi Ms. Rivera, can I email Casey's signed field trip permission slip and activity fee confirmation today?</textarea>
+                    </article>
+                    <article class="approval-card panel">
+                      <div class="toggle-row">
+                        <div>
+                          <h3>Reminder: passport packet</h3>
+                          <p>Stage a reminder for the DS-11 form and passport photo.</p>
+                        </div>
+                        <button class="switch" type="button" aria-label="Toggle approval" data-switch><span></span></button>
+                      </div>
+                    </article>
+                    <article class="approval-card panel">
+                      <div class="toggle-row">
+                        <div>
+                          <h3>Save vaccine record</h3>
+                          <p>Add Milo's rabies booster to the Pet Vault.</p>
+                        </div>
+                        <button class="switch" type="button" aria-label="Toggle approval" data-switch><span></span></button>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="approval-actions">
+                    <button class="primary-button clay" type="button" data-action="stage-approvals">
+                      Approve & stage
+                      <i data-lucide="send"></i>
+                    </button>
+                  </div>
+                </section>
+              </section>
+
+              <section class="view" data-view="more" aria-labelledby="more-title">
+                <header class="app-header">
+                  <div>
+                    <span class="wordmark">LifeMap</span>
+                    <h1 id="more-title">More</h1>
+                    <p>Security, settings, and founder demo utilities.</p>
+                  </div>
+                  <button class="icon-button" type="button" data-action="reset-demo" aria-label="Reset demo">
+                    <i data-lucide="refresh-cw"></i>
+                  </button>
+                </header>
+                <div class="more-grid">
+                  <button class="more-card" type="button" data-action="open-setup">
+                    <span class="priority-icon tone-blue"><i data-lucide="sliders-horizontal"></i></span>
+                    <span>
+                      <strong>Setup buckets</strong>
+                      <small>Family, pets, travel, school, health</small>
+                    </span>
+                    <i data-lucide="chevron-right"></i>
+                  </button>
+                  <button class="more-card" type="button" data-action="open-launch">
+                    <span class="priority-icon tone-clay"><i data-lucide="list-checks"></i></span>
+                    <span>
+                      <strong>Launch Plan</strong>
+                      <small>Founder progress and demo readiness</small>
+                    </span>
+                    <i data-lucide="chevron-right"></i>
+                  </button>
+                  <button class="more-card" type="button" data-action="open-brief">
+                    <span class="priority-icon tone-plum"><i data-lucide="shield"></i></span>
+                    <span>
+                      <strong>Privacy & security</strong>
+                      <small>AI suggestions stay approval-gated</small>
+                    </span>
+                    <i data-lucide="chevron-right"></i>
+                  </button>
+                </div>
+              </section>
+
+              <nav class="bottom-nav" aria-label="LifeMap navigation">
+                <button class="nav-button active" type="button" data-nav="today">
+                  <i data-lucide="home"></i>
+                  <span>Today</span>
+                </button>
+                <button class="nav-button" type="button" data-nav="vault">
+                  <i data-lucide="shield-check"></i>
+                  <span>Vault</span>
+                </button>
+                <button class="floating-capture" type="button" data-action="open-capture" aria-label="Capture">
+                  <i data-lucide="plus"></i>
+                </button>
+                <button class="nav-button nav-spacer" type="button" tabindex="-1" aria-hidden="true">
+                  <span>Capture</span>
+                </button>
+                <button class="nav-button" type="button" data-nav="calendar">
+                  <i data-lucide="calendar-days"></i>
+                  <span>Calendar</span>
+                </button>
+                <button class="nav-button" type="button" data-nav="review">
+                  <i data-lucide="square-check-big"></i>
+                  <span>Review</span>
+                </button>
+                <button class="nav-button" type="button" data-nav="more">
+                  <i data-lucide="ellipsis"></i>
+                  <span>More</span>
+                </button>
+              </nav>
+            </div>
+
+            <div class="sheet-backdrop" id="sheetBackdrop" aria-hidden="true">
+              <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+                <div id="sheetContent"></div>
+              </section>
+            </div>
+            <div class="toast" id="toast" role="status" aria-live="polite">
+              <i data-lucide="sparkles"></i>
+              <span id="toastText">Updated</span>
+            </div>
+          </div>
+        </section>
+
+        <aside class="notes-panel" aria-label="Design notes">
+          <h2>Atlas Home palette</h2>
+          <div class="palette-list">
+            <div class="swatch-row">
+              <span class="swatch" style="background: #121826"></span>
+              <span><strong>Deep Slate</strong><small>#121826</small></span>
+            </div>
+            <div class="swatch-row">
+              <span class="swatch" style="background: #f3efe6"></span>
+              <span><strong>Warm Bone</strong><small>#F3EFE6</small></span>
+            </div>
+            <div class="swatch-row">
+              <span class="swatch" style="background: #3a6bff"></span>
+              <span><strong>Intelligence Blue</strong><small>#3A6BFF</small></span>
+            </div>
+            <div class="swatch-row">
+              <span class="swatch" style="background: #d26a4a"></span>
+              <span><strong>Clay Terracotta</strong><small>#D26A4A</small></span>
+            </div>
+            <div class="swatch-row">
+              <span class="swatch" style="background: #5a4661"></span>
+              <span><strong>Muted Plum</strong><small>#5A4661</small></span>
+            </div>
+          </div>
+          <div class="direction-card">
+            <h3>What changed conceptually</h3>
+            <ul>
+              <li>Capture is the main action, not another tab.</li>
+              <li>Vault leads with calm private records.</li>
+              <li>Care loops feel like rhythms, not debt.</li>
+              <li>Every visible row has a tap outcome.</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <script>
+      const priorities = [
+        {
+          id: "school-slip",
+          category: "School",
+          title: "Field trip permission slip",
+          meta: "Due tomorrow - Casey",
+          status: "Due soon",
+          icon: "file-text",
+          tone: "blue",
+        },
+        {
+          id: "passport",
+          category: "Travel",
+          title: "Renew passport",
+          meta: "Due in 12 days - You",
+          status: "Due soon",
+          icon: "plane",
+          tone: "clay",
+        },
+        {
+          id: "vet",
+          category: "Health",
+          title: "Milo vet appointment",
+          meta: "Jun 18 at 10:30 AM",
+          status: "Upcoming",
+          icon: "heart-pulse",
+          tone: "plum",
+        },
+      ];
+
+      const records = [
+        { id: "passport", category: "Travel", title: "Jordan passport renewal", meta: "Expires Nov 12, 2026", status: "Needs prep", icon: "plane" },
+        { id: "insurance", category: "Insurance", title: "Dental insurance card", meta: "Group number missing", status: "Quick look", icon: "badge-plus" },
+        { id: "rabies", category: "Pets", title: "Milo rabies vaccine", meta: "Booster due Jun 20", status: "Upcoming", icon: "paw-print" },
+        { id: "school", category: "School", title: "Lunch schedule", meta: "Pizza Friday exception", status: "Saved", icon: "school" },
+        { id: "id", category: "IDs", title: "Parent IDs", meta: "Hidden until opened", status: "Private", icon: "id-card" },
+        { id: "meds", category: "Health", title: "Casey medication note", meta: "Cetirizine as needed", status: "Private", icon: "stethoscope" },
+        { id: "packing", category: "Travel", title: "Maui packing list", meta: "Sunscreen, passports, meds", status: "Draft", icon: "luggage" },
+      ];
+
+      const filters = ["All", "IDs", "Insurance", "Health", "School", "Pets", "Travel"];
+      let activeFilter = "All";
+      let selectedPriority = null;
+
+      const viewEls = document.querySelectorAll(".view");
+      const navEls = document.querySelectorAll("[data-nav]");
+      const sheetBackdrop = document.getElementById("sheetBackdrop");
+      const sheetContent = document.getElementById("sheetContent");
+      const toast = document.getElementById("toast");
+      const toastText = document.getElementById("toastText");
+
+      function icon(name, size = 18) {
+        return `<i data-lucide="${name}" style="width:${size}px;height:${size}px"></i>`;
+      }
+
+      function refreshIcons() {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      }
+
+      function showToast(message) {
+        toastText.textContent = message;
+        toast.classList.add("show");
+        refreshIcons();
+        window.clearTimeout(showToast.timeout);
+        showToast.timeout = window.setTimeout(() => toast.classList.remove("show"), 2200);
+      }
+
+      function showView(name) {
+        viewEls.forEach((view) => {
+          view.classList.toggle("active", view.dataset.view === name);
+          if (view.dataset.view === name) view.scrollTop = 0;
+        });
+        document.querySelectorAll(".nav-button").forEach((button) => {
+          button.classList.toggle("active", button.dataset.nav === name);
+        });
+      }
+
+      function renderPriorities() {
+        const list = document.getElementById("priorityList");
+        list.innerHTML = priorities.map((item) => `
+          <button class="priority-card" type="button" data-priority="${item.id}">
+            <span class="priority-icon tone-${item.tone}">${icon(item.icon)}</span>
+            <span>
+              <span class="label">${item.category}</span>
+              <strong>${item.title}</strong>
+              <small>${item.meta}</small>
+            </span>
+            <span class="status-badge ${item.status === "Completed" ? "sage" : item.tone === "blue" ? "blue" : ""}">${item.status}</span>
+          </button>
+        `).join("");
+        refreshIcons();
+      }
+
+      function renderFilters() {
+        const row = document.getElementById("vaultFilters");
+        row.innerHTML = filters.map((filter) => `
+          <button class="filter-chip ${filter === activeFilter ? "active" : ""}" type="button" data-filter="${filter}">
+            ${filter}
+          </button>
+        `).join("");
+      }
+
+      function renderRecords() {
+        const list = document.getElementById("recordList");
+        const visible = activeFilter === "All"
+          ? records
+          : records.filter((record) => record.category === activeFilter);
+        document.getElementById("recordCount").textContent = `${visible.length} visible`;
+        list.innerHTML = visible.map((record) => `
+          <button class="record-card" type="button" data-action="open-record" data-record="${record.id}">
+            <span class="record-icon ${record.category === "Travel" ? "tone-blue" : record.category === "Pets" ? "tone-clay" : record.category === "Health" ? "tone-plum" : ""}">
+              ${icon(record.icon)}
+            </span>
+            <span>
+              <span class="record-top">
+                <span>
+                  <span class="label">${record.category}</span>
+                  <strong>${record.title}</strong>
+                  <small>${record.meta}</small>
+                </span>
+                <span class="status-badge ${record.status === "Saved" ? "sage" : record.status === "Private" ? "blue" : ""}">${record.status}</span>
+              </span>
+            </span>
+          </button>
+        `).join("");
+        refreshIcons();
+      }
+
+      function openSheet(html) {
+        sheetContent.innerHTML = html;
+        sheetBackdrop.classList.add("show");
+        sheetBackdrop.setAttribute("aria-hidden", "false");
+        refreshIcons();
+      }
+
+      function closeSheet() {
+        sheetBackdrop.classList.remove("show");
+        sheetBackdrop.setAttribute("aria-hidden", "true");
+      }
+
+      function openPriority(id) {
+        const item = priorities.find((priority) => priority.id === id);
+        selectedPriority = item;
+        openSheet(`
+          <div class="sheet-header">
+            <div>
+              <h2 id="sheetTitle">${item.title}</h2>
+              <p>${item.category} - ${item.meta}. Choose what LifeMap should do next.</p>
+            </div>
+            <button class="icon-button" type="button" data-action="close-sheet" aria-label="Close">${icon("x")}</button>
+          </div>
+          <div class="sheet-actions">
+            <button class="action-row" type="button" data-action="complete-priority">
+              <span>${icon("check-circle-2")} Mark complete</span>
+              ${icon("chevron-right", 16)}
+            </button>
+            <button class="action-row" type="button" data-action="snooze-priority">
+              <span>${icon("clock-3")} Snooze until tomorrow</span>
+              ${icon("chevron-right", 16)}
+            </button>
+            <button class="action-row" type="button" data-action="save-priority">
+              <span>${icon("shield-check")} Save supporting info to Vault</span>
+              ${icon("chevron-right", 16)}
+            </button>
+            <button class="action-row" type="button" data-nav="review">
+              <span>${icon("message-square")} Draft a message for review</span>
+              ${icon("chevron-right", 16)}
+            </button>
+          </div>
+        `);
+      }
+
+      function openBrief() {
+        openSheet(`
+          <div class="sheet-header">
+            <div>
+              <h2 id="sheetTitle">Daily Brief</h2>
+              <p>Today has three useful moves, one care rhythm, and no hard conflicts.</p>
+            </div>
+            <button class="icon-button" type="button" data-action="close-sheet" aria-label="Close">${icon("x")}</button>
+          </div>
+          <div class="priority-list">
+            <article class="care-card panel">
+              <h3>Top 3</h3>
+              <p>Return Casey's field trip slip, prep Jordan's passport packet, and confirm Milo's booster.</p>
+            </article>
+            <article class="care-card panel">
+              <h3>Can wait</h3>
+              <p>Rewards numbers and packing list can wait until the travel packet is saved.</p>
+            </article>
+            <article class="care-card panel">
+              <h3>Grounding note</h3>
+              <p>You do not need to solve the whole map today. Just clear the next three.</p>
+            </article>
+          </div>
+        `);
+      }
+
+      function openSetup() {
+        openSheet(`
+          <div class="sheet-header">
+            <div>
+              <h2 id="sheetTitle">Setup buckets</h2>
+              <p>Select what you manage. LifeMap recommends a starter map from those answers.</p>
+            </div>
+            <button class="icon-button" type="button" data-action="close-sheet" aria-label="Close">${icon("x")}</button>
+          </div>
+          <div class="setup-grid">
+            <button class="setup-option active" type="button" data-setup-option>
+              ${icon("users-round")}
+              <strong>Kids</strong>
+              <small>School, lunches, forms, activities.</small>
+            </button>
+            <button class="setup-option active" type="button" data-setup-option>
+              ${icon("paw-print")}
+              <strong>Pets</strong>
+              <small>Vaccines, vet, medications, food.</small>
+            </button>
+            <button class="setup-option active" type="button" data-setup-option>
+              ${icon("plane")}
+              <strong>Travel</strong>
+              <small>Passports, TSA, rewards, packing.</small>
+            </button>
+            <button class="setup-option active" type="button" data-setup-option>
+              ${icon("heart-pulse")}
+              <strong>Health</strong>
+              <small>Meds, doctors, insurance, vaccines.</small>
+            </button>
+            <button class="setup-option" type="button" data-setup-option>
+              ${icon("home")}
+              <strong>Home</strong>
+              <small>Maintenance, vehicles, bills.</small>
+            </button>
+            <button class="setup-option" type="button" data-setup-option>
+              ${icon("hand-heart")}
+              <strong>Elder care</strong>
+              <small>Appointments, meds, contacts.</small>
+            </button>
+          </div>
+          <button class="primary-button clay" type="button" data-action="save-setup">
+            Create my LifeMap
+            ${icon("sparkles")}
+          </button>
+        `);
+      }
+
+      function openCapture() {
+        openSheet(`
+          <div class="sheet-header">
+            <div>
+              <h2 id="sheetTitle">Brain Dump</h2>
+              <p>Paste messy context. This preview simulates the AI organizing it.</p>
+            </div>
+            <button class="icon-button" type="button" data-action="close-sheet" aria-label="Close">${icon("x")}</button>
+          </div>
+          <div class="capture-sheet">
+            <textarea id="captureText">School form due Friday, Milo rabies booster next week, passport packet missing DS-11 and photo, need lunch schedule updated.</textarea>
+            <div class="care-actions">
+              <button class="primary-button clay" type="button" data-action="analyze-capture" id="analyzeButton">
+                Analyze capture
+                ${icon("wand-sparkles")}
+              </button>
+              <button class="secondary-button" type="button" data-action="sample-capture">Use sample</button>
+            </div>
+          </div>
+        `);
+      }
+
+      function openRecord(id) {
+        const record = records.find((item) => item.id === id) || records[0];
+        openSheet(`
+          <div class="sheet-header">
+            <div>
+              <h2 id="sheetTitle">${record.title}</h2>
+              <p>${record.category} - ${record.meta}</p>
+            </div>
+            <button class="icon-button" type="button" data-action="close-sheet" aria-label="Close">${icon("x")}</button>
+          </div>
+          <article class="care-card panel">
+            <h3>Private details</h3>
+            <p id="secretValue">Hidden until revealed.</p>
+            <div class="care-actions">
+              <button class="tiny-button" type="button" data-action="reveal-secret">${icon("eye", 14)} Reveal</button>
+              <button class="tiny-button" type="button" data-action="record-updated">${icon("check", 14)} Mark updated</button>
+            </div>
+          </article>
+          <article class="care-card panel" style="margin-top: 10px">
+            <h3>Source evidence</h3>
+            <p>LifeMap saved this from your last capture and kept it review-gated.</p>
+          </article>
+        `);
+      }
+
+      function openLaunch() {
+        openSheet(`
+          <div class="sheet-header">
+            <div>
+              <h2 id="sheetTitle">Launch Plan</h2>
+              <p>Founder readiness view. 62% complete in this preview.</p>
+            </div>
+            <button class="icon-button" type="button" data-action="close-sheet" aria-label="Close">${icon("x")}</button>
+          </div>
+          <div class="care-list">
+            <article class="care-card panel"><h3>Done</h3><p>Cloudflare deployed, Atlas visual direction, Launch Plan, auth test account.</p></article>
+            <article class="care-card panel"><h3>Next</h3><p>AI trust repair, navigation simplification, Capture sheet, Vault 2.0.</p></article>
+          </div>
+        `);
+      }
+
+      document.addEventListener("click", (event) => {
+        const nav = event.target.closest("[data-nav]");
+        if (nav && nav.dataset.nav) {
+          closeSheet();
+          showView(nav.dataset.nav);
+          return;
+        }
+
+        const action = event.target.closest("[data-action]");
+        if (action) {
+          const type = action.dataset.action;
+          if (type === "open-capture") openCapture();
+          if (type === "open-setup") openSetup();
+          if (type === "open-brief") openBrief();
+          if (type === "open-review") showView("review");
+          if (type === "close-sheet") closeSheet();
+          if (type === "open-record") openRecord(action.dataset.record);
+          if (type === "open-launch") openLaunch();
+          if (type === "reset-demo") showToast("Demo reset. Starter map restored.");
+          if (type === "save-setup") {
+            closeSheet();
+            document.getElementById("setupBanner").style.display = "none";
+            showToast("Starter buckets saved.");
+          }
+          if (type === "sample-capture") {
+            const area = document.getElementById("captureText");
+            if (area) area.value = "Passport appointment July 12, school form due Friday, Milo vaccine due, dental insurance group number missing.";
+          }
+          if (type === "analyze-capture") {
+            const button = document.getElementById("analyzeButton");
+            button.innerHTML = '<span class="spinner"></span> Organizing';
+            window.setTimeout(() => {
+              closeSheet();
+              priorities[0].title = "School form packet";
+              priorities[0].meta = "Signature, emergency phone, $12 fee";
+              document.getElementById("dailyCopy").innerHTML = `
+                <span>LifeMap organized 4 messy items.</span>
+                <span>2 records can be saved to Vault.</span>
+                <span>1 draft is waiting for approval.</span>
+              `;
+              renderPriorities();
+              showToast("Capture organized into actions, Vault saves, and Review.");
+            }, 900);
+          }
+          if (type === "complete-priority" && selectedPriority) {
+            selectedPriority.status = "Completed";
+            renderPriorities();
+            closeSheet();
+            showToast(`${selectedPriority.title} marked complete.`);
+          }
+          if (type === "snooze-priority" && selectedPriority) {
+            selectedPriority.status = "Tomorrow";
+            renderPriorities();
+            closeSheet();
+            showToast(`${selectedPriority.title} snoozed.`);
+          }
+          if (type === "save-priority" && selectedPriority) {
+            closeSheet();
+            showView("vault");
+            showToast("Supporting info saved to Vault suggestions.");
+          }
+          if (type === "reveal-secret") {
+            const secret = document.getElementById("secretValue");
+            if (secret) secret.textContent = "Passport number and ID values would stay encrypted in the real app.";
+          }
+          if (type === "record-updated") {
+            closeSheet();
+            showToast("Record marked updated.");
+          }
+          if (type === "stage-approvals") {
+            showToast("Approvals staged. Nothing was sent automatically.");
+          }
+          return;
+        }
+
+        const priority = event.target.closest("[data-priority]");
+        if (priority) {
+          openPriority(priority.dataset.priority);
+          return;
+        }
+
+        const filter = event.target.closest("[data-filter]");
+        if (filter) {
+          activeFilter = filter.dataset.filter;
+          renderFilters();
+          renderRecords();
+          return;
+        }
+
+        const profile = event.target.closest("[data-profile]");
+        if (profile) {
+          profile.classList.toggle("open");
+          refreshIcons();
+          return;
+        }
+
+        const setupOption = event.target.closest("[data-setup-option]");
+        if (setupOption) {
+          setupOption.classList.toggle("active");
+          return;
+        }
+
+        const careButton = event.target.closest("[data-care]");
+        if (careButton) {
+          careButton.classList.toggle("active");
+          const actionName = careButton.textContent.trim();
+          showToast(`${actionName} saved.`);
+          return;
+        }
+
+        const switchButton = event.target.closest("[data-switch]");
+        if (switchButton) {
+          switchButton.classList.toggle("off");
+          return;
+        }
+
+        if (event.target === sheetBackdrop) {
+          closeSheet();
+        }
+      });
+
+      renderPriorities();
+      renderFilters();
+      renderRecords();
+      refreshIcons();
+      window.addEventListener("load", refreshIcons);
+    </script>
+  </body>
+</html>

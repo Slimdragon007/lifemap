@@ -34,6 +34,8 @@ export type BriefApiResult =
 
 const DEFAULT_ERROR =
   "LifeMap could not analyze this yet. Try again or edit the intake.";
+const PRODUCTION_API_ORIGIN = "https://lifemap-api.m-haslim.workers.dev";
+const PRODUCTION_PAGES_HOST = "lifemap-d33.pages.dev";
 
 export async function analyzeWithAi(
   rawIntake: string,
@@ -143,23 +145,40 @@ export async function generateBriefWithAi(
 }
 
 function getApiOrigin(): string | undefined {
-  const configuredOrigin = import.meta.env.VITE_API_ORIGIN;
-  if (configuredOrigin) {
-    return configuredOrigin.replace(/\/$/, "");
+  return resolveApiOrigin(
+    import.meta.env.VITE_API_ORIGIN,
+    typeof window === "undefined" ? undefined : window.location,
+  );
+}
+
+export function resolveApiOrigin(
+  configuredOrigin?: string,
+  location?: Pick<Location, "hostname" | "protocol">,
+): string | undefined {
+  if (configuredOrigin?.trim()) {
+    return configuredOrigin.trim().replace(/\/$/, "");
+  }
+
+  if (!location) {
+    return "http://localhost:8787";
   }
 
   if (
-    typeof window !== "undefined" &&
-    window.location.protocol === "https:" &&
-    window.location.hostname !== "localhost"
+    location.protocol === "https:" &&
+    location.hostname === PRODUCTION_PAGES_HOST
+  ) {
+    return PRODUCTION_API_ORIGIN;
+  }
+
+  if (
+    location.protocol === "https:" &&
+    location.hostname !== "localhost" &&
+    location.hostname !== "127.0.0.1"
   ) {
     return undefined;
   }
 
-  const hostname =
-    typeof window === "undefined" || window.location.hostname.length === 0
-      ? "localhost"
-      : window.location.hostname;
+  const hostname = location.hostname.length === 0 ? "localhost" : location.hostname;
 
   return `http://${hostname}:8787`;
 }

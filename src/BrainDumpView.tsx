@@ -30,7 +30,15 @@ const RECOMMENDATION_LABELS: Record<Recommendation, string> = {
 
 type ClassifyStatus = "idle" | "loading" | "success" | "fallback" | "error";
 
-function BrainDumpView() {
+type BrainDumpComposerProps = {
+  onClose?: () => void;
+  onReview?: () => void;
+};
+
+export function BrainDumpComposer({
+  onClose,
+  onReview,
+}: BrainDumpComposerProps) {
   const [dump, setDump] = useState(sampleDump);
   const [result, setResult] = useState<MentalLoadResult>();
   const [status, setStatus] = useState<ClassifyStatus>("idle");
@@ -67,14 +75,14 @@ function BrainDumpView() {
   );
 
   return (
-    <section className="workspace" aria-labelledby="inbox-title">
-      <header className="topbar">
+    <div className="brain-dump-composer">
+      <header className="composer-header">
         <div>
           <span className="workspace-kicker">
             <Inbox size={14} />
             AI intake
           </span>
-          <h1 id="inbox-title">Inbox</h1>
+          <h1 id="inbox-title">Brain dump</h1>
           <p>
             Paste screenshots, forms, emails, or brain dumps. LifeMap sorts
             them into your calendar, vault, and approvals.
@@ -89,9 +97,14 @@ function BrainDumpView() {
             <span className="status-pill urgent">heavy load</span>
           ) : null}
         </div>
+        {onClose ? (
+          <button className="sheet-close" type="button" onClick={onClose}>
+            Close
+          </button>
+        ) : null}
       </header>
 
-      <div className="work-grid">
+      <div className="composer-grid">
         <section className="panel intake-panel" aria-labelledby="dump-title">
           <div className="panel-heading">
             <div>
@@ -111,8 +124,8 @@ function BrainDumpView() {
               className="primary-button"
               type="button"
               disabled={status === "loading" || dump.trim().length === 0}
-              onClick={handleClassify}
-            >
+            onClick={handleClassify}
+          >
               {status === "loading" ? (
                 <>
                   <span className="spinner" aria-hidden="true" />
@@ -125,6 +138,11 @@ function BrainDumpView() {
                 </>
               )}
             </button>
+            {totalItems > 0 && onReview ? (
+              <button className="secondary-button" type="button" onClick={onReview}>
+                Review items
+              </button>
+            ) : null}
           </div>
           {status === "fallback" ? (
             <p className="analyze-notice error" aria-live="polite">
@@ -176,6 +194,14 @@ function BrainDumpView() {
           )}
         </section>
       </div>
+    </div>
+  );
+}
+
+function BrainDumpView() {
+  return (
+    <section className="workspace" aria-labelledby="inbox-title">
+      <BrainDumpComposer />
     </section>
   );
 }
