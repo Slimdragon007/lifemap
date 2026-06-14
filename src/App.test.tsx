@@ -268,6 +268,41 @@ describe("LifeMap MVP app", () => {
     expect(screen.queryByRole("button", { name: "Health 2 updates" })).not.toBeInTheDocument();
   });
 
+  test("opens a focused detail page from a setup bucket on Today", async () => {
+    const user = userEvent.setup();
+    saveStoredDemoState({
+      isLoggedIn: true,
+      setupProfile: {
+        adults: 2,
+        children: 2,
+        pets: 1,
+        travels: true,
+        focusAreas: ["school", "records"],
+      },
+      setupBucketIds: [
+        "family-profiles",
+        "school-command",
+        "vault-records",
+        "pet-care",
+        "travel-command",
+      ],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Records IDs + cards" }));
+
+    expect(screen.getByRole("heading", { name: "Vault: IDs and records" })).toBeInTheDocument();
+    expect(screen.getByText("Passports, IDs, insurance cards, emergency cards, and renewal dates belong behind one trusted door.")).toBeInTheDocument();
+    expect(screen.getByText("Add the first card or document you always search for.")).toBeInTheDocument();
+    expect(screen.getByText("Passports and IDs")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open Vault" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Back to Today" }));
+
+    expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
+  });
+
   test("uses real app tabs for the review queue", async () => {
     const user = userEvent.setup();
 

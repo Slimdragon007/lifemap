@@ -33,6 +33,7 @@ import {
 import { loadStoredDemoState, saveStoredDemoState } from "./storage";
 import CalendarView from "./CalendarView";
 import AuthScreen from "./AuthScreen";
+import BucketDetailView from "./BucketDetailView";
 import LaunchPlanView from "./LaunchPlanView";
 import GuidedSetupView from "./GuidedSetupView";
 import { useSession } from "./useSession";
@@ -143,6 +144,7 @@ type AppView =
   | "more"
   | "family"
   | "setup"
+  | "bucket"
   | "launchPlan";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
@@ -215,6 +217,13 @@ function App() {
   >({});
   const [toastMessage, setToastMessage] = useState<string>();
   const [view, setView] = useState<AppView>("today");
+  const [selectedSetupBucketId, setSelectedSetupBucketId] =
+    useState<SetupBucketId>();
+  const selectedSetupBucket = useMemo(
+    () =>
+      activeSetupBuckets.find((bucket) => bucket.id === selectedSetupBucketId),
+    [activeSetupBuckets, selectedSetupBucketId],
+  );
   const [isCaptureOpen, setIsCaptureOpen] = useState(false);
   const [remoteLoadedFor, setRemoteLoadedFor] = useState<string>();
   const { session, loading: sessionLoading } = useSession();
@@ -570,7 +579,11 @@ function App() {
 
           <nav className="nav-list bottom-nav" aria-label="Household sections">
             <button
-              className={view === "today" ? "nav-item active" : "nav-item"}
+              className={
+                view === "today" || view === "bucket"
+                  ? "nav-item active"
+                  : "nav-item"
+              }
               type="button"
               onClick={() => setView("today")}
             >
@@ -672,6 +685,19 @@ function App() {
             onOpenCalendar={() => setView("calendar")}
             onOpenFamilyMap={() => setView("family")}
             onOpenPriority={setSelectedPriority}
+            onOpenSetupBucket={(bucket) => {
+              setSelectedSetupBucketId(bucket.id);
+              setView("bucket");
+            }}
+            onOpenVault={() => setView("vault")}
+          />
+        ) : view === "bucket" && selectedSetupBucket ? (
+          <BucketDetailView
+            bucket={selectedSetupBucket}
+            profile={setupProfile}
+            onBack={() => setView("today")}
+            onOpenCalendar={() => setView("calendar")}
+            onOpenCapture={() => openCapture()}
             onOpenVault={() => setView("vault")}
           />
         ) : view === "calendar" ? (

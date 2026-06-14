@@ -37,6 +37,7 @@ type TodayViewProps = {
   onOpenBrainDump: (rawIntake?: string) => void;
   onOpenVault: () => void;
   onOpenFamilyMap: () => void;
+  onOpenSetupBucket: (bucket: RecommendedBucket) => void;
   onOpenApprovals: () => void;
   onOpenPriority: (priority: BriefPriority) => void;
 };
@@ -57,6 +58,7 @@ function TodayView({
   onOpenBrainDump,
   onOpenVault,
   onOpenFamilyMap,
+  onOpenSetupBucket,
   onOpenApprovals,
   onOpenPriority,
 }: TodayViewProps) {
@@ -79,12 +81,7 @@ function TodayView({
     setupBuckets.length > 0
       ? setupBuckets.map((bucket) => ({
           ...getSetupLifeArea(bucket, setupProfile),
-          onClick:
-            bucket.destination === "calendar"
-              ? onOpenCalendar
-              : bucket.destination === "capture"
-                ? () => onOpenBrainDump()
-                : onOpenVault,
+          onClick: () => onOpenSetupBucket(bucket),
         }))
       : [
           {

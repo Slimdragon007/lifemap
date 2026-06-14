@@ -210,7 +210,8 @@ p {
 .app-shell.view-vault,
 .app-shell.view-review,
 .app-shell.view-more,
-.app-shell.view-setup {
+.app-shell.view-setup,
+.app-shell.view-bucket {
   grid-template-columns: 244px minmax(0, 1fr);
 }
 
@@ -2767,7 +2768,8 @@ button.nav-item {
   .app-shell.view-vault,
   .app-shell.view-review,
   .app-shell.view-more,
-  .app-shell.view-setup {
+  .app-shell.view-setup,
+  .app-shell.view-bucket {
     grid-template-columns: 220px minmax(0, 1fr);
   }
 
@@ -2954,6 +2956,7 @@ button.nav-item {
 .app-shell.view-review,
 .app-shell.view-more,
 .app-shell.view-setup,
+.app-shell.view-bucket,
 .app-shell.view-family {
   display: block;
   grid-template-columns: none;
@@ -3583,9 +3586,198 @@ button.nav-item {
   line-height: 1.45;
 }
 
+.bucket-detail-workspace {
+  max-width: 980px;
+}
+
+.bucket-detail-topbar {
+  align-items: flex-start;
+}
+
+.bucket-detail-topbar .secondary-button {
+  white-space: nowrap;
+}
+
+.bucket-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 14px;
+}
+
+.bucket-hero-panel,
+.bucket-checklist-panel,
+.bucket-guidance-panel {
+  border: 1px solid rgba(18, 24, 38, 0.08);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+.bucket-hero-panel {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  min-height: 330px;
+  padding: 20px;
+  color: var(--ivory);
+  background:
+    linear-gradient(135deg, rgba(18, 24, 38, 0.96), rgba(90, 70, 97, 0.9)),
+    var(--slate);
+}
+
+.bucket-hero-panel.tone-blue {
+  background:
+    linear-gradient(135deg, rgba(18, 24, 38, 0.96), rgba(58, 107, 255, 0.86)),
+    var(--slate);
+}
+
+.bucket-hero-panel.tone-clay {
+  background:
+    linear-gradient(135deg, rgba(18, 24, 38, 0.96), rgba(210, 106, 74, 0.88)),
+    var(--slate);
+}
+
+.bucket-hero-panel.tone-sage {
+  background:
+    linear-gradient(135deg, rgba(18, 24, 38, 0.96), rgba(127, 162, 132, 0.86)),
+    var(--slate);
+}
+
+.bucket-hero-icon {
+  display: inline-grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(255, 254, 250, 0.18);
+  border-radius: var(--radius);
+  background: rgba(255, 254, 250, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.bucket-eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: rgba(255, 254, 250, 0.72);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.bucket-hero-panel h2 {
+  max-width: 620px;
+  margin: 0;
+  color: var(--ivory);
+  font-size: 42px;
+  font-weight: 850;
+  letter-spacing: 0;
+  line-height: 0.98;
+}
+
+.bucket-hero-panel p {
+  max-width: 500px;
+  margin: 12px 0 0;
+  color: rgba(255, 254, 250, 0.72);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.bucket-primary-action {
+  width: fit-content;
+  margin-top: auto;
+  color: var(--ink-strong);
+  background: var(--ivory);
+  box-shadow: 0 16px 32px rgba(18, 24, 38, 0.18);
+}
+
+.bucket-primary-action:hover {
+  color: var(--ink-strong);
+  background: #ffffff;
+}
+
+.bucket-checklist-panel,
+.bucket-guidance-panel {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 18px;
+  background: rgba(255, 252, 246, 0.78);
+}
+
+.bucket-checklist {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bucket-checklist li,
+.bucket-guidance-list button {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 11px;
+  border: 1px solid rgba(18, 24, 38, 0.08);
+  border-radius: var(--radius);
+  color: var(--ink-strong);
+  background: rgba(255, 254, 250, 0.68);
+  box-shadow: 0 9px 20px rgba(18, 24, 38, 0.04);
+}
+
+.bucket-checklist li svg {
+  color: var(--sage);
+}
+
+.bucket-checklist li span,
+.bucket-guidance-list button span {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 820;
+  line-height: 1.2;
+}
+
+.bucket-guidance-panel {
+  grid-column: 2;
+}
+
+.bucket-guidance-list {
+  display: grid;
+  gap: 9px;
+}
+
+.bucket-guidance-list button {
+  grid-template-columns: 22px minmax(0, 1fr) 16px;
+  width: 100%;
+  text-align: left;
+}
+
+.bucket-guidance-list button:hover {
+  border-color: rgba(58, 107, 255, 0.22);
+  background: rgba(232, 239, 251, 0.76);
+  transform: translateY(-1px);
+}
+
+.bucket-guidance-list button svg {
+  color: var(--blue-strong);
+}
+
 @media (max-width: 900px) {
   .setup-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bucket-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bucket-guidance-panel {
+    grid-column: auto;
+  }
+
+  .bucket-hero-panel h2 {
+    font-size: 34px;
   }
 }
 
@@ -3620,6 +3812,30 @@ button.nav-item {
 
   .setup-count-pill {
     justify-self: start;
+  }
+
+  .bucket-detail-topbar {
+    gap: 12px;
+  }
+
+  .bucket-detail-topbar .secondary-button,
+  .bucket-primary-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bucket-hero-panel,
+  .bucket-checklist-panel,
+  .bucket-guidance-panel {
+    padding: 14px;
+  }
+
+  .bucket-hero-panel {
+    min-height: 290px;
+  }
+
+  .bucket-hero-panel h2 {
+    font-size: 28px;
   }
 }
 
@@ -5306,6 +5522,7 @@ body {
   .app-shell.view-review,
   .app-shell.view-more,
   .app-shell.view-setup,
+  .app-shell.view-bucket,
   .app-shell.view-launchPlan {
     display: grid;
     grid-template-columns: 244px minmax(0, 1fr);
