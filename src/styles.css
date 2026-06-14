@@ -646,6 +646,38 @@ a:focus-visible {
   background: rgba(246, 224, 214, 0.76);
 }
 
+.analyze-notice.fallback {
+  display: grid;
+  gap: 7px;
+  color: #4f3d65;
+  border-color: rgba(90, 70, 97, 0.22);
+  background: rgba(246, 241, 248, 0.78);
+}
+
+.analyze-notice.fallback button {
+  justify-self: start;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid rgba(18, 24, 38, 0.11);
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 252, 246, 0.9);
+  box-shadow: 0 8px 18px rgba(18, 24, 38, 0.08);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease),
+    border-color 160ms var(--ease),
+    box-shadow 160ms var(--ease);
+}
+
+.analyze-notice.fallback button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(58, 107, 255, 0.28);
+  box-shadow: 0 11px 24px rgba(18, 24, 38, 0.11);
+}
+
 .analyze-notice.success {
   color: #3f6246;
   border-color: rgba(127, 162, 132, 0.24);

@@ -219,7 +219,7 @@ function TodayView({
             <ChevronRight size={14} />
           </button>
           <p className="grounding-note">{brief.groundingNote}</p>
-          <BriefNotice status={status} error={error} />
+          <BriefNotice status={status} error={error} onOpenBrainDump={onOpenBrainDump} />
         </section>
 
         <section className="atlas-section" aria-labelledby="priorities-title">
@@ -505,9 +505,11 @@ function getPriorityVisual(label: string, reason: string, index: number) {
 function BriefNotice({
   status,
   error,
+  onOpenBrainDump,
 }: {
   status: BriefStatus;
   error?: string;
+  onOpenBrainDump: () => void;
 }) {
   if (status === "success") {
     return (
@@ -519,10 +521,13 @@ function BriefNotice({
 
   if (status === "fallback") {
     return (
-      <p className="analyze-notice error" aria-live="polite">
-        <span>{error}</span>
-        <span>Showing a local brief so the daily loop still works.</span>
-      </p>
+      <div className="analyze-notice fallback" role="status" aria-live="polite">
+        <span>LifeMap is using the current map while AI refresh is unavailable.</span>
+        <span>You can still review priorities or capture a new update.</span>
+        <button type="button" onClick={() => onOpenBrainDump()}>
+          Capture a new update
+        </button>
+      </div>
     );
   }
 

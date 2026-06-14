@@ -560,6 +560,41 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
   });
 
+  test("keeps Daily Brief useful when AI refresh falls back", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({
+          ok: false,
+          error: "LifeMap could not analyze this yet. Try again or edit the intake.",
+        }),
+      }),
+    );
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await user.click(screen.getByRole("button", { name: "Refresh Daily Brief" }));
+
+    expect(
+      await screen.findByText(
+        "LifeMap is using the current map while AI refresh is unavailable.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("You can still review priorities or capture a new update."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("LifeMap could not analyze this yet. Try again or edit the intake."),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Capture a new update" }));
+
+    expect(screen.getByRole("dialog", { name: "Ask LifeMap AI" })).toBeInTheDocument();
+  });
+
   test("lets a Today priority become a real action", async () => {
     const user = userEvent.setup();
 
