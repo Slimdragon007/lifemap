@@ -4,6 +4,8 @@
 
 - Build command: `npm run build`
 - Build output directory: `dist`
+- Deploy command: `npm run deploy:pages`
+- Pages config: `wrangler.jsonc`
 - Required production env vars:
   - `VITE_API_ORIGIN`: deployed LifeMap API origin, for example `https://lifemap-api.<account>.workers.dev`
   - `VITE_SUPABASE_URL`: Supabase project URL
@@ -26,6 +28,11 @@ Required server-side secrets:
 - `SUPABASE_SERVICE_ROLE_KEY` (reserved for future server-side persistence or admin jobs; never expose to Vite)
 
 For production, deploy the API as a Cloudflare Worker or small Node service and set `VITE_API_ORIGIN` on Pages to that deployed origin. Do not put `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` in any `VITE_*` variable.
+
+Current Worker deployment:
+
+- Config: `worker/wrangler.jsonc`
+- Deploy command: `npm run deploy:api`
 
 ## Supabase
 
