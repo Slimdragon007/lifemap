@@ -180,6 +180,49 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByText("10 of 17 complete")).toBeInTheDocument();
   });
 
+  test("opens guided setup and restores recommended buckets", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await user.click(screen.getByRole("button", { name: "More" }));
+
+    expect(screen.getByRole("button", { name: "Open guided setup" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Open guided setup" }));
+
+    expect(screen.getByRole("heading", { name: "Guided setup" })).toBeInTheDocument();
+    expect(screen.getByText("Tell LifeMap what your real life looks like.")).toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText("Children"));
+    await user.type(screen.getByLabelText("Children"), "2");
+    await user.clear(screen.getByLabelText("Pets"));
+    await user.type(screen.getByLabelText("Pets"), "1");
+    await user.click(screen.getByRole("switch", { name: "Travel planning" }));
+    await user.click(screen.getByRole("checkbox", { name: "School schedules and forms" }));
+    await user.click(screen.getByRole("checkbox", { name: "Passports, IDs, and insurance cards" }));
+    await user.click(screen.getByRole("button", { name: "Create recommended buckets" }));
+
+    expect(screen.getByText("School command center")).toBeInTheDocument();
+    expect(screen.getByText("Family profiles")).toBeInTheDocument();
+    expect(screen.getByText("Pet care loop")).toBeInTheDocument();
+    expect(screen.getByText("Travel command center")).toBeInTheDocument();
+    expect(screen.getByText("Vault: IDs and records")).toBeInTheDocument();
+    expect(screen.getByText("5 active buckets")).toBeInTheDocument();
+
+    unmount();
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("button", { name: "Open guided setup" }));
+
+    expect(screen.getByLabelText("Children")).toHaveValue(2);
+    expect(screen.getByLabelText("Pets")).toHaveValue(1);
+    expect(screen.getByText("5 active buckets")).toBeInTheDocument();
+    expect(screen.getByText("Travel command center")).toBeInTheDocument();
+  });
+
   test("starts a fresh demo with the presentation-ready LifeMap sample", async () => {
     const user = userEvent.setup();
 

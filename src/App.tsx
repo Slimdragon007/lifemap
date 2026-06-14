@@ -16,6 +16,7 @@ import {
   Send,
   ShieldCheck,
   UserRoundCheck,
+  UsersRound,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { analyzeWithAi, generateBriefWithAi } from "./api";
@@ -33,6 +34,7 @@ import { loadStoredDemoState, saveStoredDemoState } from "./storage";
 import CalendarView from "./CalendarView";
 import AuthScreen from "./AuthScreen";
 import LaunchPlanView from "./LaunchPlanView";
+import GuidedSetupView from "./GuidedSetupView";
 import { useSession } from "./useSession";
 import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
 import TodayView from "./TodayView";
@@ -48,6 +50,13 @@ import {
   presentationIntake,
 } from "./demoSeed";
 import type { StoredDemoState } from "./storage";
+import {
+  defaultSetupProfile,
+  normalizeSetupBucketIds,
+  normalizeSetupProfile,
+  type SetupBucketId,
+  type SetupProfile,
+} from "./setupBuckets";
 
 const starterIntake = presentationIntake;
 
@@ -132,6 +141,7 @@ type AppView =
   | "review"
   | "more"
   | "family"
+  | "setup"
   | "launchPlan";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
@@ -157,6 +167,12 @@ function App() {
   const [dismissedSuggestionIds, setDismissedSuggestionIds] = useState<
     Set<string>
   >(() => new Set(initialState.dismissedSuggestionIds ?? []));
+  const [setupProfile, setSetupProfile] = useState<SetupProfile>(
+    () => initialState.setupProfile ?? defaultSetupProfile,
+  );
+  const [setupBucketIds, setSetupBucketIds] = useState<SetupBucketId[]>(
+    () => initialState.setupBucketIds ?? [],
+  );
   const editedApprovals = useMemo(
     () =>
       approvals.map((approval) => ({
@@ -201,6 +217,8 @@ function App() {
       dailyBrief,
       savedSuggestionIds: Array.from(savedSuggestionIds),
       dismissedSuggestionIds: Array.from(dismissedSuggestionIds),
+      setupProfile,
+      setupBucketIds,
     }),
     [
       approvalBodyEdits,
@@ -211,6 +229,8 @@ function App() {
       isLoggedIn,
       map,
       savedSuggestionIds,
+      setupBucketIds,
+      setupProfile,
     ],
   );
 
@@ -302,6 +322,14 @@ function App() {
 
     if (state.dailyBrief) {
       setDailyBrief(state.dailyBrief);
+    }
+
+    if (state.setupProfile) {
+      setSetupProfile(normalizeSetupProfile(state.setupProfile));
+    }
+
+    if (state.setupBucketIds) {
+      setSetupBucketIds(normalizeSetupBucketIds(state.setupBucketIds));
     }
   }
 
@@ -573,7 +601,10 @@ function App() {
             </button>
             <button
               className={
-                view === "more" || view === "family" || view === "launchPlan"
+                view === "more" ||
+                view === "family" ||
+                view === "setup" ||
+                view === "launchPlan"
                   ? "nav-item active"
                   : "nav-item"
               }
@@ -921,12 +952,24 @@ function App() {
           </section>
         ) : view === "launchPlan" ? (
           <LaunchPlanView onBack={() => setView("more")} />
+        ) : view === "setup" ? (
+          <GuidedSetupView
+            activeBucketIds={setupBucketIds}
+            profile={setupProfile}
+            onBack={() => setView("more")}
+            onCreateBuckets={setSetupBucketIds}
+            onOpenCalendar={() => setView("calendar")}
+            onOpenCapture={() => openCapture()}
+            onOpenVault={() => setView("vault")}
+            onProfileChange={setSetupProfile}
+          />
         ) : (
           <MoreView
             isSupabaseConfigured={isSupabaseConfigured}
             sessionEmail={session?.user.email}
             onOpenFamilyMap={() => setView("family")}
             onOpenCapture={() => openCapture()}
+            onOpenSetup={() => setView("setup")}
             onOpenLaunchPlan={() => setView("launchPlan")}
             onSignOut={() => getSupabase().auth.signOut()}
           />
@@ -1234,6 +1277,7 @@ function MoreView({
   sessionEmail,
   onOpenFamilyMap,
   onOpenCapture,
+  onOpenSetup,
   onOpenLaunchPlan,
   onSignOut,
 }: {
@@ -1241,6 +1285,7 @@ function MoreView({
   sessionEmail?: string;
   onOpenFamilyMap: () => void;
   onOpenCapture: () => void;
+  onOpenSetup: () => void;
   onOpenLaunchPlan: () => void;
   onSignOut: () => void;
 }) {
@@ -1282,6 +1327,19 @@ function MoreView({
           </span>
           <strong>LifeMap AI capture</strong>
           <span>Paste messy context and turn it into an organized map.</span>
+          <ChevronRight size={16} />
+        </button>
+        <button
+          aria-label="Open guided setup"
+          className="more-card"
+          type="button"
+          onClick={onOpenSetup}
+        >
+          <span className="brand-mark">
+            <UsersRound size={18} />
+          </span>
+          <strong>Guided setup</strong>
+          <span>Pick family, pets, travel, and life logistics buckets.</span>
           <ChevronRight size={16} />
         </button>
         <button

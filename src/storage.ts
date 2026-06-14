@@ -1,5 +1,11 @@
 import { normalizeDailyBrief, type DailyBrief } from "./dailyBrief";
 import { normalizeAnalysis, type LifeMapAnalysis } from "./lifemap";
+import {
+  normalizeSetupBucketIds,
+  normalizeSetupProfile,
+  type SetupBucketId,
+  type SetupProfile,
+} from "./setupBuckets";
 
 const STORAGE_KEY = "lifemap-demo-state";
 
@@ -12,6 +18,8 @@ export type StoredDemoState = {
   dailyBrief?: DailyBrief;
   savedSuggestionIds?: string[];
   dismissedSuggestionIds?: string[];
+  setupProfile?: SetupProfile;
+  setupBucketIds?: SetupBucketId[];
 };
 
 export function loadStoredDemoState(): StoredDemoState {
@@ -42,6 +50,11 @@ export function normalizeStoredDemoState(value: unknown): StoredDemoState {
     value.dailyBrief === undefined
       ? undefined
       : normalizeDailyBrief(value.dailyBrief);
+  const setupProfile =
+    value.setupProfile === undefined
+      ? undefined
+      : normalizeSetupProfile(value.setupProfile);
+  const setupBucketIds = normalizeSetupBucketIds(value.setupBucketIds);
 
   const state: StoredDemoState = {};
   const approvalBodyEdits = parseStringRecord(value.approvalBodyEdits);
@@ -82,6 +95,14 @@ export function normalizeStoredDemoState(value: unknown): StoredDemoState {
 
   if (dailyBrief?.ok) {
     state.dailyBrief = dailyBrief.brief;
+  }
+
+  if (setupProfile) {
+    state.setupProfile = setupProfile;
+  }
+
+  if (setupBucketIds.length > 0) {
+    state.setupBucketIds = setupBucketIds;
   }
 
   return state;
