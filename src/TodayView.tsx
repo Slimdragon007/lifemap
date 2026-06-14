@@ -12,9 +12,11 @@ import {
   RefreshCw,
   ShieldCheck,
   Sparkles,
+  UsersRound,
 } from "lucide-react";
 import type { BriefPriority, DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
+import type { RecommendedBucket, SetupProfile } from "./setupBuckets";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 type PriorityActionState = "completed" | "snoozed";
@@ -27,6 +29,8 @@ type TodayViewProps = {
   error?: string;
   captureExamples: Array<{ label: string; rawIntake: string }>;
   priorityActionStates: Partial<Record<string, PriorityActionState>>;
+  setupBuckets: RecommendedBucket[];
+  setupProfile: SetupProfile;
   onGenerateBrief: () => void;
   onOpenBrief: () => void;
   onOpenCalendar: () => void;
@@ -45,6 +49,8 @@ function TodayView({
   error,
   captureExamples,
   priorityActionStates,
+  setupBuckets,
+  setupProfile,
   onGenerateBrief,
   onOpenBrief,
   onOpenCalendar,
@@ -69,36 +75,47 @@ function TodayView({
             reason: "LifeMap will turn it into your next calm move.",
           },
         ];
-  const lifeAreas = [
-    {
-      id: "vault",
-      label: "Vault",
-      meta: "24 items",
-      icon: ShieldCheck,
-      onClick: onOpenVault,
-    },
-    {
-      id: "travel",
-      label: "Travel",
-      meta: "3 trips",
-      icon: Plane,
-      onClick: onOpenCalendar,
-    },
-    {
-      id: "health",
-      label: "Health",
-      meta: "2 updates",
-      icon: HeartPulse,
-      onClick: onOpenVault,
-    },
-    {
-      id: "home",
-      label: "Home",
-      meta: "5 tasks",
-      icon: Home,
-      onClick: onOpenFamilyMap,
-    },
-  ];
+  const lifeAreas =
+    setupBuckets.length > 0
+      ? setupBuckets.map((bucket) => ({
+          ...getSetupLifeArea(bucket, setupProfile),
+          onClick:
+            bucket.destination === "calendar"
+              ? onOpenCalendar
+              : bucket.destination === "capture"
+                ? () => onOpenBrainDump()
+                : onOpenVault,
+        }))
+      : [
+          {
+            id: "vault",
+            label: "Vault",
+            meta: "24 items",
+            icon: ShieldCheck,
+            onClick: onOpenVault,
+          },
+          {
+            id: "travel",
+            label: "Travel",
+            meta: "3 trips",
+            icon: Plane,
+            onClick: onOpenCalendar,
+          },
+          {
+            id: "health",
+            label: "Health",
+            meta: "2 updates",
+            icon: HeartPulse,
+            onClick: onOpenVault,
+          },
+          {
+            id: "home",
+            label: "Home",
+            meta: "5 tasks",
+            icon: Home,
+            onClick: onOpenFamilyMap,
+          },
+        ];
 
   return (
     <section className="workspace today-workspace atlas-today" aria-labelledby="today-title">
@@ -366,6 +383,80 @@ function TodayView({
 
 function formatEventLine(count: number) {
   return `${count} ${count === 1 ? "event" : "events"} coming up.`;
+}
+
+function getSetupLifeArea(bucket: RecommendedBucket, profile: SetupProfile) {
+  switch (bucket.id) {
+    case "family-profiles": {
+      const profileCount = profile.adults + profile.children + profile.pets;
+      return {
+        id: bucket.id,
+        label: "Profiles",
+        meta: formatTileCount(profileCount, "profile"),
+        icon: UsersRound,
+      };
+    }
+    case "school-command":
+      return {
+        id: bucket.id,
+        label: "School",
+        meta: formatTileCount(Math.max(1, profile.children), "kid"),
+        icon: FileText,
+      };
+    case "vault-records":
+      return {
+        id: bucket.id,
+        label: "Records",
+        meta: "IDs + cards",
+        icon: ShieldCheck,
+      };
+    case "pet-care":
+      return {
+        id: bucket.id,
+        label: "Pets",
+        meta: formatTileCount(Math.max(1, profile.pets), "pet"),
+        icon: HeartPulse,
+      };
+    case "travel-command":
+      return {
+        id: bucket.id,
+        label: "Travel",
+        meta: "Trips + TSA",
+        icon: Plane,
+      };
+    case "health-loop":
+      return {
+        id: bucket.id,
+        label: "Health",
+        meta: "Meds + visits",
+        icon: HeartPulse,
+      };
+    case "meal-loop":
+      return {
+        id: bucket.id,
+        label: "Meals",
+        meta: "Lunches",
+        icon: FileText,
+      };
+    case "home-admin":
+      return {
+        id: bucket.id,
+        label: "Home",
+        meta: "Admin loops",
+        icon: Home,
+      };
+    case "money-admin":
+      return {
+        id: bucket.id,
+        label: "Money",
+        meta: "Renewals",
+        icon: Archive,
+      };
+  }
+}
+
+function formatTileCount(count: number, label: string) {
+  return `${count} ${count === 1 ? label : `${label}s`}`;
 }
 
 function getPriorityVisual(label: string, reason: string, index: number) {

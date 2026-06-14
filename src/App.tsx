@@ -54,6 +54,7 @@ import {
   defaultSetupProfile,
   normalizeSetupBucketIds,
   normalizeSetupProfile,
+  recommendSetupBuckets,
   type SetupBucketId,
   type SetupProfile,
 } from "./setupBuckets";
@@ -173,6 +174,16 @@ function App() {
   const [setupBucketIds, setSetupBucketIds] = useState<SetupBucketId[]>(
     () => initialState.setupBucketIds ?? [],
   );
+  const activeSetupBuckets = useMemo(() => {
+    if (setupBucketIds.length === 0) {
+      return [];
+    }
+
+    const activeIds = new Set(setupBucketIds);
+    return recommendSetupBuckets(setupProfile).filter((bucket) =>
+      activeIds.has(bucket.id),
+    );
+  }, [setupBucketIds, setupProfile]);
   const editedApprovals = useMemo(
     () =>
       approvals.map((approval) => ({
@@ -650,6 +661,8 @@ function App() {
             error={briefError}
             map={map}
             priorityActionStates={priorityActionStates}
+            setupBuckets={activeSetupBuckets}
+            setupProfile={setupProfile}
             status={briefStatus}
             captureExamples={sampleIntakes}
             onGenerateBrief={handleGenerateBrief}
