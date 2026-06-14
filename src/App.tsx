@@ -149,6 +149,11 @@ type AppView =
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 type PriorityActionState = "completed" | "snoozed";
+type CaptureRoute = {
+  destination: "vault" | "calendar" | "review";
+  buttonLabel: string;
+  message: string;
+};
 
 function App() {
   const [initialState] = useState(loadStoredDemoState);
@@ -225,6 +230,7 @@ function App() {
     [activeSetupBuckets, selectedSetupBucketId],
   );
   const [isCaptureOpen, setIsCaptureOpen] = useState(false);
+  const [captureRoute, setCaptureRoute] = useState<CaptureRoute>();
   const [remoteLoadedFor, setRemoteLoadedFor] = useState<string>();
   const { session, loading: sessionLoading } = useSession();
   const storedState = useMemo<StoredDemoState>(
@@ -448,20 +454,31 @@ function App() {
 
   function loadSampleIntake(rawIntake: string) {
     setIntake(rawIntake);
+    setCaptureRoute(undefined);
     setAnalyzeStatus("idle");
     setAnalyzeError(undefined);
     setIsReviewOpen(false);
     setStagedRun(undefined);
   }
 
-  function openCapture(rawIntake?: string) {
+  function openCapture(rawIntake?: string, route?: CaptureRoute) {
     if (rawIntake) {
       loadSampleIntake(rawIntake);
     } else {
       setAnalyzeError(undefined);
     }
 
+    setCaptureRoute(route);
     setIsCaptureOpen(true);
+  }
+
+  function followCaptureRoute() {
+    if (!captureRoute) {
+      return;
+    }
+
+    setIsCaptureOpen(false);
+    setView(captureRoute.destination);
   }
 
   async function handleGenerateBrief() {
@@ -1018,11 +1035,15 @@ function App() {
         <CaptureSheet
           analyzeError={analyzeError}
           analyzeStatus={analyzeStatus}
+          captureRoute={captureRoute}
           examples={sampleIntakes}
           intake={intake}
           map={map}
           onAnalyze={handleAnalyze}
-          onClose={() => setIsCaptureOpen(false)}
+          onClose={() => {
+            setCaptureRoute(undefined);
+            setIsCaptureOpen(false);
+          }}
           onIntakeChange={(nextIntake) => {
             setIntake(nextIntake);
             if (analyzeStatus !== "loading") {
@@ -1035,6 +1056,7 @@ function App() {
             setIsCaptureOpen(false);
             setView("review");
           }}
+          onRoute={followCaptureRoute}
         />
       ) : null}
       {isReviewOpen ? (
@@ -1082,6 +1104,7 @@ function App() {
 function CaptureSheet({
   analyzeError,
   analyzeStatus,
+  captureRoute,
   examples,
   intake,
   map,
@@ -1090,9 +1113,11 @@ function CaptureSheet({
   onIntakeChange,
   onLoadExample,
   onReview,
+  onRoute,
 }: {
   analyzeError?: string;
   analyzeStatus: "idle" | "loading" | "success" | "error" | "fallback";
+  captureRoute?: CaptureRoute;
   examples: typeof sampleIntakes;
   intake: string;
   map: LifeMapAnalysis;
@@ -1101,6 +1126,7 @@ function CaptureSheet({
   onIntakeChange: (intake: string) => void;
   onLoadExample: (rawIntake: string) => void;
   onReview: () => void;
+  onRoute: () => void;
 }) {
   const hasIntake = intake.trim().length > 0;
 
@@ -1209,6 +1235,19 @@ function CaptureSheet({
                 map={map}
                 status={analyzeStatus}
               />
+              {analyzeStatus === "success" && captureRoute ? (
+                <div className="capture-route-card">
+                  <p>{captureRoute.message}</p>
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={onRoute}
+                  >
+                    {captureRoute.buttonLabel}
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              ) : null}
             </section>
 
             <section

@@ -24,7 +24,14 @@ type BucketDetailViewProps = {
   profile: SetupProfile;
   onBack: () => void;
   onOpenCalendar: () => void;
-  onOpenCapture: (rawIntake?: string) => void;
+  onOpenCapture: (
+    rawIntake?: string,
+    route?: {
+      destination: "vault" | "calendar" | "review";
+      buttonLabel: string;
+      message: string;
+    },
+  ) => void;
   onOpenVault: () => void;
 };
 
@@ -189,6 +196,7 @@ function BucketDetailView({
   const householdSummary = formatHouseholdSummary(profile);
   const captureStarter = bucketCaptureStarters[bucket.id];
   const captureLabel = getCaptureLabel(bucket.id);
+  const captureRoute = getCaptureRoute(bucket);
 
   return (
     <section
@@ -271,7 +279,10 @@ function BucketDetailView({
               <span>Check timing and reminders</span>
               <ChevronRight size={14} />
             </button>
-            <button type="button" onClick={() => onOpenCapture(captureStarter)}>
+            <button
+              type="button"
+              onClick={() => onOpenCapture(captureStarter, captureRoute)}
+            >
               <Inbox size={17} />
               <span>{captureLabel}</span>
               <ChevronRight size={14} />
@@ -292,7 +303,14 @@ function getDestination(
   bucket: RecommendedBucket,
   actions: {
     onOpenCalendar: () => void;
-    onOpenCapture: (rawIntake?: string) => void;
+    onOpenCapture: (
+      rawIntake?: string,
+      route?: {
+        destination: "vault" | "calendar" | "review";
+        buttonLabel: string;
+        message: string;
+      },
+    ) => void;
     onOpenVault: () => void;
   },
 ) {
@@ -306,13 +324,44 @@ function getDestination(
   if (bucket.destination === "capture") {
     return {
       label: "Open Capture",
-      onOpen: () => actions.onOpenCapture(bucketCaptureStarters[bucket.id]),
+      onOpen: () =>
+        actions.onOpenCapture(
+          bucketCaptureStarters[bucket.id],
+          getCaptureRoute(bucket),
+        ),
     };
   }
 
   return {
     label: "Open Vault",
     onOpen: actions.onOpenVault,
+  };
+}
+
+function getCaptureRoute(bucket: RecommendedBucket) {
+  if (bucket.destination === "calendar") {
+    return {
+      destination: "calendar" as const,
+      buttonLabel: "Open Calendar",
+      message:
+        "Route this into Calendar so due dates and appointments stay visible.",
+    };
+  }
+
+  if (bucket.destination === "capture") {
+    return {
+      destination: "review" as const,
+      buttonLabel: "Review drafts",
+      message:
+        "Route this into Review so reminders and drafts stay approval-gated.",
+    };
+  }
+
+  return {
+    destination: "vault" as const,
+    buttonLabel: "Open Vault",
+    message:
+      "Route this into Vault so records and missing details stay findable.",
   };
 }
 

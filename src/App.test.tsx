@@ -333,6 +333,51 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByDisplayValue(/Passports and IDs/)).toBeInTheDocument();
   });
 
+  test("routes analyzed bucket capture back to Vault", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ ok: true, analysis: aiAnalysis }),
+      }),
+    );
+    saveStoredDemoState({
+      isLoggedIn: true,
+      setupProfile: {
+        adults: 2,
+        children: 2,
+        pets: 1,
+        travels: true,
+        focusAreas: ["school", "records"],
+      },
+      setupBucketIds: [
+        "family-profiles",
+        "school-command",
+        "vault-records",
+        "pet-care",
+        "travel-command",
+      ],
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Records IDs + cards" }));
+    await user.click(screen.getByRole("button", { name: "Start records capture" }));
+
+    const sheet = screen.getByRole("dialog", { name: "Ask LifeMap AI" });
+    await user.click(within(sheet).getByRole("button", { name: "Analyze intake" }));
+
+    expect(
+      await within(sheet).findByText("Route this into Vault so records and missing details stay findable."),
+    ).toBeInTheDocument();
+    await user.click(within(sheet).getByRole("button", { name: "Open Vault" }));
+
+    expect(screen.queryByRole("dialog", { name: "Ask LifeMap AI" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
+    expect(screen.getByText("Parent signature")).toBeInTheDocument();
+  });
+
   test("uses real app tabs for the review queue", async () => {
     const user = userEvent.setup();
 

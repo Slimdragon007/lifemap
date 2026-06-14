@@ -4228,6 +4228,28 @@ button.nav-item {
   line-height: 1.4;
 }
 
+.capture-route-card {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid rgba(58, 107, 255, 0.14);
+  border-radius: var(--radius);
+  background: rgba(232, 239, 251, 0.78);
+}
+
+.capture-route-card p {
+  margin: 0;
+  color: #364158;
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.4;
+}
+
+.capture-route-card .secondary-button {
+  width: fit-content;
+}
+
 @media (max-width: 900px) {
   .workspace,
   .approval-rail {
