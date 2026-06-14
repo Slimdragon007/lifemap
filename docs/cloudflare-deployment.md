@@ -1,5 +1,12 @@
 # LifeMap Cloudflare Deployment Notes
 
+## Live Production
+
+- App: https://lifemap-d33.pages.dev/
+- Worker health: https://lifemap-api.m-haslim.workers.dev/health
+- Latest verified deploy path: `npm run deploy:pages` followed by `npm run verify:production`
+- Current production verification checks Pages HTML, Worker origin in the client bundle, Worker health, CORS, AI analyze, and public asset secret markers.
+
 ## Frontend: Cloudflare Pages
 
 - Build command: `npm run build`

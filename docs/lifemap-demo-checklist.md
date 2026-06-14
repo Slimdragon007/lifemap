@@ -15,7 +15,7 @@
 ## Founder Flow
 
 1. Open the production app.
-2. Sign in with a LifeMap test account, or use local demo mode for the one-click Alex Kim flow.
+2. Sign in with the known LifeMap founder test account. Keep the password outside the repo.
 3. Show Today.
 4. Tap Capture.
 5. Paste the travel, school, health, and pet-care sample.
@@ -43,3 +43,9 @@ Supabase is now created and initialized:
 - Migration applied: `init_lifemap_schema`
 
 Production auth is real email/password auth. For a frictionless founder demo, decide whether to create a known test account or add a visible demo bypass alongside real auth.
+
+Current demo posture:
+
+- The production app intentionally opens to real email/password auth when Supabase env vars are configured.
+- The local browser-only demo path still exists when Supabase env vars are absent.
+- Use production for real Cloudflare testing and local demo mode only as a backup presentation path.

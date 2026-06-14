@@ -927,7 +927,7 @@
               <button class="filter-btn is-active" type="button" data-filter="all">All</button>
               <button class="filter-btn" type="button" data-filter="done">Done</button>
               <button class="filter-btn" type="button" data-filter="local">Local only</button>
-              <button class="filter-btn" type="button" data-filter="deploy">Needs deploy</button>
+              <button class="filter-btn" type="button" data-filter="deploy">Deploy check</button>
               <button class="filter-btn" type="button" data-filter="next">Next</button>
             </div>
           </div>
@@ -964,21 +964,21 @@
             <div class="section-heading">
               <div>
                 <h3 id="timeline-title">Progress Timeline</h3>
-                <p>A plain-English read on done, local-only, deploy, next, and later.</p>
+                <p>A plain-English read on live, local-only, deploy checks, next, and later.</p>
               </div>
             </div>
             <div class="timeline">
               <article class="timeline-step">
                 <strong>Done</strong>
-                <p>Core app shell, Atlas visual direction, fake/easy demo login, local AI path, Vault, Calendar, Review, More, Launch Plan, tests, and build.</p>
+                <p>Core app shell, Atlas visual direction, Cloudflare Pages, Worker API, AI analyze, Vault, Calendar, Review, More, Launch Plan, tests, and build.</p>
               </article>
               <article class="timeline-step">
                 <strong>Local only</strong>
-                <p>The latest Today, Vault, and Capture UX polish exists locally. It is not the same as the currently deployed Pages build.</p>
+                <p>No local-only app changes are waiting to deploy right now. Local remains the fastest development preview.</p>
               </article>
               <article class="timeline-step">
-                <strong>Needs deploy</strong>
-                <p>Cloudflare Pages needs the newest frontend build, then the live Pages app needs to be checked against the Worker API.</p>
+                <strong>Deploy check</strong>
+                <p>Pages deploy is now scripted with `npm run deploy:pages`, and production verification runs with `npm run verify:production`.</p>
               </article>
               <article class="timeline-step">
                 <strong>Next build</strong>
@@ -1006,8 +1006,8 @@
               </div>
               <div class="system-node">
                 <strong>Cloudflare Pages</strong>
-                <span>Hosts the frontend. Live build is behind local.</span>
-                <span class="chip status-deploy">Needs deploy</span>
+                <span>Hosts the verified production frontend.</span>
+                <span class="chip status-done">Done</span>
               </div>
               <div class="system-node">
                 <strong>Worker API</strong>
@@ -1017,7 +1017,7 @@
               <div class="system-node">
                 <strong>OpenAI</strong>
                 <span>Server-side structured extraction and brief generation.</span>
-                <span class="chip status-deploy">Verify live</span>
+                <span class="chip status-done">Done</span>
               </div>
               <div class="system-node">
                 <strong>Supabase</strong>
@@ -1042,11 +1042,11 @@
             <div class="next-moves">
               <article class="move">
                 <span>Move 1</span>
-                <strong>Deploy latest UI to Cloudflare Pages.</strong>
+                <strong>Run founder iPhone smoke test on the live Cloudflare app.</strong>
               </article>
               <article class="move">
                 <span>Move 2</span>
-                <strong>Verify live AI analyze and Daily Brief through the Worker API.</strong>
+                <strong>Verify production Supabase login, logout, and state restore.</strong>
               </article>
               <article class="move">
                 <span>Move 3</span>
@@ -1088,8 +1088,8 @@
         <div>
           <h3>What changed recently?</h3>
           <p>
-            This is the latest UX slice that exists locally and should be redeployed
-            before phone testing or founder presentation.
+            This is the latest UX slice now deployed to Cloudflare and ready for
+            phone testing or founder presentation.
           </p>
         </div>
         <button class="close-btn" type="button" data-close-drawer aria-label="Close drawer">x</button>
@@ -1122,7 +1122,7 @@
       const statusMeta = {
         done: { label: "Done", className: "status-done", weight: 1 },
         local: { label: "Local only", className: "status-local", weight: 0.5 },
-        deploy: { label: "Needs deploy", className: "status-deploy", weight: 0.25 },
+        deploy: { label: "Deploy check", className: "status-deploy", weight: 0.25 },
         next: { label: "Next", className: "status-next", weight: 0.12 },
         later: { label: "Later", className: "status-later", weight: 0 }
       };
@@ -1134,21 +1134,21 @@
           category: "Current State",
           title: "Local app",
           status: "done",
-          founder: "The newest LifeMap experience is working locally on the Mac, including the recent Today, Vault, and Capture UX slice.",
+          founder: "The newest LifeMap experience is working locally on the Mac and has a matching Cloudflare production deployment.",
           technical: "React/Vite app runs locally on port 5173. Local preview should use 127.0.0.1 on the Mac and LAN IP for iPhone.",
-          evidence: ["Local app has latest UI changes.", "Bottom navigation and founder Launch Plan exist.", "No deploy is required to inspect the local HTML map."],
-          next: "Use the local app as the source of truth before redeploying Pages."
+          evidence: ["Local app has latest UI changes.", "Bottom navigation and founder Launch Plan exist.", "Cloudflare Pages has the current build."],
+          next: "Use the local app for development and Cloudflare Pages for founder/device testing."
         },
         {
           id: "cloudflare-pages",
           section: "current",
           category: "Current State",
           title: "Cloudflare Pages",
-          status: "deploy",
-          founder: "The public demo exists, but it still needs the newest frontend build before it matches what we are seeing locally.",
-          technical: "Pages URL is live at lifemap-d33.pages.dev. It needs a fresh frontend deploy after local verification.",
-          evidence: ["Cloudflare Pages project exists.", "Live frontend can be opened.", "Latest UX slice has not been confirmed on the live URL."],
-          next: "Deploy the latest dist build, then test on Mac and iPhone."
+          status: "done",
+          founder: "The public demo is live on Cloudflare Pages and matches the latest verified frontend build.",
+          technical: "Pages URL is live at lifemap-d33.pages.dev. Deploys use `npm run deploy:pages`; production verification passes.",
+          evidence: ["Cloudflare Pages project exists.", "Latest production deploy uses the current commit.", "Production verification passes against the live URL."],
+          next: "Use the live URL for iPhone and founder testing."
         },
         {
           id: "worker-api",
@@ -1158,8 +1158,8 @@
           status: "done",
           founder: "The AI server path is separate from the frontend, which is good for security because the OpenAI key stays server-side.",
           technical: "Cloudflare Worker API has a health route and should back analyze/brief calls when Pages env points to it.",
-          evidence: ["Worker health endpoint exists.", "OpenAI key is not client-side.", "CORS origin config is separate from Pages."],
-          next: "After Pages deploy, verify analyze and Daily Brief against the Worker."
+          evidence: ["Worker health endpoint returns ok.", "OpenAI key is not client-side.", "Production analyze route returns structured output."],
+          next: "Keep Worker verification in the deploy checklist."
         },
         {
           id: "supabase",
@@ -1178,42 +1178,42 @@
           category: "Current State",
           title: "Tests and build",
           status: "done",
-          founder: "The core checks were green before this standalone map, which means the product code is in a good place to deploy next.",
-          technical: "lint, typecheck, test, and build passed on the recent app implementation pass. This HTML file is docs-only.",
-          evidence: ["No React app changes in this task.", "No package manager changes.", "No production secrets added."],
-          next: "Run the full check suite again before the actual Cloudflare deploy."
+          founder: "The core checks and production verification are green, which means the current public demo is safe to review.",
+          technical: "lint, typecheck, test, build, Pages deploy, Worker dry-run, and production verification have all passed in the current deployment cycle.",
+          evidence: ["Full local checks passed.", "Production verification passed.", "No production secrets added."],
+          next: "Add CI after explicit approval for workflow changes."
         },
         {
           id: "latest-ux",
           section: "current",
           category: "Current State",
           title: "Latest UX slice",
-          status: "local",
-          founder: "Today, Vault, and Capture are moving in the right direction, but the live app needs a redeploy before others can test it.",
-          technical: "Local working tree contains UX changes. Do not assume the Cloudflare Pages URL has them until redeployed.",
-          evidence: ["Today action sheets.", "Vault hidden detail pattern.", "Phone-native nav direction."],
-          next: "Deploy latest UI and then compare local versus Pages."
+          status: "done",
+          founder: "Today, Vault, Capture, and the cleaner Figma-inspired UI direction are now deployed for testing.",
+          technical: "The local working tree is clean and Cloudflare Pages has the current production build.",
+          evidence: ["Today action sheets.", "Vault hidden detail pattern.", "Phone-native nav direction.", "Cloudflare production verification passed."],
+          next: "Test the live URL on iPhone and capture UX notes."
         },
         {
           id: "today",
           section: "product",
           category: "Product Map",
           title: "Today",
-          status: "local",
+          status: "done",
           founder: "Today is becoming the return-home screen: Daily Brief, top priorities, and clear next actions.",
-          technical: "TodayView has recent interaction polish, but live AI response failures still need production verification.",
-          evidence: ["Daily Brief detail state exists.", "Priority action behavior exists.", "Needs live Worker verification."],
-          next: "Make the Daily Brief useful even when AI fails, then verify production API calls."
+          technical: "TodayView has interaction polish and the live Worker analyze path is verified.",
+          evidence: ["Daily Brief detail state exists.", "Priority action behavior exists.", "Production API verification passes."],
+          next: "Use phone testing to decide whether Daily Brief needs clearer empty/error states."
         },
         {
           id: "capture",
           section: "product",
           category: "Product Map",
           title: "Capture",
-          status: "local",
+          status: "done",
           founder: "Capture is the core loop: paste messy life context, then LifeMap turns it into organized next actions.",
           technical: "The app has a brain-dump/intake flow and a fallback parser. Server-side extraction is available when API works.",
-          evidence: ["Messy intake flow exists.", "Fallback parser protects demos.", "AI path needs live verification after deploy."],
+          evidence: ["Messy intake flow exists.", "Fallback parser protects demos.", "Production AI analyze is verified."],
           next: "Make Capture feel like one obvious button, not a confusing destination."
         },
         {
@@ -1221,7 +1221,7 @@
           section: "product",
           category: "Product Map",
           title: "Vault",
-          status: "local",
+          status: "done",
           founder: "Vault is the money surface: insurance, passports, IDs, meds, vaccines, school, pets, and travel records.",
           technical: "Vault categories and generated items exist. The next version should add real record models and secure storage.",
           evidence: ["Vault categories exist.", "Details can stay hidden until tapped.", "Sensitive data needs production security design."],
