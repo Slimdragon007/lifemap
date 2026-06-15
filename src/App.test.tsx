@@ -1101,6 +1101,19 @@ describe("LifeMap MVP app", () => {
     ).toBeInTheDocument();
   });
 
+  test("shows a toast when returning from a Google Calendar connect", async () => {
+    const user = userEvent.setup();
+    window.history.pushState({}, "", "/?google=connected");
+
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+
+    expect(
+      await screen.findByText("Google Calendar connected."),
+    ).toBeInTheDocument();
+    expect(window.location.search).toBe("");
+  });
+
   test("makes approval toggles visibly change the next step", async () => {
     const user = userEvent.setup();
 

@@ -315,6 +315,29 @@ function App() {
   }, [storedState]);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const google = params.get("google");
+    if (!google) {
+      return;
+    }
+    setToastMessage(
+      google === "connected"
+        ? "Google Calendar connected."
+        : "Couldn't connect Google Calendar. Try again.",
+    );
+    params.delete("google");
+    const query = params.toString();
+    window.history.replaceState(
+      {},
+      "",
+      `${window.location.pathname}${query ? `?${query}` : ""}`,
+    );
+  }, []);
+
+  useEffect(() => {
     if (!toastMessage) {
       return;
     }
