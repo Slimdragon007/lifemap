@@ -7028,3 +7028,25 @@ body {
   font-style: italic;
   opacity: 0.85;
 }
+
+.privacy-section-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.privacy-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.privacy-card h2 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.privacy-card p {
+  margin: 0;
+  opacity: 0.85;
+}

@@ -41,6 +41,10 @@ export function saveStoredDemoState(state: StoredDemoState): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+export function clearStoredDemoState(): void {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
 export function normalizeStoredDemoState(value: unknown): StoredDemoState {
   if (!isRecord(value)) {
     return {};

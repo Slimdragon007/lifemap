@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from "vitest";
 import {
   authoritativeRemoteState,
+  clearStoredDemoState,
   emptyPersistedState,
   loadStoredDemoState,
   saveStoredDemoState,
@@ -124,6 +125,14 @@ describe("demo browser storage", () => {
     localStorage.setItem("lifemap-demo-state", "{not json");
 
     expect(loadStoredDemoState()).toEqual({});
+  });
+});
+
+describe("clear demo state", () => {
+  test("clearStoredDemoState removes the stored blob", () => {
+    saveStoredDemoState({ isLoggedIn: true, intake: "note" });
+    clearStoredDemoState();
+    expect(localStorage.getItem("lifemap-demo-state")).toBeNull();
   });
 });
 

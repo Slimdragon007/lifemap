@@ -5,6 +5,7 @@ import {
   Check,
   CheckCircle2,
   ChevronRight,
+  RotateCcw,
   Clock3,
   FileText,
   Inbox,
@@ -33,6 +34,7 @@ import {
 } from "./lifemap";
 import {
   authoritativeRemoteState,
+  clearStoredDemoState,
   loadStoredDemoState,
   saveStoredDemoState,
 } from "./storage";
@@ -41,6 +43,7 @@ import AuthScreen from "./AuthScreen";
 import BucketDetailView from "./BucketDetailView";
 import LaunchPlanView from "./LaunchPlanView";
 import GuidedSetupView from "./GuidedSetupView";
+import PrivacyView from "./PrivacyView";
 import { useSession } from "./useSession";
 import {
   getAccessToken,
@@ -188,7 +191,8 @@ type AppView =
   | "family"
   | "setup"
   | "bucket"
-  | "launchPlan";
+  | "launchPlan"
+  | "privacy";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 type PriorityActionState = "completed" | "snoozed";
@@ -453,6 +457,23 @@ function App() {
       }
       return next;
     });
+  }
+
+  function handleResetDemo() {
+    clearStoredDemoState();
+    setIntake(starterIntake);
+    setMap(presentationAnalysis);
+    setDailyBrief(presentationBrief);
+    setDisabledApprovals(new Set());
+    setApprovalBodyEdits({});
+    setSavedSuggestionIds(new Set());
+    setDismissedSuggestionIds(new Set());
+    setSetupProfile(defaultSetupProfile);
+    setSetupBucketIds([]);
+    setStagedRun(undefined);
+    setSentDraftIds(new Set());
+    setView("today");
+    setToastMessage("Demo reset.");
   }
 
   async function handleSendDraft(item: ApprovalItem, to: string) {
@@ -1103,6 +1124,8 @@ function App() {
           </section>
         ) : view === "launchPlan" ? (
           <LaunchPlanView onBack={() => setView("more")} />
+        ) : view === "privacy" ? (
+          <PrivacyView onBack={() => setView("more")} />
         ) : view === "setup" ? (
           <GuidedSetupView
             activeBucketIds={setupBucketIds}
@@ -1123,6 +1146,8 @@ function App() {
             onOpenCapture={() => openCapture()}
             onOpenSetup={() => setView("setup")}
             onOpenLaunchPlan={() => setView("launchPlan")}
+            onOpenPrivacy={() => setView("privacy")}
+            onResetDemo={handleResetDemo}
             onSignOut={() => getSupabase().auth.signOut()}
           />
         )}
@@ -1543,6 +1568,8 @@ function MoreView({
   onOpenCapture,
   onOpenSetup,
   onOpenLaunchPlan,
+  onOpenPrivacy,
+  onResetDemo,
   onSignOut,
 }: {
   isSupabaseConfigured: boolean;
@@ -1551,6 +1578,8 @@ function MoreView({
   onOpenCapture: () => void;
   onOpenSetup: () => void;
   onOpenLaunchPlan: () => void;
+  onOpenPrivacy: () => void;
+  onResetDemo: () => void;
   onSignOut: () => void;
 }) {
   return (
@@ -1663,11 +1692,26 @@ function MoreView({
             <span className="more-row-copy">
               <strong>Private by default</strong>
               <span>
-                Drafts and reminders stay approval-gated. Nothing sends
-                automatically.
+                Drafts wait for your approval — nothing sends without an
+                explicit Send.
               </span>
             </span>
           </article>
+          <button
+            aria-label="Open privacy and security"
+            className="more-row"
+            type="button"
+            onClick={onOpenPrivacy}
+          >
+            <span className="more-row-icon">
+              <ShieldCheck size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Privacy &amp; security</strong>
+              <span>How data, AI, and email are handled.</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
           {isSupabaseConfigured ? (
             <button className="more-row" type="button" onClick={onSignOut}>
               <span className="more-row-icon">
@@ -1680,15 +1724,32 @@ function MoreView({
               <ChevronRight className="more-row-chevron" size={18} />
             </button>
           ) : (
-            <article className="more-row more-row-static">
-              <span className="more-row-icon">
-                <ShieldCheck size={18} />
-              </span>
-              <span className="more-row-copy">
-                <strong>Browser-only demo</strong>
-                <span>Demo data is stored in this browser only.</span>
-              </span>
-            </article>
+            <>
+              <article className="more-row more-row-static">
+                <span className="more-row-icon">
+                  <ShieldCheck size={18} />
+                </span>
+                <span className="more-row-copy">
+                  <strong>Browser-only demo</strong>
+                  <span>Demo data is stored in this browser only.</span>
+                </span>
+              </article>
+              <button
+                aria-label="Reset demo"
+                className="more-row"
+                type="button"
+                onClick={onResetDemo}
+              >
+                <span className="more-row-icon">
+                  <RotateCcw size={18} />
+                </span>
+                <span className="more-row-copy">
+                  <strong>Reset demo</strong>
+                  <span>Clear this browser's demo data and start fresh.</span>
+                </span>
+                <ChevronRight className="more-row-chevron" size={18} />
+              </button>
+            </>
           )}
         </section>
       </div>
