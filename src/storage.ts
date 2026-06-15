@@ -31,7 +31,8 @@ export function loadStoredDemoState(): StoredDemoState {
 
   try {
     return normalizeStoredDemoState(JSON.parse(rawValue));
-  } catch {
+  } catch (error) {
+    console.warn("LifeMap stored state was unreadable; starting fresh", error);
     return {};
   }
 }

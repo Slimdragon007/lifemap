@@ -63,11 +63,12 @@ export async function analyzeWithAi(
 
     if (payload.ok === true) {
       const normalized = normalizeAnalysis(payload.analysis);
-      return normalized.ok ? normalized : normalized;
+      return normalized;
     }
 
     return { ok: false, error: DEFAULT_ERROR };
-  } catch {
+  } catch (error) {
+    console.error("LifeMap API request failed", error);
     return { ok: false, error: DEFAULT_ERROR };
   }
 }
@@ -102,7 +103,8 @@ export async function classifyBrainDumpWithAi(
     }
 
     return { ok: false, error: DEFAULT_ERROR };
-  } catch {
+  } catch (error) {
+    console.error("LifeMap API request failed", error);
     return { ok: false, error: DEFAULT_ERROR };
   }
 }
@@ -139,7 +141,8 @@ export async function generateBriefWithAi(
     }
 
     return { ok: false, error: DEFAULT_ERROR };
-  } catch {
+  } catch (error) {
+    console.error("LifeMap API request failed", error);
     return { ok: false, error: DEFAULT_ERROR };
   }
 }
@@ -178,7 +181,8 @@ export function resolveApiOrigin(
     return undefined;
   }
 
-  const hostname = location.hostname.length === 0 ? "localhost" : location.hostname;
+  const hostname =
+    location.hostname.length === 0 ? "localhost" : location.hostname;
 
   return `http://${hostname}:8787`;
 }
