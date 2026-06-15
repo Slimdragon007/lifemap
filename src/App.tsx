@@ -319,16 +319,29 @@ function App() {
     const userId = session.user.id;
     setRemoteLoadedFor(undefined);
 
-    loadRemoteState(userId, getSupabase() as unknown as RemoteStateClient).then(
-      (remoteState) => {
+    loadRemoteState(userId, getSupabase() as unknown as RemoteStateClient)
+      .then((result) => {
         if (!active) {
           return;
         }
 
-        applyStoredState(remoteState);
+        if (result.ok) {
+          applyStoredState(result.state);
+        } else {
+          console.warn("LifeMap remote load failed", result.error);
+          setToastMessage("Couldn't sync your saved data — using local copy.");
+        }
         setRemoteLoadedFor(userId);
-      },
-    );
+      })
+      .catch((error) => {
+        if (!active) {
+          return;
+        }
+
+        console.error("LifeMap remote load error", error);
+        setToastMessage("Couldn't sync your saved data — using local copy.");
+        setRemoteLoadedFor(userId);
+      });
 
     return () => {
       active = false;
@@ -349,7 +362,11 @@ function App() {
         session.user.id,
         storedState,
         getSupabase() as unknown as RemoteStateClient,
-      );
+      ).then((result) => {
+        if (!result.ok) {
+          console.warn("LifeMap remote save failed", result.error);
+        }
+      });
     }, 650);
 
     return () => window.clearTimeout(timeout);

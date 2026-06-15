@@ -7,7 +7,10 @@ type QueryResult = {
 };
 
 type SelectQuery = {
-  eq: (column: string, value: string) => {
+  eq: (
+    column: string,
+    value: string,
+  ) => {
     maybeSingle: () => Promise<QueryResult>;
   };
 };
@@ -28,13 +31,22 @@ export type RemoteStateClient = {
   };
 };
 
+export type LoadRemoteResult =
+  | { ok: true; state: StoredDemoState }
+  | { ok: false; state: StoredDemoState; error: string };
+
 export async function loadRemoteState(
   userId: string,
   client: RemoteStateClient,
-): Promise<StoredDemoState> {
+): Promise<LoadRemoteResult> {
   const result = await readPreferences(userId, client);
-  const preferences = result.ok ? result.preferences : {};
-  return normalizeStoredDemoState(preferences.lifemapState);
+  if (!result.ok) {
+    return { ok: false, state: {}, error: result.error };
+  }
+  return {
+    ok: true,
+    state: normalizeStoredDemoState(result.preferences.lifemapState),
+  };
 }
 
 export async function saveRemoteState(
