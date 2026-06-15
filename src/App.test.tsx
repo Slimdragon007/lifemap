@@ -221,6 +221,19 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByText("Travel command center")).toBeInTheDocument();
   });
 
+  test("surfaces guided setup from Today for a fresh household", async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+
+    expect(screen.getByRole("heading", { name: "Make LifeMap yours" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Start guided setup" }));
+
+    expect(screen.getByRole("heading", { name: "Guided setup" })).toBeInTheDocument();
+  });
+
   test("routes completed guided setup back to Today with created buckets", async () => {
     const user = userEvent.setup();
 

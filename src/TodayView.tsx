@@ -37,6 +37,7 @@ type TodayViewProps = {
   onOpenBrainDump: (rawIntake?: string) => void;
   onOpenVault: () => void;
   onOpenFamilyMap: () => void;
+  onOpenSetup: () => void;
   onOpenSetupBucket: (bucket: RecommendedBucket) => void;
   onOpenApprovals: () => void;
   onOpenPriority: (priority: BriefPriority) => void;
@@ -58,6 +59,7 @@ function TodayView({
   onOpenBrainDump,
   onOpenVault,
   onOpenFamilyMap,
+  onOpenSetup,
   onOpenSetupBucket,
   onOpenApprovals,
   onOpenPriority,
@@ -193,6 +195,26 @@ function TodayView({
             ))}
           </div>
         </section>
+
+        {setupBuckets.length === 0 ? (
+          <section className="atlas-setup-prompt panel" aria-labelledby="today-setup-title">
+            <span className="atlas-setup-prompt-icon">
+              <UsersRound size={18} />
+            </span>
+            <div>
+              <span className="atlas-capture-label">First-run setup</span>
+              <h2 id="today-setup-title">Make LifeMap yours</h2>
+              <p>
+                Pick family, pets, travel, records, school, health, meals, and
+                home loops once. LifeMap will shape Today around those buckets.
+              </p>
+            </div>
+            <button className="atlas-link-button" type="button" onClick={onOpenSetup}>
+              Start guided setup
+              <ChevronRight size={14} />
+            </button>
+          </section>
+        ) : null}
 
         <section className="atlas-brief-card panel" aria-label="Daily Brief">
           <div className="atlas-card-topline">

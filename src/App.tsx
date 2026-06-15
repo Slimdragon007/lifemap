@@ -710,6 +710,7 @@ function App() {
             onOpenCalendar={() => setView("calendar")}
             onOpenFamilyMap={() => setView("family")}
             onOpenPriority={setSelectedPriority}
+            onOpenSetup={() => setView("setup")}
             onOpenSetupBucket={(bucket) => {
               setSelectedSetupBucketId(bucket.id);
               setView("bucket");

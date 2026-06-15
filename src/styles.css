@@ -2058,6 +2058,59 @@ button.nav-item {
   white-space: nowrap;
 }
 
+.atlas-setup-prompt {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-color: rgba(58, 107, 255, 0.13);
+  background:
+    linear-gradient(
+      125deg,
+      rgba(255, 252, 246, 0.9),
+      rgba(232, 239, 251, 0.78) 56%,
+      rgba(246, 224, 214, 0.62)
+    ),
+    var(--surface);
+}
+
+.atlas-setup-prompt-icon {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.66);
+  border-radius: var(--radius);
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--plum), var(--blue));
+  box-shadow: 0 12px 24px rgba(18, 24, 38, 0.12);
+}
+
+.atlas-setup-prompt h2,
+.atlas-setup-prompt p {
+  margin: 0;
+}
+
+.atlas-setup-prompt h2 {
+  color: var(--ink-strong);
+  font-size: 18px;
+  line-height: 1.18;
+}
+
+.atlas-setup-prompt p {
+  max-width: 680px;
+  margin-top: 5px;
+  color: #536074;
+  font-size: 13px;
+  line-height: 1.42;
+}
+
+.atlas-setup-prompt .atlas-link-button {
+  align-self: center;
+  white-space: nowrap;
+}
+
 .today-hero {
   position: relative;
   min-height: 440px;
@@ -3048,6 +3101,15 @@ button.nav-item {
   .assistant-prompts {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .atlas-setup-prompt {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .atlas-setup-prompt .atlas-link-button {
+    grid-column: 1 / -1;
+    justify-self: stretch;
   }
 
   .today-topbar {
