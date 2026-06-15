@@ -1048,6 +1048,59 @@ describe("LifeMap MVP app", () => {
     ).toBeGreaterThan(0);
   });
 
+  test("reveals a source quote when its chip is clicked", async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await openFamilyMap(user);
+
+    const evidence = screen.getByRole("region", { name: "Source evidence" });
+    const chip = within(evidence).getAllByRole("button")[0];
+    const quote = chip.getAttribute("data-quote") as string;
+    expect(
+      within(evidence).queryByText(quote, { exact: false }),
+    ).not.toBeInTheDocument();
+
+    await user.click(chip);
+
+    expect(
+      within(evidence).getByText(quote, { exact: false }),
+    ).toBeInTheDocument();
+  });
+
+  test("reset demo returns to a fresh Today from the More tab", async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("button", { name: "Reset demo" }));
+
+    expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
+  });
+
+  test("opens the privacy & security page from More", async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(
+      screen.getByRole("button", { name: "Open privacy and security" }),
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Privacy & security" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/nothing sends without an explicit Send/i),
+    ).toBeInTheDocument();
+  });
+
   test("makes approval toggles visibly change the next step", async () => {
     const user = userEvent.setup();
 

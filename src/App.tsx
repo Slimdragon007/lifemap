@@ -29,6 +29,7 @@ import {
   buildApprovalQueue,
   type ApprovalItem,
   type LifeMapAnalysis,
+  type SourceEvidence,
 } from "./lifemap";
 import {
   authoritativeRemoteState,
@@ -992,18 +993,7 @@ function App() {
                     <ShieldCheck size={18} />
                   </div>
 
-                  <div className="evidence-row" aria-label="Source evidence">
-                    {map.sourceEvidence.map((source) => (
-                      <span
-                        className="evidence-chip"
-                        key={source.id}
-                        title={source.quote}
-                      >
-                        <CheckCircle2 size={13} />
-                        {source.label}
-                      </span>
-                    ))}
-                  </div>
+                  <SourceEvidenceRow sources={map.sourceEvidence} />
 
                   <div className="map-section">
                     <h3>What is due</h3>
@@ -2290,6 +2280,37 @@ function SendDraftControl({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function SourceEvidenceRow({ sources }: { sources: SourceEvidence[] }) {
+  const [openId, setOpenId] = useState<string>();
+  const open = sources.find((source) => source.id === openId);
+  return (
+    <section className="evidence-row" aria-label="Source evidence">
+      <div className="evidence-chips">
+        {sources.map((source) => (
+          <button
+            aria-expanded={source.id === openId}
+            className={
+              source.id === openId ? "evidence-chip open" : "evidence-chip"
+            }
+            data-quote={source.quote}
+            key={source.id}
+            type="button"
+            onClick={() =>
+              setOpenId((current) =>
+                current === source.id ? undefined : source.id,
+              )
+            }
+          >
+            <CheckCircle2 size={13} />
+            {source.label}
+          </button>
+        ))}
+      </div>
+      {open ? <p className="evidence-quote">“{open.quote}”</p> : null}
+    </section>
   );
 }
 

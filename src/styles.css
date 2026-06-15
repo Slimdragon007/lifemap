@@ -7008,3 +7008,23 @@ body {
   gap: 8px;
   margin-top: 8px;
 }
+
+.evidence-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.evidence-chip {
+  cursor: pointer;
+}
+
+.evidence-chip.open {
+  outline: 2px solid rgba(77, 126, 255, 0.5);
+}
+
+.evidence-quote {
+  margin-top: 8px;
+  font-style: italic;
+  opacity: 0.85;
+}
