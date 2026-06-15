@@ -15,18 +15,18 @@ export default {
 
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/health") {
-      return jsonResponse({ ok: true, service: "lifemap-api" }, 200, corsHeaders);
+      return jsonResponse(
+        { ok: true, service: "lifemap-api" },
+        200,
+        corsHeaders,
+      );
     }
 
     if (
       request.method !== "POST" ||
       !["/api/analyze", "/api/classify", "/api/brief"].includes(url.pathname)
     ) {
-      return jsonResponse(
-        { ok: false, error: "Not found." },
-        404,
-        corsHeaders,
-      );
+      return jsonResponse({ ok: false, error: "Not found." }, 404, corsHeaders);
     }
 
     try {
@@ -49,7 +49,7 @@ export default {
   },
 };
 
-async function analyzePayload(payload, env, fetchImpl = fetch) {
+export async function analyzePayload(payload, env, fetchImpl = fetch) {
   const rawIntake =
     typeof payload?.rawIntake === "string" ? payload.rawIntake.trim() : "";
   if (!rawIntake) {
@@ -71,7 +71,7 @@ async function analyzePayload(payload, env, fetchImpl = fetch) {
   });
 }
 
-async function classifyPayload(payload, env, fetchImpl = fetch) {
+export async function classifyPayload(payload, env, fetchImpl = fetch) {
   const rawDump =
     typeof payload?.rawDump === "string" ? payload.rawDump.trim() : "";
   if (!rawDump) {
@@ -83,11 +83,14 @@ async function classifyPayload(payload, env, fetchImpl = fetch) {
     env,
     fetchImpl,
     normalizer: normalizeMentalLoad,
-    requestBody: buildClassifyRequest(rawDump, env.OPENAI_MODEL || DEFAULT_MODEL),
+    requestBody: buildClassifyRequest(
+      rawDump,
+      env.OPENAI_MODEL || DEFAULT_MODEL,
+    ),
   });
 }
 
-async function generateBriefPayload(payload, env, fetchImpl = fetch) {
+export async function generateBriefPayload(payload, env, fetchImpl = fetch) {
   const analysis = normalizeAnalysis(payload?.analysis);
   if (!analysis) {
     return { status: 400, body: { ok: false, error: INVALID_INPUT_ERROR } };
@@ -102,7 +105,13 @@ async function generateBriefPayload(payload, env, fetchImpl = fetch) {
   });
 }
 
-async function callOpenAi({ bodyKey, env, fetchImpl, normalizer, requestBody }) {
+async function callOpenAi({
+  bodyKey,
+  env,
+  fetchImpl,
+  normalizer,
+  requestBody,
+}) {
   const apiKey =
     typeof env.OPENAI_API_KEY === "string" ? env.OPENAI_API_KEY.trim() : "";
   if (!apiKey) {
@@ -498,7 +507,9 @@ function normalizeDailyBrief(value) {
 }
 
 function parsePriority(value) {
-  return isRecord(value) ? readObject(value, ["id", "label", "reason"]) : undefined;
+  return isRecord(value)
+    ? readObject(value, ["id", "label", "reason"])
+    : undefined;
 }
 
 function parseOpenLoop(value) {
@@ -508,11 +519,15 @@ function parseOpenLoop(value) {
 }
 
 function parseCanWait(value) {
-  return isRecord(value) ? readObject(value, ["id", "label", "reason"]) : undefined;
+  return isRecord(value)
+    ? readObject(value, ["id", "label", "reason"])
+    : undefined;
 }
 
 function parseConflict(value) {
-  return isRecord(value) ? readObject(value, ["id", "label", "reason"]) : undefined;
+  return isRecord(value)
+    ? readObject(value, ["id", "label", "reason"])
+    : undefined;
 }
 
 function parseDueItem(value) {
@@ -528,11 +543,15 @@ function parseMissingInfo(value) {
 }
 
 function parseWaitingOn(value) {
-  return isRecord(value) ? readObject(value, ["id", "name", "reason"]) : undefined;
+  return isRecord(value)
+    ? readObject(value, ["id", "name", "reason"])
+    : undefined;
 }
 
 function parseNextAction(value) {
-  return isRecord(value) ? readObject(value, ["id", "label", "owner"]) : undefined;
+  return isRecord(value)
+    ? readObject(value, ["id", "label", "owner"])
+    : undefined;
 }
 
 function parseReminder(value) {
