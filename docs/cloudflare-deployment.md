@@ -22,21 +22,21 @@ Cloudflare Pages will copy `public/_headers` into the deployed `dist` output for
 
 ## API
 
-The local API currently runs with `npm run dev:api` from `scripts/api-server.mjs` and exposes:
+The API is a single Cloudflare Worker (`worker/lifemap-api.mjs`) used in both local dev and production — there is no separate Node server. `npm run dev:api` runs the real Worker locally via `wrangler dev --config worker/wrangler.jsonc` on `http://localhost:8787`, exposing:
 
+- `GET /health`
 - `POST /api/analyze`
 - `POST /api/classify`
 - `POST /api/brief`
 
-Required server-side secrets:
+Secrets are managed through Cloudflare's env model (not scattered `.env` files):
 
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL` (optional, defaults to `gpt-5.5`)
-- `SUPABASE_SERVICE_ROLE_KEY` (reserved for future server-side persistence or admin jobs; never expose to Vite)
+- **Local:** copy `worker/.dev.vars.example` to `worker/.dev.vars` (gitignored) and set `OPENAI_API_KEY`. `wrangler dev` reads it automatically.
+- **Production:** `wrangler secret put OPENAI_API_KEY --config worker/wrangler.jsonc` (or the dashboard).
+- Non-secret config (`OPENAI_MODEL`, defaults to `gpt-5.5`; `ALLOWED_ORIGIN`) lives in `worker/wrangler.jsonc` `vars`.
+- Never put `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` in any `VITE_*` variable.
 
-For production, deploy the API as a Cloudflare Worker or small Node service and set `VITE_API_ORIGIN` on Pages to that deployed origin. Do not put `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` in any `VITE_*` variable.
-
-Current Worker deployment:
+Worker deployment:
 
 - Config: `worker/wrangler.jsonc`
 - Deploy command: `npm run deploy:api`
