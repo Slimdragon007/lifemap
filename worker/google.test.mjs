@@ -11,7 +11,33 @@ import {
   verifyState,
 } from "./google.mjs";
 
+import {
+  googleAuthUrlPayload,
+  googleCallback,
+  googleDisconnectPayload,
+  googleStatusPayload,
+} from "./lifemap-api.mjs";
+
 const SECRET = "state-secret";
+
+const gEnv = {
+  SUPABASE_URL: "https://proj.supabase.co",
+  SUPABASE_ANON_KEY: "anon",
+  GOOGLE_CLIENT_ID: "client-123",
+  GOOGLE_CLIENT_SECRET: "secret",
+  GOOGLE_REDIRECT_URI: "https://api.example.com/api/google/callback",
+  GOOGLE_OAUTH_STATE_SECRET: SECRET,
+  APP_ORIGIN: "https://app.example.com",
+};
+
+function authedFetch(user, googleResponse) {
+  return vi.fn(async (url) => {
+    if (String(url).includes("/auth/v1/user")) {
+      return { ok: Boolean(user), json: async () => user ?? {} };
+    }
+    return googleResponse ?? { ok: true, json: async () => ({}) };
+  });
+}
 
 function base64url(value) {
   return btoa(value).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -148,5 +174,114 @@ describe("revokeToken", () => {
       expect.stringContaining("https://oauth2.googleapis.com/revoke"),
       expect.objectContaining({ method: "POST" }),
     );
+  });
+});
+
+describe("google endpoints", () => {
+  test("auth-url returns a consent URL for an authed user", async () => {
+    const result = await googleAuthUrlPayload({
+      authHeader: "Bearer tok",
+      env: gEnv,
+      fetchImpl: authedFetch({ id: "u1", email: "alex@example.com" }),
+    });
+    expect(result.status).toBe(200);
+    expect(result.body.url).toContain("client_id=client-123");
+    expect(result.body.url).toContain("state=");
+  });
+
+  test("auth-url rejects an unauthenticated request", async () => {
+    const result = await googleAuthUrlPayload({
+      authHeader: "",
+      env: gEnv,
+      fetchImpl: authedFetch(null),
+    });
+    expect(result.status).toBe(401);
+  });
+
+  test("status reflects whether creds exist", async () => {
+    const kv = makeKv();
+    const fetchImpl = authedFetch({ id: "u1" });
+    const before = await googleStatusPayload({
+      authHeader: "Bearer tok",
+      env: gEnv,
+      kv,
+      fetchImpl,
+    });
+    expect(before.body).toMatchObject({ connected: false });
+
+    await saveCreds(kv, "u1", {
+      refresh_token: "r",
+      email: "alex@example.com",
+    });
+    const after = await googleStatusPayload({
+      authHeader: "Bearer tok",
+      env: gEnv,
+      kv,
+      fetchImpl,
+    });
+    expect(after.body).toMatchObject({
+      connected: true,
+      email: "alex@example.com",
+    });
+  });
+
+  test("callback exchanges a valid state and stores creds", async () => {
+    const kv = makeKv();
+    const state = await signState({ userId: "u1", exp: 9999999999 }, SECRET);
+    const requestUrl = new URL(
+      `https://api.example.com/api/google/callback?code=abc&state=${encodeURIComponent(state)}`,
+    );
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        refresh_token: "r",
+        access_token: "a",
+        expires_in: 3600,
+        id_token: makeIdToken({ email: "alex@example.com" }),
+      }),
+    }));
+
+    const location = await googleCallback({
+      requestUrl,
+      env: gEnv,
+      kv,
+      fetchImpl,
+    });
+    expect(location).toBe("https://app.example.com/?google=connected");
+    expect(await loadCreds(kv, "u1")).toMatchObject({
+      refresh_token: "r",
+      email: "alex@example.com",
+    });
+  });
+
+  test("callback rejects an invalid state", async () => {
+    const kv = makeKv();
+    const requestUrl = new URL(
+      "https://api.example.com/api/google/callback?code=abc&state=tampered",
+    );
+    const location = await googleCallback({
+      requestUrl,
+      env: gEnv,
+      kv,
+      fetchImpl: vi.fn(),
+    });
+    expect(location).toBe("https://app.example.com/?google=error");
+  });
+
+  test("disconnect revokes and clears creds", async () => {
+    const kv = makeKv();
+    await saveCreds(kv, "u1", {
+      refresh_token: "r",
+      email: "alex@example.com",
+    });
+    const fetchImpl = authedFetch({ id: "u1" }, { ok: true });
+    const result = await googleDisconnectPayload({
+      authHeader: "Bearer tok",
+      env: gEnv,
+      kv,
+      fetchImpl,
+    });
+    expect(result.body).toEqual({ ok: true });
+    expect(await loadCreds(kv, "u1")).toBeNull();
   });
 });
