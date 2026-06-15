@@ -4590,13 +4590,6 @@ button.nav-item {
   gap: 12px;
 }
 
-.example-chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 12px;
-}
-
 .capture-path {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -4668,17 +4661,116 @@ button.nav-item {
   margin-right: 6px;
 }
 
-.lifemap-ai-composer .example-chip {
-  color: #3d4d63;
-  border-color: rgba(77, 126, 255, 0.12);
-  background: rgba(255, 255, 255, 0.66);
+.capture-type-picker {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid rgba(18, 24, 38, 0.08);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(145deg, rgba(255, 252, 246, 0.88), rgba(255, 255, 255, 0.66)),
+    rgba(255, 255, 255, 0.62);
+  box-shadow: 0 14px 30px rgba(18, 24, 38, 0.06);
 }
 
-.lifemap-ai-composer .example-chip:hover {
+.capture-type-heading {
+  display: grid;
+  gap: 4px;
+}
+
+.capture-type-heading span {
   color: var(--blue-strong);
-  border-color: rgba(77, 126, 255, 0.22);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 22px rgba(36, 61, 92, 0.08);
+  font-size: 11px;
+  font-weight: 860;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.capture-type-heading h2,
+.capture-type-heading p {
+  margin: 0;
+}
+
+.capture-type-heading h2 {
+  color: var(--ink-strong);
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.capture-type-heading p {
+  color: #5f6b7d;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.capture-type-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.capture-type-card {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  gap: 6px;
+  min-height: 142px;
+  padding: 10px;
+  border: 1px solid rgba(18, 24, 38, 0.08);
+  border-radius: var(--radius-control);
+  color: #314054;
+  background:
+    radial-gradient(circle at 85% 16%, rgba(58, 107, 255, 0.14), transparent 42%),
+    rgba(255, 255, 255, 0.68);
+  box-shadow: 0 10px 22px rgba(18, 24, 38, 0.05);
+  text-align: left;
+}
+
+.capture-type-card:hover {
+  border-color: rgba(58, 107, 255, 0.2);
+  background:
+    radial-gradient(circle at 85% 16%, rgba(58, 107, 255, 0.18), transparent 44%),
+    rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+.capture-type-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.capture-type-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(58, 107, 255, 0.14);
+  border-radius: 12px;
+  color: var(--blue-strong);
+  background:
+    radial-gradient(circle at 78% 78%, rgba(210, 106, 74, 0.18), transparent 52%),
+    rgba(232, 239, 251, 0.78);
+}
+
+.capture-type-card strong {
+  color: var(--ink-strong);
+  font-size: 13px;
+  line-height: 1.15;
+}
+
+.capture-type-card span:not(.capture-type-icon) {
+  color: #526074;
+  font-size: 12px;
+  line-height: 1.28;
+}
+
+.capture-type-card em {
+  align-self: end;
+  color: #7c432f;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 780;
+  line-height: 1.25;
 }
 
 .composer-grid textarea {
@@ -4917,6 +5009,14 @@ button.nav-item {
 
   .capture-path {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .capture-type-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .capture-type-card {
+    min-height: 132px;
   }
 
   .capture-routing-actions {
@@ -5544,8 +5644,7 @@ button.nav-item {
   gap: 7px;
 }
 
-.atlas-ai-examples button,
-.example-chip {
+.atlas-ai-examples button {
   min-height: 30px;
   padding: 0 10px;
   border: 1px solid rgba(77, 126, 255, 0.12);
@@ -5556,8 +5655,7 @@ button.nav-item {
   font-weight: 820;
 }
 
-.atlas-ai-examples button:hover,
-.example-chip:hover {
+.atlas-ai-examples button:hover {
   border-color: rgba(77, 126, 255, 0.22);
   background: rgba(255, 255, 255, 0.86);
   transform: translateY(-1px);
@@ -6238,7 +6336,6 @@ body {
 .secondary-button,
 .ghost-button,
 .sample-button,
-.example-chip,
 .layer-chip,
 .vault-filter {
   border-color: rgba(29, 29, 31, 0.1);

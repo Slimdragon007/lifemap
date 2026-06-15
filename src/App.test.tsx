@@ -487,6 +487,32 @@ describe("LifeMap MVP app", () => {
     ).toBeInTheDocument();
   });
 
+  test("lets Capture start from a plain-language life category", async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await user.click(screen.getByRole("button", { name: "Capture" }));
+
+    const capture = screen.getByRole("region", { name: "Ask LifeMap AI" });
+    const captureTypePicker = within(capture).getByRole("region", {
+      name: "Choose what this is",
+    });
+
+    expect(within(captureTypePicker).getByText("Start with the bucket, then paste or edit the messy details.")).toBeInTheDocument();
+    expect(
+      within(captureTypePicker).getByRole("button", { name: "Use travel template" }),
+    ).toBeInTheDocument();
+    expect(within(captureTypePicker).getByText("Flights, packing, rewards, TSA")).toBeInTheDocument();
+
+    await user.click(within(captureTypePicker).getByRole("button", { name: "Use travel template" }));
+
+    expect(
+      within(capture).getByDisplayValue(/Need TSA PreCheck numbers/i),
+    ).toBeInTheDocument();
+  });
+
   test("advances Capture guidance after analysis succeeds", async () => {
     const user = userEvent.setup();
     vi.stubGlobal(

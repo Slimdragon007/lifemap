@@ -131,6 +131,39 @@ Ask Taylor to send the rewards account login.`,
   },
 ];
 
+const captureTypeGuides = [
+  {
+    title: "School",
+    sampleLabel: "School form",
+    description: "Forms, lunch, schedules, fees",
+    outcome: "Routes to Today, Calendar, and Review",
+  },
+  {
+    title: "Health",
+    sampleLabel: "Doctor appointment",
+    description: "Appointments, meds, insurance",
+    outcome: "Pulls missing info into Vault",
+  },
+  {
+    title: "IDs + records",
+    sampleLabel: "Passport renewal",
+    description: "Passports, IDs, cards, renewals",
+    outcome: "Builds a document checklist",
+  },
+  {
+    title: "Pets",
+    sampleLabel: "Pet vaccine",
+    description: "Vaccines, boarding, vet tasks",
+    outcome: "Tracks care loops and records",
+  },
+  {
+    title: "Travel",
+    sampleLabel: "Travel packing",
+    description: "Flights, packing, rewards, TSA",
+    outcome: "Creates a trip logistics map",
+  },
+];
+
 type StagedRun = {
   approvals: ApprovalItem[];
   stagedAt: string;
@@ -1143,6 +1176,10 @@ function CaptureWorkspace({
         : hasIntake
           ? "Ready to analyze"
           : "Needs context";
+  const captureTypeOptions = captureTypeGuides.map((guide) => ({
+    ...guide,
+    sample: examples.find((example) => example.label === guide.sampleLabel),
+  }));
 
   return (
     <section
@@ -1215,18 +1252,41 @@ function CaptureWorkspace({
             </ol>
           </section>
 
-          <div className="example-chip-row" aria-label="Try an example">
-            {examples.map((example) => (
-              <button
-                className="example-chip"
-                key={example.label}
-                type="button"
-                onClick={() => onLoadExample(example.rawIntake)}
-              >
-                {example.label}
-              </button>
-            ))}
-          </div>
+          <section
+            aria-labelledby="capture-type-title"
+            className="capture-type-picker"
+          >
+            <div className="capture-type-heading">
+              <span>Quick start</span>
+              <h2 id="capture-type-title">Choose what this is</h2>
+              <p>
+                Start with the bucket, then paste or edit the messy details.
+              </p>
+            </div>
+            <div className="capture-type-grid">
+              {captureTypeOptions.map((option) => (
+                <button
+                  aria-label={`Use ${option.title.toLowerCase()} template`}
+                  className="capture-type-card"
+                  disabled={!option.sample}
+                  key={option.title}
+                  type="button"
+                  onClick={() => {
+                    if (option.sample) {
+                      onLoadExample(option.sample.rawIntake);
+                    }
+                  }}
+                >
+                  <span className="capture-type-icon">
+                    <FileText size={16} />
+                  </span>
+                  <strong>{option.title}</strong>
+                  <span>{option.description}</span>
+                  <em>{option.outcome}</em>
+                </button>
+              ))}
+            </div>
+          </section>
 
           <div className="composer-grid">
             <section className="panel intake-panel" aria-labelledby="ai-intake-title">
