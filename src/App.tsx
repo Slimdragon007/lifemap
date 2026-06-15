@@ -19,7 +19,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { analyzeWithAi, generateBriefWithAi } from "./api";
+import { analyzeWithAi, generateBriefWithAi, sendDraftEmail } from "./api";
 import {
   buildDailyBriefFromAnalysis,
   type BriefPriority,
@@ -41,7 +41,11 @@ import BucketDetailView from "./BucketDetailView";
 import LaunchPlanView from "./LaunchPlanView";
 import GuidedSetupView from "./GuidedSetupView";
 import { useSession } from "./useSession";
-import { getSupabase, isSupabaseConfigured } from "./supabaseClient";
+import {
+  getAccessToken,
+  getSupabase,
+  isSupabaseConfigured,
+} from "./supabaseClient";
 import TodayView from "./TodayView";
 import VaultView from "./VaultView";
 import {
@@ -244,6 +248,10 @@ function App() {
   );
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [stagedRun, setStagedRun] = useState<StagedRun>();
+  const [sentDraftIds, setSentDraftIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [sendingDraftId, setSendingDraftId] = useState<string>();
   const [analyzeStatus, setAnalyzeStatus] = useState<
     "idle" | "loading" | "success" | "error" | "fallback"
   >("idle");
@@ -444,6 +452,33 @@ function App() {
       }
       return next;
     });
+  }
+
+  async function handleSendDraft(item: ApprovalItem, to: string) {
+    setSendingDraftId(item.id);
+    const token = await getAccessToken().catch(() => undefined);
+    if (!token) {
+      setToastMessage("Please sign in again to send.");
+      setSendingDraftId(undefined);
+      return;
+    }
+    const result = await sendDraftEmail(
+      {
+        draftId: item.id,
+        to,
+        recipientName: item.recipient,
+        subject: item.title,
+        body: approvalBodyEdits[item.id] ?? item.body,
+      },
+      token,
+    );
+    setSendingDraftId(undefined);
+    if (result.ok) {
+      setSentDraftIds((current) => new Set(current).add(item.id));
+      setToastMessage("Sent.");
+    } else {
+      setToastMessage(result.error);
+    }
   }
 
   async function handleAnalyze() {
@@ -1033,10 +1068,13 @@ function App() {
               editedApprovals={editedApprovals}
               selectedCount={selectedApprovals.length}
               stagedRun={stagedRun}
+              sentDraftIds={sentDraftIds}
+              sendingDraftId={sendingDraftId}
               variant="rail"
               onReview={() => setIsReviewOpen(true)}
               onSave={saveApprovalBody}
               onToggle={toggleApproval}
+              onSendDraft={handleSendDraft}
             />
           </>
         ) : view === "review" ? (
@@ -1064,10 +1102,13 @@ function App() {
               editedApprovals={editedApprovals}
               selectedCount={selectedApprovals.length}
               stagedRun={stagedRun}
+              sentDraftIds={sentDraftIds}
+              sendingDraftId={sendingDraftId}
               variant="panel"
               onReview={() => setIsReviewOpen(true)}
               onSave={saveApprovalBody}
               onToggle={toggleApproval}
+              onSendDraft={handleSendDraft}
             />
           </section>
         ) : view === "launchPlan" ? (
@@ -1950,19 +1991,25 @@ function ApprovalQueue({
   editedApprovals,
   selectedCount,
   stagedRun,
+  sentDraftIds,
+  sendingDraftId,
   variant,
   onReview,
   onSave,
   onToggle,
+  onSendDraft,
 }: {
   disabledApprovals: Set<string>;
   editedApprovals: ApprovalItem[];
   selectedCount: number;
   stagedRun?: StagedRun;
+  sentDraftIds: Set<string>;
+  sendingDraftId?: string;
   variant: "rail" | "panel";
   onReview: () => void;
   onSave: (id: string, body: string) => void;
   onToggle: (id: string) => void;
+  onSendDraft: (item: ApprovalItem, to: string) => void;
 }) {
   const Component = variant === "rail" ? "aside" : "section";
   const pausedCount = editedApprovals.length - selectedCount;
@@ -1995,8 +2042,11 @@ function ApprovalQueue({
                 approved={!disabledApprovals.has(item.id)}
                 item={item}
                 key={item.id}
+                sent={sentDraftIds.has(item.id)}
+                sending={sendingDraftId === item.id}
                 onSave={(body) => onSave(item.id, body)}
                 onToggle={() => onToggle(item.id)}
+                onSend={(to) => onSendDraft(item, to)}
               />
             ))}
           </div>
@@ -2047,13 +2097,19 @@ function ApprovalFlowGuide({
 function ApprovalCard({
   item,
   approved,
+  sent,
+  sending,
   onSave,
   onToggle,
+  onSend,
 }: {
   item: ApprovalItem;
   approved: boolean;
+  sent: boolean;
+  sending: boolean;
   onSave: (body: string) => void;
   onToggle: () => void;
+  onSend: (to: string) => void;
 }) {
   const Icon = item.kind === "draft" ? MessageSquare : Bell;
   const [draftBody, setDraftBody] = useState(item.body);
@@ -2160,7 +2216,80 @@ function ApprovalCard({
       >
         {item.status}
       </span>
+      {item.kind === "draft" ? (
+        <SendDraftControl
+          item={item}
+          sent={sent}
+          sending={sending}
+          onSend={onSend}
+        />
+      ) : null}
     </article>
+  );
+}
+
+function SendDraftControl({
+  item,
+  sent,
+  sending,
+  onSend,
+}: {
+  item: ApprovalItem;
+  sent: boolean;
+  sending: boolean;
+  onSend: (to: string) => void;
+}) {
+  const [to, setTo] = useState(item.recipientEmail ?? "");
+  const [confirming, setConfirming] = useState(false);
+  const valid = /.+@.+\..+/.test(to);
+
+  if (sent) {
+    return <p className="sent-confirm">Sent ✓</p>;
+  }
+
+  return (
+    <div className="send-draft">
+      <label>
+        Recipient email
+        <input
+          type="email"
+          value={to}
+          placeholder="name@example.com"
+          onChange={(event) => setTo(event.target.value)}
+        />
+      </label>
+      <button
+        className="send-button"
+        disabled={!valid || sending}
+        type="button"
+        onClick={() => setConfirming(true)}
+      >
+        <Send size={16} />
+        {sending ? "Sending…" : "Send email"}
+      </button>
+      {confirming ? (
+        <div className="send-confirm" role="dialog" aria-label="Confirm send">
+          <p>
+            Send to <strong>{to}</strong>? Replies come back to you.
+          </p>
+          <div className="send-confirm-actions">
+            <button type="button" onClick={() => setConfirming(false)}>
+              Cancel
+            </button>
+            <button
+              className="send-button"
+              type="button"
+              onClick={() => {
+                setConfirming(false);
+                onSend(to);
+              }}
+            >
+              Confirm send
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -2197,8 +2326,8 @@ function StagedSummary({ run }: { run: StagedRun }) {
         ))}
       </ul>
       <p className="staged-note">
-        Nothing was sent or scheduled. This is ready for real integrations
-        later.
+        Staging only holds these for review — nothing is auto-sent. Use Send
+        email on a draft to send it.
       </p>
     </section>
   );
