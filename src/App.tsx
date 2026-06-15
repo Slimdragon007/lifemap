@@ -1011,16 +1011,6 @@ function App() {
                   Nothing sends automatically.
                 </span>
               </div>
-              <div className="status-strip" aria-label="Approval status">
-                <StatusPill
-                  label={`${selectedApprovals.length} selected`}
-                  tone="calm"
-                />
-                <StatusPill
-                  label={`${editedApprovals.length} total`}
-                  tone="warning"
-                />
-              </div>
             </header>
             <ApprovalQueue
               disabledApprovals={disabledApprovals}
@@ -1376,85 +1366,99 @@ function MoreView({
         </div>
       </header>
 
-      <div className="more-grid">
+      <div className="more-list">
         <button
           aria-label="Open family admin map"
-          className="more-card"
+          className="more-row"
           type="button"
           onClick={onOpenFamilyMap}
         >
-          <span className="brand-mark">
+          <span className="more-row-icon">
             <Sparkles size={18} />
           </span>
-          <strong>Family admin map</strong>
-          <span>Open the full extraction workspace for emails and forms.</span>
-          <ChevronRight size={16} />
+          <span className="more-row-copy">
+            <strong>Family admin map</strong>
+            <span>Full extraction workspace for emails and forms.</span>
+          </span>
+          <ChevronRight className="more-row-chevron" size={18} />
         </button>
         <button
           aria-label="Open LifeMap AI capture"
-          className="more-card"
+          className="more-row"
           type="button"
           onClick={onOpenCapture}
         >
-          <span className="brand-mark">
+          <span className="more-row-icon">
             <Inbox size={18} />
           </span>
-          <strong>LifeMap AI capture</strong>
-          <span>Paste messy context and turn it into an organized map.</span>
-          <ChevronRight size={16} />
+          <span className="more-row-copy">
+            <strong>LifeMap AI capture</strong>
+            <span>Paste messy context and turn it into an organized map.</span>
+          </span>
+          <ChevronRight className="more-row-chevron" size={18} />
         </button>
         <button
           aria-label="Open guided setup"
-          className="more-card"
+          className="more-row"
           type="button"
           onClick={onOpenSetup}
         >
-          <span className="brand-mark">
+          <span className="more-row-icon">
             <UsersRound size={18} />
           </span>
-          <strong>Guided setup</strong>
-          <span>Pick family, pets, travel, and life logistics buckets.</span>
-          <ChevronRight size={16} />
+          <span className="more-row-copy">
+            <strong>Guided setup</strong>
+            <span>Pick family, pets, travel, and life logistics buckets.</span>
+          </span>
+          <ChevronRight className="more-row-chevron" size={18} />
         </button>
         <button
           aria-label="Open launch plan"
-          className="more-card"
+          className="more-row"
           type="button"
           onClick={onOpenLaunchPlan}
         >
-          <span className="brand-mark">
+          <span className="more-row-icon">
             <ListChecks size={18} />
           </span>
-          <strong>Launch Plan</strong>
-          <span>Review MVP readiness, to-dos, and founder demo progress.</span>
-          <ChevronRight size={16} />
+          <span className="more-row-copy">
+            <strong>Launch Plan</strong>
+            <span>Review MVP readiness, to-dos, and founder demo progress.</span>
+          </span>
+          <ChevronRight className="more-row-chevron" size={18} />
         </button>
-        <article className="more-card more-card-static">
-          <span className="brand-mark">
+        <article className="more-row more-row-static">
+          <span className="more-row-icon">
             <LockKeyhole size={18} />
           </span>
-          <strong>Private by default</strong>
-          <span>
-            Drafts and reminders stay approval-gated. Nothing sends
-            automatically.
+          <span className="more-row-copy">
+            <strong>Private by default</strong>
+            <span>
+              Drafts and reminders stay approval-gated. Nothing sends
+              automatically.
+            </span>
           </span>
         </article>
         {isSupabaseConfigured ? (
-          <button className="more-card" type="button" onClick={onSignOut}>
-            <span className="brand-mark">
+          <button className="more-row" type="button" onClick={onSignOut}>
+            <span className="more-row-icon">
               <UserRoundCheck size={18} />
             </span>
-            <strong>Sign out</strong>
-            <span>{sessionEmail ?? "Signed in with Supabase"}</span>
-            <ChevronRight size={16} />
+            <span className="more-row-copy">
+              <strong>Sign out</strong>
+              <span>{sessionEmail ?? "Signed in with Supabase"}</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
           </button>
         ) : (
-          <article className="more-card more-card-static">
-            <span className="brand-mark">
+          <article className="more-row more-row-static">
+            <span className="more-row-icon">
               <ShieldCheck size={18} />
             </span>
-            <strong>Browser-only demo</strong>
-            <span>Demo data is stored in this browser only.</span>
+            <span className="more-row-copy">
+              <strong>Browser-only demo</strong>
+              <span>Demo data is stored in this browser only.</span>
+            </span>
           </article>
         )}
       </div>
@@ -1750,7 +1754,11 @@ function ApprovalQueue({
         Every reminder and message pauses here before anything leaves your
         hands.
       </p>
-      {stagedRun ? <StagedSummary run={stagedRun} /> : null}
+      {stagedRun ? (
+        <StagedSummary run={stagedRun} />
+      ) : (
+        <ApprovalFlowGuide selectedCount={selectedCount} />
+      )}
       <div className="approval-list">
         {editedApprovals.map((item) => (
           <ApprovalCard
@@ -1772,6 +1780,28 @@ function ApprovalQueue({
         Review selected
       </button>
     </Component>
+  );
+}
+
+function ApprovalFlowGuide({ selectedCount }: { selectedCount: number }) {
+  return (
+    <section className="approval-flow-card" aria-label="Approval flow">
+      <div className="approval-flow-steps">
+        <span className="active">Select</span>
+        <ChevronRight size={14} />
+        <span>Review</span>
+        <ChevronRight size={14} />
+        <span>Stage</span>
+      </div>
+      <p>
+        {selectedCount === 0
+          ? "Turn on at least one item to continue."
+          : `${formatCount(
+              selectedCount,
+              "item",
+            )} ready. Review the final list, then stage it for action.`}
+      </p>
+    </section>
   );
 }
 
@@ -1808,16 +1838,27 @@ function ApprovalCard({
         <span className="approval-icon">
           <Icon size={17} />
         </span>
-        <button
-          aria-checked={approved}
-          aria-label={`Approve ${item.title}`}
-          className="switch"
-          role="switch"
-          type="button"
-          onClick={onToggle}
-        >
-          <span />
-        </button>
+        <div className="approval-selection-control">
+          <span
+            className={
+              approved
+                ? "approval-selection-state included"
+                : "approval-selection-state skipped"
+            }
+          >
+            {approved ? "Included" : "Skipped"}
+          </span>
+          <button
+            aria-checked={approved}
+            aria-label={`Approve ${item.title}`}
+            className="switch"
+            role="switch"
+            type="button"
+            onClick={onToggle}
+          >
+            <span />
+          </button>
+        </div>
       </div>
       <h3>{item.title}</h3>
       {item.recipient ? <p className="recipient">To {item.recipient}</p> : null}
@@ -1893,7 +1934,7 @@ function StagedSummary({ run }: { run: StagedRun }) {
           <CheckCircle2 size={18} />
         </span>
         <div>
-          <h3>Staged for demo</h3>
+          <h3>Review complete</h3>
           <p>
             {formatCount(run.approvals.length, "item")} staged at {run.stagedAt}
             .

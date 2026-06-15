@@ -389,6 +389,7 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Approval queue" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Review" })).toHaveClass("active");
+    expect(screen.queryByLabelText("Approval status")).not.toBeInTheDocument();
   });
 
   test("opens LifeMap AI capture from the centered capture action", async () => {
@@ -666,10 +667,12 @@ describe("LifeMap MVP app", () => {
 
     const approvalToggle = screen.getByRole("switch", { name: "Approve Permission slip due" });
     expect(approvalToggle).toBeChecked();
+    expect(screen.getAllByText("Included").length).toBeGreaterThan(0);
 
     await user.click(approvalToggle);
 
     expect(approvalToggle).not.toBeChecked();
+    expect(screen.getByText("Skipped")).toBeInTheDocument();
   });
 
   test("shows API errors and leaves the existing analysis visible", async () => {
@@ -817,6 +820,7 @@ describe("LifeMap MVP app", () => {
     expect(screen.queryByRole("dialog", { name: "Review selected approvals" })).not.toBeInTheDocument();
 
     const stagedSummary = screen.getByLabelText("Demo staged approvals");
+    expect(within(stagedSummary).getByRole("heading", { name: "Review complete" })).toBeInTheDocument();
     expect(within(stagedSummary).getByText("1 item staged", { exact: false })).toBeInTheDocument();
     expect(within(stagedSummary).getByText("1 draft")).toBeInTheDocument();
     expect(within(stagedSummary).getByText("0 reminders")).toBeInTheDocument();
