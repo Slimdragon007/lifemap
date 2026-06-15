@@ -214,6 +214,12 @@ export async function sendPayload({
     console.error("LifeMap send failed", sent.error);
     return { status: 502, body: { ok: false, error: SEND_FAILURE_ERROR } };
   }
+  if (!stored.ok) {
+    // Email went out but the audit row didn't persist — never silent.
+    console.error(
+      "LifeMap sent_messages insert failed after a successful send",
+    );
+  }
   return {
     status: 200,
     body: { ok: true, id: stored.id, sentAt: new Date().toISOString() },
@@ -747,7 +753,7 @@ function buildCorsHeaders(request, env) {
   const allowedOrigin = resolveAllowedOrigin(origin, env.ALLOWED_ORIGIN);
   return {
     "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
