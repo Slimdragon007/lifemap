@@ -678,11 +678,16 @@ function App() {
           </section>
           {isSupabaseConfigured && session ? (
             <button
+              aria-label={
+                session.user.email
+                  ? `Sign out ${session.user.email}`
+                  : "Sign out"
+              }
               className="secondary-button sign-out-button"
               type="button"
               onClick={() => getSupabase().auth.signOut()}
             >
-              Sign out{session.user.email ? ` (${session.user.email})` : ""}
+              Sign out
             </button>
           ) : null}
         </aside>

@@ -3154,9 +3154,11 @@ button.nav-item {
 }
 
 .sign-out-button {
+  overflow: hidden;
   margin-top: 12px;
   width: 100%;
   font-size: 13px;
+  text-overflow: ellipsis;
 }
 
 /* Tap-first app shell */
@@ -5977,6 +5979,8 @@ body {
     z-index: 1;
     width: auto;
     height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
     margin: 0;
     padding: 30px 18px 26px;
     border: 0;
@@ -5996,6 +6000,11 @@ body {
       );
     box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.72);
     backdrop-filter: blur(18px) saturate(1.08);
+    scrollbar-width: none;
+  }
+
+  .app-nav-shell::-webkit-scrollbar {
+    display: none;
   }
 
   .app-nav-shell .brand,
