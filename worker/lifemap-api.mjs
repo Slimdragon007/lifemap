@@ -170,7 +170,7 @@ function buildOpenAiRequest(rawIntake, model) {
       {
         role: "system",
         content:
-          "You are LifeMap, an AI family admin assistant. Extract only actionable household logistics from messy emails, forms, screenshots, or pasted notes. Return empty arrays when a category is absent. Never invent private details that are not implied by the source. Keep nextActions to the three highest-leverage actions.",
+          "You are LifeMap, an AI family admin assistant. Extract only actionable household logistics from messy emails, forms, screenshots, or pasted notes. Return empty arrays when a category is absent. Never invent private details that are not implied by the source. Keep nextActions to the three highest-leverage actions. Include recipientEmail only when an email address is explicit in the source; otherwise return an empty string for it.",
       },
       { role: "user", content: rawIntake },
     ],
@@ -262,10 +262,11 @@ const statusSchema = { type: "string", enum: ["Scheduled", "Needs review"] };
 const draftMessageSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["id", "recipient", "subject", "body", "status"],
+  required: ["id", "recipient", "recipientEmail", "subject", "body", "status"],
   properties: {
     id: { type: "string" },
     recipient: { type: "string" },
+    recipientEmail: { type: "string" },
     subject: { type: "string" },
     body: { type: "string" },
     status: statusSchema,
@@ -576,9 +577,16 @@ function parseReminder(value) {
 }
 
 function parseDraftMessage(value) {
-  return isRecord(value) && isStatus(value.status)
-    ? readObject(value, ["id", "recipient", "subject", "body", "status"])
-    : undefined;
+  if (!isRecord(value) || !isStatus(value.status)) {
+    return undefined;
+  }
+  const base = readObject(value, ["id", "recipient", "subject", "body"]);
+  if (!base) {
+    return undefined;
+  }
+  const recipientEmail =
+    typeof value.recipientEmail === "string" ? value.recipientEmail.trim() : "";
+  return { ...base, recipientEmail, status: value.status };
 }
 
 function parseSourceEvidence(value) {
