@@ -4544,6 +4544,77 @@ button.nav-item {
   margin: 0 0 12px;
 }
 
+.capture-path {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 12px;
+  padding: 10px;
+  border: 1px solid rgba(77, 126, 255, 0.14);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 254, 250, 0.86),
+      rgba(232, 239, 251, 0.7)
+    ),
+    rgba(255, 255, 255, 0.58);
+}
+
+.capture-path-status {
+  display: grid;
+  gap: 4px;
+}
+
+.capture-path-status span {
+  color: var(--blue-strong);
+  font-size: 11px;
+  font-weight: 860;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.capture-path-status strong {
+  color: var(--ink-strong);
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.capture-path ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.capture-path li {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid rgba(29, 29, 31, 0.08);
+  border-radius: var(--radius-control);
+  color: #657084;
+  background: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.capture-path li.active {
+  color: var(--blue-strong);
+  border-color: rgba(77, 126, 255, 0.2);
+  background: rgba(232, 239, 251, 0.92);
+}
+
+.capture-path svg {
+  flex: 0 0 auto;
+  margin-right: 6px;
+}
+
 .lifemap-ai-composer .example-chip {
   color: #3d4d63;
   border-color: rgba(77, 126, 255, 0.12);
@@ -4789,6 +4860,10 @@ button.nav-item {
 
   .capture-sheet .composer-header p {
     font-size: 13px;
+  }
+
+  .capture-path {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .capture-routing-actions {

@@ -1129,6 +1129,20 @@ function CaptureWorkspace({
   onRoute: () => void;
 }) {
   const hasIntake = intake.trim().length > 0;
+  const captureStep =
+    analyzeStatus === "success" || analyzeStatus === "fallback"
+      ? "Step 3 of 3"
+      : analyzeStatus === "loading"
+        ? "Step 2 of 3"
+        : "Step 1 of 3";
+  const captureState =
+    analyzeStatus === "success" || analyzeStatus === "fallback"
+      ? "Map ready to route"
+      : analyzeStatus === "loading"
+        ? "Analyzing with LifeMap AI"
+        : hasIntake
+          ? "Ready to analyze"
+          : "Needs context";
 
   return (
     <section
@@ -1174,6 +1188,33 @@ function CaptureWorkspace({
             </button>
           </header>
 
+          <section className="capture-path" aria-label="LifeMap AI capture path">
+            <div className="capture-path-status">
+              <span>{captureStep}</span>
+              <strong>{captureState}</strong>
+            </div>
+            <ol>
+              <li className="active">
+                <Inbox size={15} />
+                <span>1 Paste</span>
+              </li>
+              <li className={analyzeStatus === "loading" ? "active" : ""}>
+                <Sparkles size={15} />
+                <span>2 Analyze</span>
+              </li>
+              <li
+                className={
+                  analyzeStatus === "success" || analyzeStatus === "fallback"
+                    ? "active"
+                    : ""
+                }
+              >
+                <Map size={15} />
+                <span>3 Route</span>
+              </li>
+            </ol>
+          </section>
+
           <div className="example-chip-row" aria-label="Try an example">
             {examples.map((example) => (
               <button
@@ -1191,13 +1232,13 @@ function CaptureWorkspace({
             <section className="panel intake-panel" aria-labelledby="ai-intake-title">
               <div className="panel-heading">
                 <div>
-                  <h2 id="ai-intake-title">Paste anything messy</h2>
-                  <span>Life admin, school, health, home, pets, or travel</span>
+                  <h2 id="ai-intake-title">Drop the messy thing here</h2>
+                  <span>Email, screenshot notes, forms, travel plans, or family admin</span>
                 </div>
                 <Inbox size={18} />
               </div>
               <textarea
-                aria-label="Messy life admin intake"
+                aria-label="Paste email, screenshot notes, forms, travel plans, or family admin"
                 value={intake}
                 wrap="soft"
                 onChange={(event) => onIntakeChange(event.target.value)}
@@ -1284,8 +1325,7 @@ function CaptureWorkspace({
                   <div>
                     <h3 id="capture-routing-title">Route this map</h3>
                     <p>
-                      LifeMap updated the day plan, saved the records, and
-                      staged drafts for approval.
+                      Open the surface that matches what you want to do next.
                     </p>
                   </div>
                   <div

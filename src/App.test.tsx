@@ -456,6 +456,57 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
   });
 
+  test("presents Capture as a guided AI command flow", async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await user.click(screen.getByRole("button", { name: "Capture" }));
+
+    const capture = screen.getByRole("region", { name: "Ask LifeMap AI" });
+    expect(
+      within(capture).getByRole("region", { name: "LifeMap AI capture path" }),
+    ).toBeInTheDocument();
+    expect(within(capture).getByText("1 Paste")).toBeInTheDocument();
+    expect(within(capture).getByText("2 Analyze")).toBeInTheDocument();
+    expect(within(capture).getByText("3 Route")).toBeInTheDocument();
+    expect(within(capture).getByText("Ready to analyze")).toBeInTheDocument();
+    expect(
+      within(capture).getByRole("heading", { name: "Drop the messy thing here" }),
+    ).toBeInTheDocument();
+    expect(
+      within(capture).getByRole("textbox", {
+        name: "Paste email, screenshot notes, forms, travel plans, or family admin",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  test("advances Capture guidance after analysis succeeds", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ ok: true, analysis: aiAnalysis }),
+      }),
+    );
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await user.click(screen.getByRole("button", { name: "Capture" }));
+
+    const capture = screen.getByRole("region", { name: "Ask LifeMap AI" });
+    await user.click(within(capture).getByRole("button", { name: "Analyze intake" }));
+
+    expect(await within(capture).findByText("Map ready to route")).toBeInTheDocument();
+    expect(within(capture).getByText("Step 3 of 3")).toBeInTheDocument();
+    expect(
+      within(capture).getByText("Open the surface that matches what you want to do next."),
+    ).toBeInTheDocument();
+  });
+
   test("routes analyzed Capture results into the app surfaces", async () => {
     const user = userEvent.setup();
     vi.stubGlobal(
