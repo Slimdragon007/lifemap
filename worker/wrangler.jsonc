@@ -5,9 +5,13 @@
   "compatibility_date": "2026-06-13",
   "vars": {
     "OPENAI_MODEL": "gpt-5.5",
-    "ALLOWED_ORIGIN": "https://lifemap-d33.pages.dev,https://slimdragon007.github.io,http://localhost:5173,http://127.0.0.1:5173"
+    "ALLOWED_ORIGIN": "https://lifemap-d33.pages.dev,https://slimdragon007.github.io,http://localhost:5173,http://127.0.0.1:5173",
+    "SUPABASE_URL": "https://tljijkoqfnimnkpzhozy.supabase.co",
+    "SUPABASE_ANON_KEY": "REPLACE_WITH_LIFEMAP_SUPABASE_ANON_KEY",
+    "SEND_FROM": "notify@REPLACE_WITH_VERIFIED_DOMAIN",
   },
+  "send_email": [{ "name": "EMAIL" }],
   "secrets": {
-    "required": ["OPENAI_API_KEY"]
-  }
+    "required": ["OPENAI_API_KEY"],
+  },
 }
