@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, test } from "vitest";
-import { loadStoredDemoState, saveStoredDemoState } from "./storage";
+import {
+  authoritativeRemoteState,
+  emptyPersistedState,
+  loadStoredDemoState,
+  saveStoredDemoState,
+} from "./storage";
 import type { DailyBrief } from "./dailyBrief";
 
 const dailyBrief: DailyBrief = {
@@ -34,16 +39,16 @@ describe("demo browser storage", () => {
         nextActions: [],
         reminders: [],
         draftMessages: [],
-        sourceEvidence: []
+        sourceEvidence: [],
       },
       disabledApprovalIds: ["reminder-slip"],
       savedSuggestionIds: ["ai-event-slip"],
       dismissedSuggestionIds: ["ai-vault-noise"],
       approvalBodyEdits: {
         "draft-slip": "Edited draft body",
-        "reminder-slip": "Edited reminder body"
+        "reminder-slip": "Edited reminder body",
       },
-      dailyBrief
+      dailyBrief,
     });
 
     expect(loadStoredDemoState()).toEqual({
@@ -56,16 +61,16 @@ describe("demo browser storage", () => {
         nextActions: [],
         reminders: [],
         draftMessages: [],
-        sourceEvidence: []
+        sourceEvidence: [],
       },
       disabledApprovalIds: ["reminder-slip"],
       savedSuggestionIds: ["ai-event-slip"],
       dismissedSuggestionIds: ["ai-vault-noise"],
       approvalBodyEdits: {
         "draft-slip": "Edited draft body",
-        "reminder-slip": "Edited reminder body"
+        "reminder-slip": "Edited reminder body",
       },
-      dailyBrief
+      dailyBrief,
     });
   });
 
@@ -75,15 +80,15 @@ describe("demo browser storage", () => {
       JSON.stringify({
         approvalBodyEdits: {
           "draft-slip": "Edited draft body",
-          "broken-slip": 42
-        }
-      })
+          "broken-slip": 42,
+        },
+      }),
     );
 
     expect(loadStoredDemoState()).toEqual({
       approvalBodyEdits: {
-        "draft-slip": "Edited draft body"
-      }
+        "draft-slip": "Edited draft body",
+      },
     });
   });
 
@@ -92,13 +97,13 @@ describe("demo browser storage", () => {
       "lifemap-demo-state",
       JSON.stringify({
         savedSuggestionIds: ["ai-event-slip", 42],
-        dismissedSuggestionIds: [false, "ai-vault-noise"]
-      })
+        dismissedSuggestionIds: [false, "ai-vault-noise"],
+      }),
     );
 
     expect(loadStoredDemoState()).toEqual({
       savedSuggestionIds: ["ai-event-slip"],
-      dismissedSuggestionIds: ["ai-vault-noise"]
+      dismissedSuggestionIds: ["ai-vault-noise"],
     });
   });
 
@@ -107,9 +112,9 @@ describe("demo browser storage", () => {
       "lifemap-demo-state",
       JSON.stringify({
         dailyBrief: {
-          todaySummary: "too thin"
-        }
-      })
+          todaySummary: "too thin",
+        },
+      }),
     );
 
     expect(loadStoredDemoState()).toEqual({});
@@ -119,5 +124,22 @@ describe("demo browser storage", () => {
     localStorage.setItem("lifemap-demo-state", "{not json");
 
     expect(loadStoredDemoState()).toEqual({});
+  });
+});
+
+describe("authoritative remote state", () => {
+  test("empty baseline has no seed content", () => {
+    const empty = emptyPersistedState();
+    expect(empty.intake).toBe("");
+    expect(empty.analysis?.dueItems).toEqual([]);
+    expect(empty.setupBucketIds).toEqual([]);
+  });
+
+  test("remote fields win; unset fields reset to empty (not seed/local)", () => {
+    const result = authoritativeRemoteState({ intake: "real cloud note" });
+    expect(result.intake).toBe("real cloud note");
+    expect(result.analysis).toEqual(emptyPersistedState().analysis);
+    expect(result.dailyBrief).toEqual(emptyPersistedState().dailyBrief);
+    expect(result.setupBucketIds).toEqual([]);
   });
 });

@@ -30,7 +30,11 @@ import {
   type ApprovalItem,
   type LifeMapAnalysis,
 } from "./lifemap";
-import { loadStoredDemoState, saveStoredDemoState } from "./storage";
+import {
+  authoritativeRemoteState,
+  loadStoredDemoState,
+  saveStoredDemoState,
+} from "./storage";
 import CalendarView from "./CalendarView";
 import AuthScreen from "./AuthScreen";
 import BucketDetailView from "./BucketDetailView";
@@ -352,44 +356,20 @@ function App() {
   }, [remoteLoadedFor, session, storedState]);
 
   function applyStoredState(state: StoredDemoState) {
-    if (state.intake) {
-      setIntake(state.intake);
-    }
-
-    if (state.analysis) {
-      setMap(state.analysis);
-      if (!state.dailyBrief) {
-        setDailyBrief(buildDailyBriefFromAnalysis(state.analysis));
-      }
-    }
-
-    if (state.disabledApprovalIds) {
-      setDisabledApprovals(new Set(state.disabledApprovalIds));
-    }
-
-    if (state.approvalBodyEdits) {
-      setApprovalBodyEdits(state.approvalBodyEdits);
-    }
-
-    if (state.savedSuggestionIds) {
-      setSavedSuggestionIds(new Set(state.savedSuggestionIds));
-    }
-
-    if (state.dismissedSuggestionIds) {
-      setDismissedSuggestionIds(new Set(state.dismissedSuggestionIds));
-    }
-
-    if (state.dailyBrief) {
-      setDailyBrief(state.dailyBrief);
-    }
-
-    if (state.setupProfile) {
-      setSetupProfile(normalizeSetupProfile(state.setupProfile));
-    }
-
-    if (state.setupBucketIds) {
-      setSetupBucketIds(normalizeSetupBucketIds(state.setupBucketIds));
-    }
+    // Remote is authoritative: fields the snapshot omits reset to empty so
+    // demo/local state cannot bleed into an authenticated account.
+    const full = authoritativeRemoteState(state);
+    setIntake(full.intake ?? "");
+    setMap(full.analysis ?? presentationAnalysis);
+    setDisabledApprovals(new Set(full.disabledApprovalIds ?? []));
+    setApprovalBodyEdits(full.approvalBodyEdits ?? {});
+    setSavedSuggestionIds(new Set(full.savedSuggestionIds ?? []));
+    setDismissedSuggestionIds(new Set(full.dismissedSuggestionIds ?? []));
+    setDailyBrief(full.dailyBrief ?? presentationBrief);
+    setSetupProfile(
+      normalizeSetupProfile(full.setupProfile ?? defaultSetupProfile),
+    );
+    setSetupBucketIds(normalizeSetupBucketIds(full.setupBucketIds ?? []));
   }
 
   function saveSuggestion(id: string) {
@@ -613,7 +593,10 @@ function App() {
     <>
       <main className={`app-shell view-${view} analyze-${analyzeStatus}`}>
         <div className="ambient-field" aria-hidden="true" />
-        <aside className="sidebar app-nav-shell" aria-label="LifeMap navigation">
+        <aside
+          className="sidebar app-nav-shell"
+          aria-label="LifeMap navigation"
+        >
           <button
             aria-label="LifeMap home"
             className="brand brand-button"
@@ -803,7 +786,10 @@ function App() {
           />
         ) : view === "family" ? (
           <>
-            <section className="workspace family-workspace" aria-labelledby="page-title">
+            <section
+              className="workspace family-workspace"
+              aria-labelledby="page-title"
+            >
               <header className="topbar">
                 <div>
                   <span className="workspace-kicker">
@@ -1037,7 +1023,10 @@ function App() {
             />
           </>
         ) : view === "review" ? (
-          <section className="workspace approval-workspace" aria-labelledby="review-title">
+          <section
+            className="workspace approval-workspace"
+            aria-labelledby="review-title"
+          >
             <header className="topbar">
               <div>
                 <span className="workspace-kicker">
@@ -1045,7 +1034,9 @@ function App() {
                   Approval center
                 </span>
                 <h1 id="review-title">Review</h1>
-                <p>Review drafts and reminders before anything leaves LifeMap.</p>
+                <p>
+                  Review drafts and reminders before anything leaves LifeMap.
+                </p>
                 <span className="storage-note">
                   Nothing sends automatically.
                 </span>
@@ -1197,8 +1188,8 @@ function CaptureWorkspace({
               <h1 id="capture-sheet-title">Ask LifeMap AI</h1>
               <p>
                 Paste the messy email, screenshot notes, form, or travel list.
-                LifeMap turns it into due items, missing info, waiting-on,
-                next actions, reminders, and drafts.
+                LifeMap turns it into due items, missing info, waiting-on, next
+                actions, reminders, and drafts.
               </p>
               <span className="storage-note">
                 Drafts stay approval-gated. Nothing sends automatically.
@@ -1225,7 +1216,10 @@ function CaptureWorkspace({
             </button>
           </header>
 
-          <section className="capture-path" aria-label="LifeMap AI capture path">
+          <section
+            className="capture-path"
+            aria-label="LifeMap AI capture path"
+          >
             <div className="capture-path-status">
               <span>{captureStep}</span>
               <strong>{captureState}</strong>
@@ -1289,11 +1283,17 @@ function CaptureWorkspace({
           </section>
 
           <div className="composer-grid">
-            <section className="panel intake-panel" aria-labelledby="ai-intake-title">
+            <section
+              className="panel intake-panel"
+              aria-labelledby="ai-intake-title"
+            >
               <div className="panel-heading">
                 <div>
                   <h2 id="ai-intake-title">Drop the messy thing here</h2>
-                  <span>Email, screenshot notes, forms, travel plans, or family admin</span>
+                  <span>
+                    Email, screenshot notes, forms, travel plans, or family
+                    admin
+                  </span>
                 </div>
                 <Inbox size={18} />
               </div>
@@ -1323,7 +1323,11 @@ function CaptureWorkspace({
                   )}
                 </button>
                 {analyzeStatus === "success" ? (
-                  <button className="secondary-button" type="button" onClick={onReview}>
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={onReview}
+                  >
                     Review drafts
                   </button>
                 ) : null}
@@ -1355,11 +1359,16 @@ function CaptureWorkspace({
               <div className="panel-heading">
                 <div>
                   <h2 id="capture-result-title">What LifeMap will organize</h2>
-                  <span>Results route into Today, Vault, Calendar, and Review.</span>
+                  <span>
+                    Results route into Today, Vault, Calendar, and Review.
+                  </span>
                 </div>
                 <ShieldCheck size={18} />
               </div>
-              <div className="capture-summary-grid" aria-label="Current analysis counts">
+              <div
+                className="capture-summary-grid"
+                aria-label="Current analysis counts"
+              >
                 <div>
                   <strong>{map.dueItems.length}</strong>
                   <span>due</span>
@@ -1530,7 +1539,9 @@ function MoreView({
             </span>
             <span className="more-row-copy">
               <strong>Guided setup</strong>
-              <span>Pick family, pets, travel, and life logistics buckets.</span>
+              <span>
+                Pick family, pets, travel, and life logistics buckets.
+              </span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
@@ -1552,7 +1563,9 @@ function MoreView({
             </span>
             <span className="more-row-copy">
               <strong>LifeMap AI capture</strong>
-              <span>Paste messy context and turn it into an organized map.</span>
+              <span>
+                Paste messy context and turn it into an organized map.
+              </span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
@@ -1582,7 +1595,9 @@ function MoreView({
             </span>
             <span className="more-row-copy">
               <strong>Launch Plan</strong>
-              <span>Review MVP readiness, to-dos, and founder demo progress.</span>
+              <span>
+                Review MVP readiness, to-dos, and founder demo progress.
+              </span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
@@ -1706,7 +1721,11 @@ function DailyBriefDialog({
           <button className="secondary-button" type="button" onClick={onClose}>
             Back to Today
           </button>
-          <button className="primary-button" type="button" onClick={onOpenApprovals}>
+          <button
+            className="primary-button"
+            type="button"
+            onClick={onOpenApprovals}
+          >
             Review approvals
             <ChevronRight size={16} />
           </button>
@@ -1784,39 +1803,61 @@ function PriorityActionDialog({
         </div>
 
         <div className="priority-action-grid">
-          <button className="priority-action-button" type="button" onClick={onComplete}>
+          <button
+            className="priority-action-button"
+            type="button"
+            onClick={onComplete}
+          >
             <CheckCircle2 size={18} />
             <span>
               <strong>Mark complete</strong>
               <small>Clear it from today's mental load.</small>
             </span>
           </button>
-          <button className="priority-action-button" type="button" onClick={onSnooze}>
+          <button
+            className="priority-action-button"
+            type="button"
+            onClick={onSnooze}
+          >
             <Clock3 size={18} />
             <span>
               <strong>Snooze to tomorrow</strong>
               <small>Keep it visible without making today louder.</small>
             </span>
           </button>
-          <button className="priority-action-button" type="button" onClick={onSaveToVault}>
+          <button
+            className="priority-action-button"
+            type="button"
+            onClick={onSaveToVault}
+          >
             <ShieldCheck size={18} />
             <span>
               <strong>Save info to Vault</strong>
               <small>Move supporting details into the source of truth.</small>
             </span>
           </button>
-          <button className="priority-action-button" type="button" onClick={onAddToCalendar}>
+          <button
+            className="priority-action-button"
+            type="button"
+            onClick={onAddToCalendar}
+          >
             <CalendarDays size={18} />
             <span>
               <strong>Add to Calendar</strong>
               <small>Stage a time-based suggestion for review.</small>
             </span>
           </button>
-          <button className="priority-action-button wide" type="button" onClick={onDraftMessage}>
+          <button
+            className="priority-action-button wide"
+            type="button"
+            onClick={onDraftMessage}
+          >
             <MessageSquare size={18} />
             <span>
               <strong>Draft a message</strong>
-              <small>LifeMap prepares it, but you approve before anything sends.</small>
+              <small>
+                LifeMap prepares it, but you approve before anything sends.
+              </small>
             </span>
           </button>
         </div>
@@ -1922,9 +1963,7 @@ function ApprovalQueue({
         <h2>Approval queue</h2>
         <span>{stagedRun ? "Step 3 of 3" : "Step 1 of 3"}</span>
       </div>
-      <p className="rail-copy">
-        Choose what LifeMap should hold for review.
-      </p>
+      <p className="rail-copy">Choose what LifeMap should hold for review.</p>
       {stagedRun ? (
         <StagedSummary run={stagedRun} />
       ) : (
