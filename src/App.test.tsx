@@ -906,6 +906,27 @@ describe("LifeMap MVP app", () => {
     ).toBeInTheDocument();
   });
 
+  test("ends the approval flow after selected items are staged", async () => {
+    const user = userEvent.setup();
+    saveStoredDemoState({
+      isLoggedIn: true,
+      intake: "stored school note",
+      analysis: aiAnalysis,
+      disabledApprovalIds: ["reminder-slip"]
+    });
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(screen.getByRole("button", { name: "Review selected" }));
+    await user.click(screen.getByRole("button", { name: "Approve & stage" }));
+
+    const stagedSummary = screen.getByLabelText("Demo staged approvals");
+    expect(within(stagedSummary).getByRole("heading", { name: "Review complete" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Review selected" })).not.toBeInTheDocument();
+    expect(screen.queryAllByRole("switch")).toHaveLength(0);
+  });
+
   test("loads sample intakes and clears stale staged approvals", async () => {
     const user = userEvent.setup();
     saveStoredDemoState({

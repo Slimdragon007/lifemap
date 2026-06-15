@@ -1791,7 +1791,7 @@ function ApprovalQueue({
     >
       <div className="rail-heading">
         <h2>Approval queue</h2>
-        <span>{selectedCount} selected</span>
+        <span>{stagedRun ? "Complete" : `${selectedCount} selected`}</span>
       </div>
       <p className="rail-copy">
         Every reminder and message pauses here before anything leaves your
@@ -1800,28 +1800,30 @@ function ApprovalQueue({
       {stagedRun ? (
         <StagedSummary run={stagedRun} />
       ) : (
-        <ApprovalFlowGuide selectedCount={selectedCount} />
+        <>
+          <ApprovalFlowGuide selectedCount={selectedCount} />
+          <div className="approval-list">
+            {editedApprovals.map((item) => (
+              <ApprovalCard
+                approved={!disabledApprovals.has(item.id)}
+                item={item}
+                key={item.id}
+                onSave={(body) => onSave(item.id, body)}
+                onToggle={() => onToggle(item.id)}
+              />
+            ))}
+          </div>
+          <button
+            className="send-button"
+            disabled={selectedCount === 0}
+            type="button"
+            onClick={onReview}
+          >
+            <Send size={16} />
+            Review selected
+          </button>
+        </>
       )}
-      <div className="approval-list">
-        {editedApprovals.map((item) => (
-          <ApprovalCard
-            approved={!disabledApprovals.has(item.id)}
-            item={item}
-            key={item.id}
-            onSave={(body) => onSave(item.id, body)}
-            onToggle={() => onToggle(item.id)}
-          />
-        ))}
-      </div>
-      <button
-        className="send-button"
-        disabled={selectedCount === 0}
-        type="button"
-        onClick={onReview}
-      >
-        <Send size={16} />
-        Review selected
-      </button>
     </Component>
   );
 }
