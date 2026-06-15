@@ -423,6 +423,47 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
   });
 
+  test("routes analyzed Capture results into the app surfaces", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ ok: true, analysis: aiAnalysis }),
+      }),
+    );
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await user.click(screen.getByRole("button", { name: "Capture" }));
+
+    const capture = screen.getByRole("heading", { name: "Ask LifeMap AI" })
+      .closest("section");
+    expect(capture).not.toBeNull();
+    await user.click(within(capture as HTMLElement).getByRole("button", { name: "Analyze intake" }));
+
+    expect(
+      await within(capture as HTMLElement).findByRole("heading", { name: "Route this map" }),
+    ).toBeInTheDocument();
+    expect(
+      within(capture as HTMLElement).getByRole("button", { name: "Go to Today" }),
+    ).toBeInTheDocument();
+    expect(
+      within(capture as HTMLElement).getByRole("button", { name: "Go to Vault" }),
+    ).toBeInTheDocument();
+    expect(
+      within(capture as HTMLElement).getByRole("button", { name: "Review approvals" }),
+    ).toBeInTheDocument();
+    expect(
+      within(capture as HTMLElement).queryByText("Today gets the top priorities."),
+    ).not.toBeInTheDocument();
+
+    await user.click(within(capture as HTMLElement).getByRole("button", { name: "Go to Vault" }));
+
+    expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
+  });
+
   test("projects current AI analysis into Calendar and Vault", async () => {
     const user = userEvent.setup();
     saveStoredDemoState({

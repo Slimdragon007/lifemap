@@ -4472,6 +4472,78 @@ button.nav-item {
   line-height: 1.4;
 }
 
+.capture-routing-panel {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(58, 107, 255, 0.16);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 252, 246, 0.9),
+      rgba(232, 239, 251, 0.76)
+    ),
+    var(--surface);
+  box-shadow: 0 14px 30px rgba(45, 65, 105, 0.08);
+}
+
+.capture-routing-panel h3,
+.capture-routing-panel p {
+  margin: 0;
+}
+
+.capture-routing-panel h3 {
+  color: var(--ink-strong);
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+.capture-routing-panel p {
+  margin-top: 5px;
+  color: #5b6576;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.capture-routing-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.capture-routing-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid rgba(18, 24, 38, 0.09);
+  border-radius: var(--radius-control);
+  color: #243146;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 18px rgba(45, 65, 105, 0.06);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.capture-routing-actions button:hover {
+  color: var(--blue-strong);
+  background: rgba(255, 255, 255, 0.96);
+  transform: translateY(-1px);
+}
+
+.capture-routing-actions button:focus-visible {
+  outline: 3px solid rgba(58, 107, 255, 0.22);
+  outline-offset: 2px;
+}
+
+.capture-routing-actions svg {
+  flex: 0 0 auto;
+  margin-right: 6px;
+}
+
 .capture-success-card {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
@@ -4574,6 +4646,15 @@ button.nav-item {
 
   .capture-sheet .composer-header p {
     font-size: 13px;
+  }
+
+  .capture-routing-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .capture-routing-actions button {
+    justify-content: flex-start;
+    padding: 0 12px;
   }
 
   .today-topbar {

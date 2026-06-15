@@ -746,6 +746,8 @@ function App() {
               }
             }}
             onLoadExample={loadSampleIntake}
+            onOpenToday={() => setView("today")}
+            onOpenVault={() => setView("vault")}
             onReview={() => setView("review")}
             onRoute={followCaptureRoute}
           />
@@ -1106,6 +1108,8 @@ function CaptureWorkspace({
   onClose,
   onIntakeChange,
   onLoadExample,
+  onOpenToday,
+  onOpenVault,
   onReview,
   onRoute,
 }: {
@@ -1119,6 +1123,8 @@ function CaptureWorkspace({
   onClose: () => void;
   onIntakeChange: (intake: string) => void;
   onLoadExample: (rawIntake: string) => void;
+  onOpenToday: () => void;
+  onOpenVault: () => void;
   onReview: () => void;
   onRoute: () => void;
 }) {
@@ -1270,12 +1276,44 @@ function CaptureWorkspace({
                   <span>actions</span>
                 </div>
               </div>
-              <ol className="capture-route-list">
-                <li>Today gets the top priorities.</li>
-                <li>Vault keeps records and missing documents.</li>
-                <li>Calendar shows deadlines and appointments.</li>
-                <li>Review holds reminders and drafts for approval.</li>
-              </ol>
+              {analyzeStatus === "success" ? (
+                <section
+                  aria-labelledby="capture-routing-title"
+                  className="capture-routing-panel"
+                >
+                  <div>
+                    <h3 id="capture-routing-title">Route this map</h3>
+                    <p>
+                      LifeMap updated the day plan, saved the records, and
+                      staged drafts for approval.
+                    </p>
+                  </div>
+                  <div
+                    aria-label="Choose where to open this analysis"
+                    className="capture-routing-actions"
+                  >
+                    <button type="button" onClick={onOpenToday}>
+                      <Sparkles size={15} />
+                      Go to Today
+                    </button>
+                    <button type="button" onClick={onOpenVault}>
+                      <ShieldCheck size={15} />
+                      Go to Vault
+                    </button>
+                    <button type="button" onClick={onReview}>
+                      <Bell size={15} />
+                      Review approvals
+                    </button>
+                  </div>
+                </section>
+              ) : (
+                <ol className="capture-route-list">
+                  <li>Today gets the top priorities.</li>
+                  <li>Vault keeps records and missing documents.</li>
+                  <li>Calendar shows deadlines and appointments.</li>
+                  <li>Review holds reminders and drafts for approval.</li>
+                </ol>
+              )}
             </section>
           </div>
         </div>
