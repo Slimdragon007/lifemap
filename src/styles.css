@@ -1085,6 +1085,7 @@ a:focus-visible {
   align-items: center;
   justify-content: center;
   min-height: 24px;
+  max-width: 150px;
   padding: 0 9px;
   border: 1px solid rgba(97, 123, 153, 0.12);
   border-radius: 999px;
@@ -1092,6 +1093,8 @@ a:focus-visible {
   background: #eaf0f6;
   font-size: 11px;
   font-weight: 820;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .approval-selection-state.included {
@@ -1222,6 +1225,36 @@ a:focus-visible {
 
 .approval-flow-steps .active {
   color: var(--blue-strong);
+}
+
+.approval-flow-metrics {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.approval-flow-metrics strong,
+.approval-flow-metrics span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  width: fit-content;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.approval-flow-metrics strong {
+  color: var(--blue-strong);
+  background: rgba(232, 239, 251, 0.92);
+}
+
+.approval-flow-metrics span {
+  justify-self: end;
+  color: #94692b;
+  background: #f8efe0;
 }
 
 .approval-flow-card p {

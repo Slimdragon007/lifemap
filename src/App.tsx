@@ -1783,6 +1783,11 @@ function ApprovalQueue({
   onToggle: (id: string) => void;
 }) {
   const Component = variant === "rail" ? "aside" : "section";
+  const pausedCount = editedApprovals.length - selectedCount;
+  const reviewButtonLabel =
+    selectedCount === 0
+      ? "Select an item to review"
+      : `Review ${selectedCount} selected`;
 
   return (
     <Component
@@ -1791,17 +1796,19 @@ function ApprovalQueue({
     >
       <div className="rail-heading">
         <h2>Approval queue</h2>
-        <span>{stagedRun ? "Complete" : `${selectedCount} selected`}</span>
+        <span>{stagedRun ? "Step 3 of 3" : "Step 1 of 3"}</span>
       </div>
       <p className="rail-copy">
-        Every reminder and message pauses here before anything leaves your
-        hands.
+        Choose what LifeMap should hold for review.
       </p>
       {stagedRun ? (
         <StagedSummary run={stagedRun} />
       ) : (
         <>
-          <ApprovalFlowGuide selectedCount={selectedCount} />
+          <ApprovalFlowGuide
+            pausedCount={pausedCount}
+            selectedCount={selectedCount}
+          />
           <div className="approval-list">
             {editedApprovals.map((item) => (
               <ApprovalCard
@@ -1820,7 +1827,7 @@ function ApprovalQueue({
             onClick={onReview}
           >
             <Send size={16} />
-            Review selected
+            {reviewButtonLabel}
           </button>
         </>
       )}
@@ -1828,23 +1835,30 @@ function ApprovalQueue({
   );
 }
 
-function ApprovalFlowGuide({ selectedCount }: { selectedCount: number }) {
+function ApprovalFlowGuide({
+  pausedCount,
+  selectedCount,
+}: {
+  pausedCount: number;
+  selectedCount: number;
+}) {
   return (
     <section className="approval-flow-card" aria-label="Approval flow">
       <div className="approval-flow-steps">
-        <span className="active">Select</span>
+        <span className="active">1 Select</span>
         <ChevronRight size={14} />
-        <span>Review</span>
+        <span>2 Confirm</span>
         <ChevronRight size={14} />
-        <span>Stage</span>
+        <span>3 Complete</span>
+      </div>
+      <div className="approval-flow-metrics">
+        <strong>{formatReadyCount(selectedCount)}</strong>
+        <span>{formatPausedCount(pausedCount)}</span>
       </div>
       <p>
         {selectedCount === 0
           ? "Turn on at least one item to continue."
-          : `${formatCount(
-              selectedCount,
-              "item",
-            )} ready. Review the final list, then stage it for action.`}
+          : "Next: confirm the final list, then stage it for action."}
       </p>
     </section>
   );
@@ -1891,11 +1905,15 @@ function ApprovalCard({
                 : "approval-selection-state skipped"
             }
           >
-            {approved ? "Included" : "Skipped"}
+            {approved ? "Will be reviewed next" : "Paused for now"}
           </span>
           <button
             aria-checked={approved}
-            aria-label={`Approve ${item.title}`}
+            aria-label={
+              approved
+                ? `Skip ${item.title} for now`
+                : `Include ${item.title} in review`
+            }
             className="switch"
             role="switch"
             type="button"
@@ -2008,6 +2026,14 @@ function StagedSummary({ run }: { run: StagedRun }) {
 
 function formatCount(count: number, singularLabel: string) {
   return `${count} ${count === 1 ? singularLabel : `${singularLabel}s`}`;
+}
+
+function formatReadyCount(count: number) {
+  return `${count} ready to review`;
+}
+
+function formatPausedCount(count: number) {
+  return `${count} paused`;
 }
 
 function ReviewDialog({
