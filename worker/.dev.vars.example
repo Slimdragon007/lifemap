@@ -1,0 +1,3 @@
+# Local-only secrets for `wrangler dev` (copy to worker/.dev.vars, never commit the real file).
+# Non-secret config (OPENAI_MODEL, ALLOWED_ORIGIN) already lives in worker/wrangler.jsonc `vars`.
+OPENAI_API_KEY=sk-...
