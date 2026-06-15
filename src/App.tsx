@@ -707,7 +707,6 @@ function App() {
             onOpenApprovals={() => setView("review")}
             onOpenBrief={() => setIsBriefOpen(true)}
             onOpenBrainDump={openCapture}
-            onOpenCalendar={() => setView("calendar")}
             onOpenFamilyMap={() => setView("family")}
             onOpenPriority={setSelectedPriority}
             onOpenSetup={() => setView("setup")}
@@ -715,7 +714,6 @@ function App() {
               setSelectedSetupBucketId(bucket.id);
               setView("bucket");
             }}
-            onOpenVault={() => setView("vault")}
           />
         ) : view === "bucket" && selectedSetupBucket ? (
           <BucketDetailView

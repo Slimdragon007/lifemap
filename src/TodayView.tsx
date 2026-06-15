@@ -33,9 +33,7 @@ type TodayViewProps = {
   setupProfile: SetupProfile;
   onGenerateBrief: () => void;
   onOpenBrief: () => void;
-  onOpenCalendar: () => void;
   onOpenBrainDump: (rawIntake?: string) => void;
-  onOpenVault: () => void;
   onOpenFamilyMap: () => void;
   onOpenSetup: () => void;
   onOpenSetupBucket: (bucket: RecommendedBucket) => void;
@@ -55,9 +53,7 @@ function TodayView({
   setupProfile,
   onGenerateBrief,
   onOpenBrief,
-  onOpenCalendar,
   onOpenBrainDump,
-  onOpenVault,
   onOpenFamilyMap,
   onOpenSetup,
   onOpenSetupBucket,
@@ -87,32 +83,32 @@ function TodayView({
         }))
       : [
           {
-            id: "vault",
-            label: "Vault",
-            meta: "24 items",
+            id: "records-starter",
+            label: "Records",
+            meta: "Set up",
             icon: ShieldCheck,
-            onClick: onOpenVault,
+            onClick: onOpenSetup,
           },
           {
-            id: "travel",
+            id: "travel-starter",
             label: "Travel",
-            meta: "3 trips",
+            meta: "Set up",
             icon: Plane,
-            onClick: onOpenCalendar,
+            onClick: onOpenSetup,
           },
           {
-            id: "health",
+            id: "health-starter",
             label: "Health",
-            meta: "2 updates",
+            meta: "Set up",
             icon: HeartPulse,
-            onClick: onOpenVault,
+            onClick: onOpenSetup,
           },
           {
-            id: "home",
+            id: "home-starter",
             label: "Home",
-            meta: "5 tasks",
+            meta: "Set up",
             icon: Home,
-            onClick: onOpenFamilyMap,
+            onClick: onOpenSetup,
           },
         ];
 

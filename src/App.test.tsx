@@ -265,10 +265,11 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByText("Field trip permission slip")).toBeInTheDocument();
     expect(screen.getByText("Renew passport")).toBeInTheDocument();
     expect(screen.getByText("Milo vet appointment")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Vault 24 items" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Travel 3 trips" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Health 2 updates" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Home 5 tasks" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Records Set up" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Travel Set up" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Health Set up" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Home Set up" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Vault 24 items" })).not.toBeInTheDocument();
   });
 
   test("uses completed guided setup buckets on Today", async () => {
