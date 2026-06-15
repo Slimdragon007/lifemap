@@ -222,6 +222,52 @@ function TodayView({
           <BriefNotice status={status} error={error} onOpenBrainDump={onOpenBrainDump} />
         </section>
 
+        <section className="atlas-daily-plan panel" aria-labelledby="daily-plan-title">
+          <div className="atlas-daily-plan-copy">
+            <span>Daily path</span>
+            <h2 id="daily-plan-title">Next three moves</h2>
+            <p>
+              Add any fresh context, clear the first priority, then review what
+              LifeMap staged for approval.
+            </p>
+          </div>
+          <div className="atlas-daily-plan-actions">
+            <button
+              aria-label="Start capture update"
+              type="button"
+              onClick={() => onOpenBrainDump()}
+            >
+              <Inbox size={17} />
+              <span>
+                <strong>Capture update</strong>
+                <small>Paste anything new.</small>
+              </span>
+            </button>
+            <button
+              aria-label={`Start ${topPriorities[0].label}`}
+              type="button"
+              onClick={() => onOpenPriority(topPriorities[0])}
+            >
+              <CheckCircle2 size={17} />
+              <span>
+                <strong>Start: {topPriorities[0].label}</strong>
+                <small>Start the first real action.</small>
+              </span>
+            </button>
+            <button
+              aria-label={`Review ${approvalCount} approvals`}
+              type="button"
+              onClick={onOpenApprovals}
+            >
+              <Bell size={17} />
+              <span>
+                <strong>Review approvals</strong>
+                <small>{formatApprovalCount(approvalCount)} waiting.</small>
+              </span>
+            </button>
+          </div>
+        </section>
+
         <section className="atlas-section" aria-labelledby="priorities-title">
           <h2 id="priorities-title">Top Priorities</h2>
           <div className="atlas-priority-list">
@@ -380,6 +426,10 @@ function TodayView({
 
 function formatEventLine(count: number) {
   return `${count} ${count === 1 ? "event" : "events"} coming up.`;
+}
+
+function formatApprovalCount(count: number) {
+  return `${count} ${count === 1 ? "approval" : "approvals"}`;
 }
 
 function getSetupLifeArea(bucket: RecommendedBucket, profile: SetupProfile) {

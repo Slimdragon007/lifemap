@@ -597,6 +597,40 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByRole("heading", { name: "Ask LifeMap AI" })).toBeInTheDocument();
   });
 
+  test("shows a guided Today path into capture, priority, and approvals", async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Next three moves" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Start capture update/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Start Field trip permission slip/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Review 3 approvals/i }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Start capture update/i }));
+    expect(screen.getByRole("heading", { name: "Ask LifeMap AI" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Back to Today" }));
+    await user.click(screen.getByRole("button", { name: /Start Field trip permission slip/i }));
+    expect(
+      screen.getByRole("dialog", { name: "Field trip permission slip" }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    await user.click(screen.getByRole("button", { name: /Review 3 approvals/i }));
+    expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
+  });
+
   test("lets a Today priority become a real action", async () => {
     const user = userEvent.setup();
 
