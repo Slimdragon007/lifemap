@@ -121,6 +121,32 @@ describe("analyzePayload", () => {
       },
     });
   });
+
+  test("surfaces a model/bad-request error and logs the OpenAI status", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: async () => "model_not_found: gpt-5.5",
+    });
+
+    await expect(
+      analyzePayload(
+        { rawIntake: "field trip" },
+        { OPENAI_API_KEY: "secret" },
+        fetchImpl,
+      ),
+    ).resolves.toEqual({
+      status: 502,
+      body: {
+        ok: false,
+        error:
+          "LifeMap could not reach the AI model. Check the OPENAI_MODEL setting and try again.",
+      },
+    });
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
 });
 
 const mentalLoad = {

@@ -3,6 +3,8 @@ const INVALID_INPUT_ERROR =
 const MISSING_KEY_ERROR = "OPENAI_API_KEY is not configured.";
 const AI_FAILURE_ERROR =
   "LifeMap could not analyze this yet. Try again or edit the intake.";
+const BAD_REQUEST_ERROR =
+  "LifeMap could not reach the AI model. Check the OPENAI_MODEL setting and try again.";
 const DEFAULT_MODEL = "gpt-5.5";
 
 export default {
@@ -129,7 +131,20 @@ async function callOpenAi({
     });
 
     if (!response.ok) {
-      return { status: 502, body: { ok: false, error: AI_FAILURE_ERROR } };
+      const detail =
+        typeof response.text === "function"
+          ? await response.text().catch(() => "")
+          : "";
+      console.error(
+        `LifeMap OpenAI request failed: ${response.status} ${detail}`,
+      );
+      return {
+        status: 502,
+        body: {
+          ok: false,
+          error: response.status === 400 ? BAD_REQUEST_ERROR : AI_FAILURE_ERROR,
+        },
+      };
     }
 
     const responseJson = await response.json();
