@@ -1040,6 +1040,7 @@ function App() {
             onCreateBuckets={setSetupBucketIds}
             onOpenCalendar={() => setView("calendar")}
             onOpenCapture={() => openCapture()}
+            onOpenToday={() => setView("today")}
             onOpenVault={() => setView("vault")}
             onProfileChange={setSetupProfile}
           />

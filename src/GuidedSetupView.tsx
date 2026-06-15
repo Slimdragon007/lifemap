@@ -27,6 +27,7 @@ type GuidedSetupViewProps = {
   onCreateBuckets: (bucketIds: SetupBucketId[]) => void;
   onOpenCalendar: () => void;
   onOpenCapture: () => void;
+  onOpenToday: () => void;
   onOpenVault: () => void;
   onProfileChange: (profile: SetupProfile) => void;
 };
@@ -38,6 +39,7 @@ function GuidedSetupView({
   onCreateBuckets,
   onOpenCalendar,
   onOpenCapture,
+  onOpenToday,
   onOpenVault,
   onProfileChange,
 }: GuidedSetupViewProps) {
@@ -182,6 +184,25 @@ function GuidedSetupView({
             Create recommended buckets
             <ChevronRight size={16} />
           </button>
+
+          {activeBuckets.length > 0 ? (
+            <section className="setup-ready-card" aria-labelledby="setup-ready-title">
+              <span className="setup-ready-icon">
+                <CheckCircle2 size={18} />
+              </span>
+              <div>
+                <h2 id="setup-ready-title">Your LifeMap is ready</h2>
+                <p>
+                  {activeCountLabel} now show on Today, so the next useful
+                  place to go is your daily map.
+                </p>
+              </div>
+              <button className="secondary-button compact-button" type="button" onClick={onOpenToday}>
+                View Today
+                <ChevronRight size={14} />
+              </button>
+            </section>
+          ) : null}
         </section>
 
         <section className="panel setup-recommendations-panel" aria-labelledby="buckets-title">

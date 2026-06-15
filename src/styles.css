@@ -3723,6 +3723,54 @@ button.nav-item {
   white-space: nowrap;
 }
 
+.setup-ready-card {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 11px 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid rgba(127, 162, 132, 0.2);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(229, 237, 226, 0.86), rgba(255, 252, 246, 0.8)),
+    var(--surface);
+  box-shadow: 0 12px 26px rgba(18, 24, 38, 0.06);
+}
+
+.setup-ready-icon {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: var(--radius);
+  color: #fff;
+  background: linear-gradient(135deg, var(--sage), var(--blue));
+  box-shadow: 0 12px 24px rgba(18, 24, 38, 0.12);
+}
+
+.setup-ready-card h2,
+.setup-ready-card p {
+  margin: 0;
+}
+
+.setup-ready-card h2 {
+  color: var(--ink-strong);
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.setup-ready-card p {
+  margin-top: 5px;
+  color: #5d6879;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.setup-ready-card button {
+  grid-column: 2;
+  width: fit-content;
+}
+
 .setup-bucket-list {
   display: grid;
   gap: 10px;
