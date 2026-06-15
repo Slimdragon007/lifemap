@@ -24,9 +24,32 @@ describe("Supabase-backed MVP state", () => {
       },
     });
 
-    await expect(loadRemoteState("user-1", client)).resolves.toEqual(
-      storedState,
-    );
+    await expect(loadRemoteState("user-1", client)).resolves.toEqual({
+      ok: true,
+      state: storedState,
+    });
+  });
+
+  test("reports an error (does not throw) when the read fails", async () => {
+    const client = {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({
+              data: null,
+              error: { message: "boom" },
+            }),
+          }),
+        }),
+        upsert: vi.fn(),
+      }),
+    };
+
+    await expect(loadRemoteState("user-1", client)).resolves.toEqual({
+      ok: false,
+      state: {},
+      error: "boom",
+    });
   });
 
   test("saves LifeMap state without dropping existing preferences", async () => {
@@ -36,9 +59,9 @@ describe("Supabase-backed MVP state", () => {
       },
     });
 
-    await expect(saveRemoteState("user-1", storedState, client)).resolves.toEqual(
-      { ok: true },
-    );
+    await expect(
+      saveRemoteState("user-1", storedState, client),
+    ).resolves.toEqual({ ok: true });
 
     expect(client.upsert).toHaveBeenCalledWith(
       {

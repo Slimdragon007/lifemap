@@ -1,6 +1,7 @@
 import { normalizeDailyBrief, type DailyBrief } from "./dailyBrief";
 import { normalizeAnalysis, type LifeMapAnalysis } from "./lifemap";
 import {
+  defaultSetupProfile,
   normalizeSetupBucketIds,
   normalizeSetupProfile,
   type SetupBucketId,
@@ -30,7 +31,8 @@ export function loadStoredDemoState(): StoredDemoState {
 
   try {
     return normalizeStoredDemoState(JSON.parse(rawValue));
-  } catch {
+  } catch (error) {
+    console.warn("LifeMap stored state was unreadable; starting fresh", error);
     return {};
   }
 }
@@ -45,7 +47,9 @@ export function normalizeStoredDemoState(value: unknown): StoredDemoState {
   }
 
   const analysis =
-    value.analysis === undefined ? undefined : normalizeAnalysis(value.analysis);
+    value.analysis === undefined
+      ? undefined
+      : normalizeAnalysis(value.analysis);
   const dailyBrief =
     value.dailyBrief === undefined
       ? undefined
@@ -118,8 +122,55 @@ function parseStringRecord(value: unknown): Record<string, string> | undefined {
   }
 
   const entries = Object.entries(value).filter(
-    (entry): entry is [string, string] => typeof entry[1] === "string"
+    (entry): entry is [string, string] => typeof entry[1] === "string",
   );
 
   return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
+function emptyAnalysis(): LifeMapAnalysis {
+  return {
+    dueItems: [],
+    missingInfo: [],
+    waitingOn: [],
+    nextActions: [],
+    reminders: [],
+    draftMessages: [],
+    sourceEvidence: [],
+  };
+}
+
+function emptyDailyBrief(): DailyBrief {
+  return {
+    todaySummary: "",
+    topPriorities: [],
+    openLoops: [],
+    canWait: [],
+    suggestedMessages: [],
+    conflicts: [],
+    groundingNote: "",
+  };
+}
+
+export function emptyPersistedState(): StoredDemoState {
+  return {
+    intake: "",
+    analysis: emptyAnalysis(),
+    disabledApprovalIds: [],
+    approvalBodyEdits: {},
+    dailyBrief: emptyDailyBrief(),
+    savedSuggestionIds: [],
+    dismissedSuggestionIds: [],
+    setupProfile: defaultSetupProfile,
+    setupBucketIds: [],
+  };
+}
+
+// When a Supabase session loads, remote is the source of truth: fields the
+// remote snapshot omits reset to empty rather than keeping seed/local values,
+// so demo/local state can never bleed into an authenticated account.
+export function authoritativeRemoteState(
+  remote: StoredDemoState,
+): StoredDemoState {
+  return { ...emptyPersistedState(), ...remote };
 }

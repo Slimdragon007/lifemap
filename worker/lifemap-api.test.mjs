@@ -3,7 +3,7 @@ import {
   analyzePayload,
   classifyPayload,
   generateBriefPayload,
-} from "./api-server.mjs";
+} from "./lifemap-api.mjs";
 
 const analysis = {
   dueItems: [
@@ -120,6 +120,32 @@ describe("analyzePayload", () => {
           "LifeMap could not analyze this yet. Try again or edit the intake.",
       },
     });
+  });
+
+  test("surfaces a model/bad-request error and logs the OpenAI status", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: async () => "model_not_found: gpt-5.5",
+    });
+
+    await expect(
+      analyzePayload(
+        { rawIntake: "field trip" },
+        { OPENAI_API_KEY: "secret" },
+        fetchImpl,
+      ),
+    ).resolves.toEqual({
+      status: 502,
+      body: {
+        ok: false,
+        error:
+          "LifeMap could not reach the AI model. Check the OPENAI_MODEL setting and try again.",
+      },
+    });
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 });
 
@@ -278,7 +304,9 @@ describe("generateBriefPayload", () => {
   test("returns a safe error when brief output is malformed", async () => {
     const fetchImpl = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ output_text: JSON.stringify({ todaySummary: "x" }) }),
+      json: async () => ({
+        output_text: JSON.stringify({ todaySummary: "x" }),
+      }),
     });
 
     await expect(
