@@ -1450,100 +1450,124 @@ function MoreView({
       </header>
 
       <div className="more-list">
-        <button
-          aria-label="Open family admin map"
-          className="more-row"
-          type="button"
-          onClick={onOpenFamilyMap}
+        <section
+          aria-labelledby="more-start-title"
+          className="more-section more-section-primary"
         >
-          <span className="more-row-icon">
-            <Sparkles size={18} />
-          </span>
-          <span className="more-row-copy">
-            <strong>Family admin map</strong>
-            <span>Full extraction workspace for emails and forms.</span>
-          </span>
-          <ChevronRight className="more-row-chevron" size={18} />
-        </button>
-        <button
-          aria-label="Open LifeMap AI capture"
-          className="more-row"
-          type="button"
-          onClick={onOpenCapture}
-        >
-          <span className="more-row-icon">
-            <Inbox size={18} />
-          </span>
-          <span className="more-row-copy">
-            <strong>LifeMap AI capture</strong>
-            <span>Paste messy context and turn it into an organized map.</span>
-          </span>
-          <ChevronRight className="more-row-chevron" size={18} />
-        </button>
-        <button
-          aria-label="Open guided setup"
-          className="more-row"
-          type="button"
-          onClick={onOpenSetup}
-        >
-          <span className="more-row-icon">
-            <UsersRound size={18} />
-          </span>
-          <span className="more-row-copy">
-            <strong>Guided setup</strong>
-            <span>Pick family, pets, travel, and life logistics buckets.</span>
-          </span>
-          <ChevronRight className="more-row-chevron" size={18} />
-        </button>
-        <button
-          aria-label="Open launch plan"
-          className="more-row"
-          type="button"
-          onClick={onOpenLaunchPlan}
-        >
-          <span className="more-row-icon">
-            <ListChecks size={18} />
-          </span>
-          <span className="more-row-copy">
-            <strong>Launch Plan</strong>
-            <span>Review MVP readiness, to-dos, and founder demo progress.</span>
-          </span>
-          <ChevronRight className="more-row-chevron" size={18} />
-        </button>
-        <article className="more-row more-row-static">
-          <span className="more-row-icon">
-            <LockKeyhole size={18} />
-          </span>
-          <span className="more-row-copy">
-            <strong>Private by default</strong>
-            <span>
-              Drafts and reminders stay approval-gated. Nothing sends
-              automatically.
-            </span>
-          </span>
-        </article>
-        {isSupabaseConfigured ? (
-          <button className="more-row" type="button" onClick={onSignOut}>
+          <div className="more-section-heading">
+            <span>Recommended first</span>
+            <h2 id="more-start-title">Start here</h2>
+            <p>Set up your real-life buckets before adding more tools.</p>
+          </div>
+          <button
+            aria-label="Open guided setup"
+            className="more-row"
+            type="button"
+            onClick={onOpenSetup}
+          >
             <span className="more-row-icon">
-              <UserRoundCheck size={18} />
+              <UsersRound size={18} />
             </span>
             <span className="more-row-copy">
-              <strong>Sign out</strong>
-              <span>{sessionEmail ?? "Signed in with Supabase"}</span>
+              <strong>Guided setup</strong>
+              <span>Pick family, pets, travel, and life logistics buckets.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
-        ) : (
-          <article className="more-row more-row-static">
+        </section>
+
+        <section aria-labelledby="more-build-title" className="more-section">
+          <div className="more-section-heading">
+            <span>Workflows</span>
+            <h2 id="more-build-title">Build and review</h2>
+          </div>
+          <button
+            aria-label="Open LifeMap AI capture"
+            className="more-row"
+            type="button"
+            onClick={onOpenCapture}
+          >
             <span className="more-row-icon">
-              <ShieldCheck size={18} />
+              <Inbox size={18} />
             </span>
             <span className="more-row-copy">
-              <strong>Browser-only demo</strong>
-              <span>Demo data is stored in this browser only.</span>
+              <strong>LifeMap AI capture</strong>
+              <span>Paste messy context and turn it into an organized map.</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
+          <button
+            aria-label="Open family admin map"
+            className="more-row"
+            type="button"
+            onClick={onOpenFamilyMap}
+          >
+            <span className="more-row-icon">
+              <Sparkles size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Family admin map</strong>
+              <span>Full extraction workspace for emails and forms.</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
+          <button
+            aria-label="Open launch plan"
+            className="more-row"
+            type="button"
+            onClick={onOpenLaunchPlan}
+          >
+            <span className="more-row-icon">
+              <ListChecks size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Launch Plan</strong>
+              <span>Review MVP readiness, to-dos, and founder demo progress.</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
+        </section>
+
+        <section aria-labelledby="more-account-title" className="more-section">
+          <div className="more-section-heading">
+            <span>Safety</span>
+            <h2 id="more-account-title">Account and privacy</h2>
+          </div>
+          <article className="more-row more-row-static">
+            <span className="more-row-icon">
+              <LockKeyhole size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Private by default</strong>
+              <span>
+                Drafts and reminders stay approval-gated. Nothing sends
+                automatically.
+              </span>
             </span>
           </article>
-        )}
+          {isSupabaseConfigured ? (
+            <button className="more-row" type="button" onClick={onSignOut}>
+              <span className="more-row-icon">
+                <UserRoundCheck size={18} />
+              </span>
+              <span className="more-row-copy">
+                <strong>Sign out</strong>
+                <span>{sessionEmail ?? "Signed in with Supabase"}</span>
+              </span>
+              <ChevronRight className="more-row-chevron" size={18} />
+            </button>
+          ) : (
+            <article className="more-row more-row-static">
+              <span className="more-row-icon">
+                <ShieldCheck size={18} />
+              </span>
+              <span className="more-row-copy">
+                <strong>Browser-only demo</strong>
+                <span>Demo data is stored in this browser only.</span>
+              </span>
+            </article>
+          )}
+        </section>
       </div>
     </section>
   );

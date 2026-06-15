@@ -128,6 +128,11 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByRole("heading", { name: "More" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Inbox" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open launch plan" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Start here" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Build and review" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Account and privacy" })).toBeInTheDocument();
+    expect(screen.getByText("Recommended first")).toBeInTheDocument();
+    expect(screen.getByText("Set up your real-life buckets before adding more tools.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Open family admin map" }));
     expect(screen.getByRole("heading", { name: "Family admin map" })).toBeInTheDocument();
     expect(screen.getByText("Demo data is stored in this browser only.")).toBeInTheDocument();
