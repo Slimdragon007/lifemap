@@ -7745,7 +7745,8 @@ button.notebook-row:active {
 /* Mono timestamp / date column, quiet. */
 .notebook-when {
   flex: none;
-  width: 58px;
+  width: auto;
+  min-width: 56px;
   font-family: var(--font-mono, "Fragment Mono", monospace);
   font-size: 11.5px;
   line-height: 1.5;
@@ -8204,4 +8205,55 @@ button.notebook-row:active {
   button.notebook-row:active {
     transform: none !important;
   }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Calm corrections: drop the last off-palette chrome flagged in review —
+   the blue-gradient brand mark, and Review's green/blue status pills +
+   green-gradient toggles. One coral accent only.
+   ────────────────────────────────────────────────────────────────────────── */
+.brand-mark {
+  background: var(--accent, #cf7a52);
+  box-shadow: 0 4px 14px rgba(207, 122, 82, 0.2);
+}
+
+/* Review toggle: neutral track, solid coral when on (no green→orange ramp). */
+.app-shell.view-review .switch {
+  background: var(--line, #ecdfcd);
+}
+
+.app-shell.view-review .switch[aria-checked="true"] {
+  background: var(--accent, #cf7a52);
+}
+
+/* Status + selection labels → quiet mono text, no colored pill backgrounds. */
+.app-shell.view-review .queue-status,
+.app-shell.view-review .queue-status.scheduled,
+.app-shell.view-review .approval-selection-state,
+.app-shell.view-review .approval-selection-state.included,
+.app-shell.view-review .approval-selection-state.skipped {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-mono, "Fragment Mono", monospace);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-quiet, #b39a82);
+}
+
+/* Recipient line → quiet, not coral. */
+.app-shell.view-review .recipient {
+  color: var(--ink-soft, #6f6356);
+}
+
+/* Primary send buttons → solid coral (the one accent), muted when disabled. */
+.app-shell.view-review .send-button {
+  background: var(--accent, #cf7a52);
+  box-shadow: none;
+}
+
+.app-shell.view-review .send-button:disabled {
+  background: var(--line, #ecdfcd);
+  color: var(--ink-quiet, #b39a82);
+  opacity: 1;
 }
