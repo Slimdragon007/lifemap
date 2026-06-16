@@ -28,6 +28,17 @@ The API is a single Cloudflare Worker (`worker/lifemap-api.mjs`) used in both lo
 - `POST /api/analyze`
 - `POST /api/classify`
 - `POST /api/brief`
+- `POST /api/send` — **authenticated** (Supabase bearer token). Sends an approved draft as email and records it in `sent_messages`.
+
+### Email send (`/api/send`)
+
+`/api/send` verifies the caller's Supabase access token (via `GET <SUPABASE_URL>/auth/v1/user`), sends through the Cloudflare Email Sending binding (`From: SEND_FROM`, `Reply-To:` the signed-in user), and records the result to the `sent_messages` table (RLS). To enable it in production:
+
+- Onboard a verified sending domain: `wrangler email sending enable <domain>` (adds DKIM/SPF). Set `SEND_FROM` (in `worker/wrangler.jsonc` `vars`) to an address on that domain.
+- Confirm the `send_email` binding `{ "name": "EMAIL" }` is in `worker/wrangler.jsonc`.
+- Set `SUPABASE_URL` + `SUPABASE_ANON_KEY` (`vars`) — the anon key is public/RLS-safe.
+- Apply the migration `supabase/migrations/0002_sent_messages.sql` at deploy (creates `sent_messages` + RLS). Do not apply prod DDL ahead of the PR.
+- Locally, `wrangler dev` reads the same `vars`; the `send_email` binding requires the onboarded domain to actually transmit.
 
 Secrets are managed through Cloudflare's env model (not scattered `.env` files):
 

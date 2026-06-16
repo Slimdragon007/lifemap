@@ -147,6 +147,57 @@ export async function generateBriefWithAi(
   }
 }
 
+export type SendDraftInput = {
+  draftId: string;
+  to: string;
+  recipientName?: string;
+  subject: string;
+  body: string;
+};
+
+export type SendDraftResult =
+  | { ok: true; id?: string; sentAt: string }
+  | { ok: false; error: string };
+
+export async function sendDraftEmail(
+  input: SendDraftInput,
+  accessToken: string,
+  origin = getApiOrigin(),
+): Promise<SendDraftResult> {
+  if (!origin) {
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+
+  try {
+    const response = await fetch(`${origin}/api/send`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(input),
+    });
+    const payload: unknown = await response.json();
+
+    if (!isRecord(payload)) {
+      return { ok: false, error: DEFAULT_ERROR };
+    }
+
+    if (payload.ok === true) {
+      return {
+        ok: true,
+        id: typeof payload.id === "string" ? payload.id : undefined,
+        sentAt: typeof payload.sentAt === "string" ? payload.sentAt : "",
+      };
+    }
+
+    return { ok: false, error: readError(payload.error) };
+  } catch (error) {
+    console.error("LifeMap send request failed", error);
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+}
+
 function getApiOrigin(): string | undefined {
   return resolveApiOrigin(
     import.meta.env.VITE_API_ORIGIN,

@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { analyzeWithAi, generateBriefWithAi, resolveApiOrigin } from "./api";
+import {
+  analyzeWithAi,
+  generateBriefWithAi,
+  resolveApiOrigin,
+  sendDraftEmail,
+} from "./api";
 import type { DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
 
@@ -9,19 +14,23 @@ const aiAnalysis: LifeMapAnalysis = {
       id: "due-slip",
       title: "Permission slip",
       dueDate: "Jun 18, 2026",
-      sourceQuote: "Return by 6/18."
-    }
+      sourceQuote: "Return by 6/18.",
+    },
   ],
   missingInfo: [],
-  waitingOn: [{ id: "wait-school", name: "Westview School", reason: "Needs signed slip" }],
-  nextActions: [{ id: "action-sign", label: "Sign the permission slip", owner: "Alex" }],
+  waitingOn: [
+    { id: "wait-school", name: "Westview School", reason: "Needs signed slip" },
+  ],
+  nextActions: [
+    { id: "action-sign", label: "Sign the permission slip", owner: "Alex" },
+  ],
   reminders: [
     {
       id: "reminder-slip",
       title: "Permission slip due",
       body: "Remind Alex before Jun 18.",
-      status: "Scheduled"
-    }
+      status: "Scheduled",
+    },
   ],
   draftMessages: [],
   sourceEvidence: [
@@ -29,9 +38,9 @@ const aiAnalysis: LifeMapAnalysis = {
       id: "source-email",
       type: "email",
       label: "Email: teacher@school.org",
-      quote: "Return by 6/18."
-    }
-  ]
+      quote: "Return by 6/18.",
+    },
+  ],
 };
 
 const dailyBrief: DailyBrief = {
@@ -96,19 +105,24 @@ describe("analyzeWithAi", () => {
   test("posts intake to the local API and returns normalized analysis", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ ok: true, analysis: aiAnalysis })
+      json: async () => ({ ok: true, analysis: aiAnalysis }),
     });
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await analyzeWithAi("field trip form");
 
-    expect(fetchMock).toHaveBeenCalledWith("http://localhost:8787/api/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rawIntake: "field trip form" })
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:8787/api/analyze",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawIntake: "field trip form" }),
+      },
+    );
     expect(result.ok).toBe(true);
-    expect(result.ok && result.analysis.dueItems[0].title).toBe("Permission slip");
+    expect(result.ok && result.analysis.dueItems[0].title).toBe(
+      "Permission slip",
+    );
   });
 
   test("returns the server error without throwing", async () => {
@@ -116,13 +130,16 @@ describe("analyzeWithAi", () => {
       "fetch",
       vi.fn().mockResolvedValue({
         ok: false,
-        json: async () => ({ ok: false, error: "OPENAI_API_KEY is not configured." })
-      })
+        json: async () => ({
+          ok: false,
+          error: "OPENAI_API_KEY is not configured.",
+        }),
+      }),
     );
 
     await expect(analyzeWithAi("field trip form")).resolves.toEqual({
       ok: false,
-      error: "OPENAI_API_KEY is not configured."
+      error: "OPENAI_API_KEY is not configured.",
     });
   });
 
@@ -131,13 +148,13 @@ describe("analyzeWithAi", () => {
       "fetch",
       vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ ok: true, analysis: { dueItems: [] } })
-      })
+        json: async () => ({ ok: true, analysis: { dueItems: [] } }),
+      }),
     );
 
     await expect(analyzeWithAi("field trip form")).resolves.toEqual({
       ok: false,
-      error: "LifeMap could not understand the extracted map."
+      error: "LifeMap could not understand the extracted map.",
     });
   });
 });
@@ -162,9 +179,7 @@ describe("generateBriefWithAi", () => {
       body: JSON.stringify({ analysis: aiAnalysis }),
     });
     expect(result.ok).toBe(true);
-    expect(result.ok && result.brief.todaySummary).toContain(
-      "permission slip",
-    );
+    expect(result.ok && result.brief.todaySummary).toContain("permission slip");
   });
 
   test("returns a safe error for broken brief responses", async () => {
@@ -180,5 +195,41 @@ describe("generateBriefWithAi", () => {
       ok: false,
       error: "LifeMap could not understand the daily brief.",
     });
+  });
+});
+
+describe("sendDraftEmail", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("posts to /api/send with a bearer token", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      json: async () => ({ ok: true, id: "row-1", sentAt: "now" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await sendDraftEmail(
+      {
+        draftId: "d1",
+        to: "office@westview.org",
+        recipientName: "Westview School",
+        subject: "Permission slip",
+        body: "Signed slip attached.",
+      },
+      "user-token",
+      "https://api.example.com",
+    );
+
+    expect(result).toEqual({ ok: true, id: "row-1", sentAt: "now" });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/api/send",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          Authorization: "Bearer user-token",
+        }),
+      }),
+    );
   });
 });

@@ -28,3 +28,9 @@ export function getSupabase(): SupabaseClient {
   }
   return client;
 }
+
+// The current session's access token, used to authenticate /api/send.
+export async function getAccessToken(): Promise<string | undefined> {
+  const { data } = await getSupabase().auth.getSession();
+  return data.session?.access_token;
+}

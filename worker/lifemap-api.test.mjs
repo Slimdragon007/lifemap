@@ -147,6 +147,37 @@ describe("analyzePayload", () => {
     expect(errorSpy).toHaveBeenCalled();
     errorSpy.mockRestore();
   });
+
+  test("keeps an extracted recipientEmail on draft messages", async () => {
+    const withEmail = {
+      ...analysis,
+      draftMessages: [
+        {
+          id: "draft-1",
+          recipient: "Westview School",
+          recipientEmail: "office@westview.org",
+          subject: "Permission slip",
+          body: "Sending the signed slip.",
+          status: "Needs review",
+        },
+      ],
+    };
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ output_text: JSON.stringify(withEmail) }),
+    });
+
+    const result = await analyzePayload(
+      { rawIntake: "field trip" },
+      { OPENAI_API_KEY: "secret" },
+      fetchImpl,
+    );
+
+    expect(result.status).toBe(200);
+    expect(result.body.analysis.draftMessages[0].recipientEmail).toBe(
+      "office@westview.org",
+    );
+  });
 });
 
 const mentalLoad = {

@@ -1,3 +1,5 @@
+import { createCloudflareMailer } from "./mailer.mjs";
+
 const INVALID_INPUT_ERROR =
   "Paste an email, form text, screenshot notes, or task details first.";
 const MISSING_KEY_ERROR = "OPENAI_API_KEY is not configured.";
@@ -5,6 +7,8 @@ const AI_FAILURE_ERROR =
   "LifeMap could not analyze this yet. Try again or edit the intake.";
 const BAD_REQUEST_ERROR =
   "LifeMap could not reach the AI model. Check the OPENAI_MODEL setting and try again.";
+const UNAUTHENTICATED_ERROR = "Please sign in again to send.";
+const SEND_FAILURE_ERROR = "LifeMap could not send this email. Try again.";
 const DEFAULT_MODEL = "gpt-5.5";
 
 export default {
@@ -26,19 +30,30 @@ export default {
 
     if (
       request.method !== "POST" ||
-      !["/api/analyze", "/api/classify", "/api/brief"].includes(url.pathname)
+      !["/api/analyze", "/api/classify", "/api/brief", "/api/send"].includes(
+        url.pathname,
+      )
     ) {
       return jsonResponse({ ok: false, error: "Not found." }, 404, corsHeaders);
     }
 
     try {
       const payload = await request.json();
-      const result =
-        url.pathname === "/api/classify"
-          ? await classifyPayload(payload, env)
-          : url.pathname === "/api/brief"
-            ? await generateBriefPayload(payload, env)
-            : await analyzePayload(payload, env);
+      let result;
+      if (url.pathname === "/api/send") {
+        result = await sendPayload({
+          payload,
+          authHeader: request.headers.get("Authorization"),
+          env,
+          mailer: createCloudflareMailer(env.EMAIL),
+        });
+      } else if (url.pathname === "/api/classify") {
+        result = await classifyPayload(payload, env);
+      } else if (url.pathname === "/api/brief") {
+        result = await generateBriefPayload(payload, env);
+      } else {
+        result = await analyzePayload(payload, env);
+      }
 
       return jsonResponse(result.body, result.status, corsHeaders);
     } catch {
@@ -107,6 +122,110 @@ export async function generateBriefPayload(payload, env, fetchImpl = fetch) {
   });
 }
 
+async function verifySupabaseUser(authHeader, env, fetchImpl) {
+  const token =
+    typeof authHeader === "string" && authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : "";
+  if (!token) {
+    return { ok: false };
+  }
+  const response = await fetchImpl(`${env.SUPABASE_URL}/auth/v1/user`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey: env.SUPABASE_ANON_KEY,
+    },
+  });
+  if (!response.ok) {
+    return { ok: false };
+  }
+  const user = await response.json();
+  return user && typeof user.id === "string"
+    ? { ok: true, token, id: user.id, email: user.email }
+    : { ok: false };
+}
+
+async function recordSentMessage({ env, userToken, row, fetchImpl }) {
+  const response = await fetchImpl(
+    `${env.SUPABASE_URL}/rest/v1/sent_messages`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${userToken}`,
+        apikey: env.SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify(row),
+    },
+  );
+  if (!response.ok) {
+    return { ok: false };
+  }
+  const created = await response.json();
+  return { ok: true, id: Array.isArray(created) ? created[0]?.id : undefined };
+}
+
+export async function sendPayload({
+  payload,
+  authHeader,
+  env,
+  mailer,
+  fetchImpl = fetch,
+  recordImpl,
+}) {
+  const auth = await verifySupabaseUser(authHeader, env, fetchImpl);
+  if (!auth.ok) {
+    return { status: 401, body: { ok: false, error: UNAUTHENTICATED_ERROR } };
+  }
+
+  const to = typeof payload?.to === "string" ? payload.to.trim() : "";
+  const subject = typeof payload?.subject === "string" ? payload.subject : "";
+  const body = typeof payload?.body === "string" ? payload.body : "";
+  if (!to || !to.includes("@") || !subject || !body) {
+    return { status: 400, body: { ok: false, error: INVALID_INPUT_ERROR } };
+  }
+
+  const sent = await mailer.sendEmail({
+    to,
+    from: env.SEND_FROM,
+    replyTo: auth.email,
+    subject,
+    body,
+  });
+
+  const record = recordImpl ?? recordSentMessage;
+  const row = {
+    user_id: auth.id,
+    draft_id: typeof payload?.draftId === "string" ? payload.draftId : "",
+    recipient_email: to,
+    recipient_name:
+      typeof payload?.recipientName === "string" ? payload.recipientName : null,
+    subject,
+    body,
+    reply_to: auth.email ?? null,
+    provider_id: sent.ok ? sent.providerId : null,
+    status: sent.ok ? "sent" : "failed",
+    error: sent.ok ? null : sent.error,
+  };
+  const stored = await record({ env, userToken: auth.token, row, fetchImpl });
+
+  if (!sent.ok) {
+    console.error("LifeMap send failed", sent.error);
+    return { status: 502, body: { ok: false, error: SEND_FAILURE_ERROR } };
+  }
+  if (!stored.ok) {
+    // Email went out but the audit row didn't persist — never silent.
+    console.error(
+      "LifeMap sent_messages insert failed after a successful send",
+    );
+  }
+  return {
+    status: 200,
+    body: { ok: true, id: stored.id, sentAt: new Date().toISOString() },
+  };
+}
+
 async function callOpenAi({
   bodyKey,
   env,
@@ -170,7 +289,7 @@ function buildOpenAiRequest(rawIntake, model) {
       {
         role: "system",
         content:
-          "You are LifeMap, an AI family admin assistant. Extract only actionable household logistics from messy emails, forms, screenshots, or pasted notes. Return empty arrays when a category is absent. Never invent private details that are not implied by the source. Keep nextActions to the three highest-leverage actions.",
+          "You are LifeMap, an AI family admin assistant. Extract only actionable household logistics from messy emails, forms, screenshots, or pasted notes. Return empty arrays when a category is absent. Never invent private details that are not implied by the source. Keep nextActions to the three highest-leverage actions. Include recipientEmail only when an email address is explicit in the source; otherwise return an empty string for it.",
       },
       { role: "user", content: rawIntake },
     ],
@@ -262,10 +381,11 @@ const statusSchema = { type: "string", enum: ["Scheduled", "Needs review"] };
 const draftMessageSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["id", "recipient", "subject", "body", "status"],
+  required: ["id", "recipient", "recipientEmail", "subject", "body", "status"],
   properties: {
     id: { type: "string" },
     recipient: { type: "string" },
+    recipientEmail: { type: "string" },
     subject: { type: "string" },
     body: { type: "string" },
     status: statusSchema,
@@ -576,9 +696,16 @@ function parseReminder(value) {
 }
 
 function parseDraftMessage(value) {
-  return isRecord(value) && isStatus(value.status)
-    ? readObject(value, ["id", "recipient", "subject", "body", "status"])
-    : undefined;
+  if (!isRecord(value) || !isStatus(value.status)) {
+    return undefined;
+  }
+  const base = readObject(value, ["id", "recipient", "subject", "body"]);
+  if (!base) {
+    return undefined;
+  }
+  const recipientEmail =
+    typeof value.recipientEmail === "string" ? value.recipientEmail.trim() : "";
+  return { ...base, recipientEmail, status: value.status };
 }
 
 function parseSourceEvidence(value) {
@@ -626,7 +753,7 @@ function buildCorsHeaders(request, env) {
   const allowedOrigin = resolveAllowedOrigin(origin, env.ALLOWED_ORIGIN);
   return {
     "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
