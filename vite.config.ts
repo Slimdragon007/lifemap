@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
 declare const process: {
@@ -16,6 +16,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    setupFiles: "./src/test/setup.ts"
-  }
+    setupFiles: "./src/test/setup.ts",
+    // Keep Playwright E2E specs out of the Vitest/jsdom run.
+    exclude: [...configDefaults.exclude, "tests/e2e/**"],
+  },
 });

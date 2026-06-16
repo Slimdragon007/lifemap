@@ -6,3 +6,11 @@ dist/
 worker/.dev.vars
 *.log
 supabase/.temp/
+
+# Playwright E2E
+/test-results/
+/playwright-report/
+/playwright/.cache/
+tests/e2e/.env.e2e
+# Keep the committed demo-mode env (overrides the .env ignore above)
+!tests/e2e/env-demo/.env
