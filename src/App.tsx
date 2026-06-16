@@ -47,6 +47,7 @@ import PrivacyView from "./PrivacyView";
 import { useSession } from "./useSession";
 import { demoMode } from "./demoMode";
 import { viewerIdentity } from "./viewer";
+import { sampleCollections } from "./sampleData";
 import {
   getAccessToken,
   getSupabase,
@@ -75,13 +76,6 @@ import {
 } from "./setupBuckets";
 
 const starterIntake = presentationIntake;
-
-const householdAreas = [
-  { label: "School", count: 4 },
-  { label: "Medical", count: 3 },
-  { label: "Bills", count: 2 },
-  { label: "Travel", count: 1 },
-];
 
 const sampleIntakes = [
   {
@@ -286,6 +280,7 @@ function App() {
   const [remoteLoadedFor, setRemoteLoadedFor] = useState<string>();
   const { session, loading: sessionLoading } = useSession();
   const identity = useMemo(() => viewerIdentity(session, demoMode), [session]);
+  const samples = useMemo(() => sampleCollections(demoMode), []);
   const storedState = useMemo<StoredDemoState>(
     () => ({
       isLoggedIn,
@@ -777,7 +772,7 @@ function App() {
           </nav>
 
           <div className="area-list" aria-label="Household areas">
-            {householdAreas.map((area) => (
+            {samples.householdAreas.map((area) => (
               <button className="area-row" key={area.label} type="button">
                 <span>{area.label}</span>
                 <span>{area.count}</span>
@@ -880,7 +875,11 @@ function App() {
           <VaultView
             analysis={map}
             dismissedSuggestionIds={dismissedSuggestionIds}
+            familyMembers={samples.familyMembers}
+            identity={identity}
+            recurringCareItems={samples.recurringCareItems}
             savedSuggestionIds={savedSuggestionIds}
+            vaultItems={samples.vaultItems}
             onDismissSuggestion={dismissSuggestion}
             onSaveSuggestion={saveSuggestion}
             onSaveSuggestions={saveSuggestions}

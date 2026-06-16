@@ -16,13 +16,13 @@ import {
 import { useMemo, useState } from "react";
 import {
   buildVaultItemsFromAnalysis,
-  familyMembers,
-  recurringCareItems,
-  vaultItems,
+  type FamilyMember,
+  type RecurringCareItem,
   type VaultCategory,
   type VaultItem,
 } from "./familyOS";
 import type { LifeMapAnalysis } from "./lifemap";
+import type { ViewerIdentity } from "./viewer";
 
 const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
   { id: "all", label: "All" },
@@ -36,6 +36,10 @@ const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
 
 type VaultViewProps = {
   analysis: LifeMapAnalysis;
+  familyMembers: FamilyMember[];
+  vaultItems: VaultItem[];
+  recurringCareItems: RecurringCareItem[];
+  identity: ViewerIdentity;
   savedSuggestionIds: Set<string>;
   dismissedSuggestionIds: Set<string>;
   onSaveSuggestion: (id: string) => void;
@@ -50,6 +54,10 @@ type VaultFeedback = {
 
 function VaultView({
   analysis,
+  familyMembers,
+  vaultItems,
+  recurringCareItems,
+  identity,
   savedSuggestionIds,
   dismissedSuggestionIds,
   onSaveSuggestion,
@@ -80,7 +88,7 @@ function VaultView({
   );
   const allItems = useMemo(
     () => [...visibleAnalysisItems, ...vaultItems],
-    [visibleAnalysisItems],
+    [visibleAnalysisItems, vaultItems],
   );
   const visibleItems = useMemo(
     () =>
@@ -137,7 +145,10 @@ function VaultView({
   }
 
   return (
-    <section className="workspace vault-workspace" aria-labelledby="vault-title">
+    <section
+      className="workspace vault-workspace"
+      aria-labelledby="vault-title"
+    >
       <header className="topbar">
         <div>
           <span className="workspace-kicker">
@@ -145,7 +156,10 @@ function VaultView({
             Household source of truth
           </span>
           <h1 id="vault-title">Vault</h1>
-          <p>Insurance cards, IDs, passports, vaccines, school, pets, and travel records.</p>
+          <p>
+            Insurance cards, IDs, passports, vaccines, school, pets, and travel
+            records.
+          </p>
           <span className="storage-note">
             Sensitive details stay tucked away until you open a record.
           </span>
@@ -162,7 +176,10 @@ function VaultView({
       </header>
 
       <div className="vault-grid">
-        <section className="panel profile-panel" aria-labelledby="profiles-title">
+        <section
+          className="panel profile-panel"
+          aria-labelledby="profiles-title"
+        >
           <div className="panel-heading">
             <div>
               <h2 id="profiles-title">Family profiles</h2>
@@ -172,56 +189,64 @@ function VaultView({
           </div>
 
           <div className="profile-list">
-            {familyMembers.map((member) => (
-              <article
-                className={
-                  expandedProfileIds.has(member.id)
-                    ? "profile-card profile-card-expanded"
-                    : "profile-card"
-                }
-                key={member.id}
-              >
-                <button
-                  aria-expanded={expandedProfileIds.has(member.id)}
-                  className="profile-card-toggle"
-                  type="button"
-                  onClick={() => toggleProfile(member.id)}
+            {familyMembers.length > 0 ? (
+              familyMembers.map((member) => (
+                <article
+                  className={
+                    expandedProfileIds.has(member.id)
+                      ? "profile-card profile-card-expanded"
+                      : "profile-card"
+                  }
+                  key={member.id}
                 >
-                  <span className={`profile-avatar profile-${member.profileType}`}>
-                    {member.initials}
-                  </span>
-                  <span>
-                    <span className="profile-card-top">
-                      <h3>{member.name}</h3>
-                      <span>{member.role}</span>
+                  <button
+                    aria-expanded={expandedProfileIds.has(member.id)}
+                    className="profile-card-toggle"
+                    type="button"
+                    onClick={() => toggleProfile(member.id)}
+                  >
+                    <span
+                      className={`profile-avatar profile-${member.profileType}`}
+                    >
+                      {member.initials}
                     </span>
-                    <small>
-                      {expandedProfileIds.has(member.id)
-                        ? "Details are visible"
-                        : "Tap to reveal private details"}
-                    </small>
-                  </span>
-                  <ChevronDown size={17} />
-                </button>
-                {expandedProfileIds.has(member.id) ? (
-                  <div className="profile-hidden-details">
-                  <dl className="profile-details">
-                    {member.details.map((detail) => (
-                      <div key={`${member.id}-${detail.label}`}>
-                        <dt>{detail.label}</dt>
-                        <dd>{detail.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                  <ul className="care-note-list">
-                    {member.careNotes.map((note) => (
-                      <li key={note}>{note}</li>
-                    ))}
-                  </ul>
-                  </div>
-                ) : null}
-              </article>
-            ))}
+                    <span>
+                      <span className="profile-card-top">
+                        <h3>{member.name}</h3>
+                        <span>{member.role}</span>
+                      </span>
+                      <small>
+                        {expandedProfileIds.has(member.id)
+                          ? "Details are visible"
+                          : "Tap to reveal private details"}
+                      </small>
+                    </span>
+                    <ChevronDown size={17} />
+                  </button>
+                  {expandedProfileIds.has(member.id) ? (
+                    <div className="profile-hidden-details">
+                      <dl className="profile-details">
+                        {member.details.map((detail) => (
+                          <div key={`${member.id}-${detail.label}`}>
+                            <dt>{detail.label}</dt>
+                            <dd>{detail.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                      <ul className="care-note-list">
+                        {member.careNotes.map((note) => (
+                          <li key={note}>{note}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </article>
+              ))
+            ) : (
+              <p className="empty-note">
+                No family profiles yet. Capture family details to build them.
+              </p>
+            )}
           </div>
         </section>
 
@@ -235,13 +260,18 @@ function VaultView({
           </div>
 
           {pendingAnalysisItems.length > 0 ? (
-            <section className="suggestion-review-bar" aria-label="Vault suggestions">
+            <section
+              className="suggestion-review-bar"
+              aria-label="Vault suggestions"
+            >
               <div>
                 <strong>
                   LifeMap found {pendingAnalysisItems.length} vault{" "}
                   {pendingAnalysisItems.length === 1 ? "record" : "records"}.
                 </strong>
-                <span>Save only records you want in the household source of truth.</span>
+                <span>
+                  Save only records you want in the household source of truth.
+                </span>
               </div>
               <button
                 className="secondary-button compact-button"
@@ -282,20 +312,29 @@ function VaultView({
           </div>
 
           <div className="vault-record-list">
-            {visibleItems.map((item) => (
-              <VaultCard
-                isSaved={savedSuggestionIds.has(item.id)}
-                item={item}
-                key={item.id}
-                onDismissSuggestion={() => dismissSuggestion(item)}
-                onOpenDetails={() => openVaultItem(item)}
-                onSaveSuggestion={() => saveSuggestion(item)}
-              />
-            ))}
+            {visibleItems.length > 0 ? (
+              visibleItems.map((item) => (
+                <VaultCard
+                  isSaved={savedSuggestionIds.has(item.id)}
+                  item={item}
+                  key={item.id}
+                  onDismissSuggestion={() => dismissSuggestion(item)}
+                  onOpenDetails={() => openVaultItem(item)}
+                  onSaveSuggestion={() => saveSuggestion(item)}
+                />
+              ))
+            ) : (
+              <p className="empty-note">
+                No records yet. Captured documents will appear here.
+              </p>
+            )}
           </div>
         </section>
 
-        <aside className="panel emergency-panel" aria-labelledby="emergency-title">
+        <aside
+          className="panel emergency-panel"
+          aria-labelledby="emergency-title"
+        >
           <div className="panel-heading">
             <div>
               <h2 id="emergency-title">Emergency view</h2>
@@ -303,44 +342,56 @@ function VaultView({
             </div>
             <ShieldCheck size={18} />
           </div>
-          <div className="emergency-list">
-            <article>
-              <IdCard size={17} />
-              <div>
-                <strong>Primary contact</strong>
-                <span>Alex Kim · (555) 010-1172</span>
-              </div>
-            </article>
-            <article>
-              <Stethoscope size={17} />
-              <div>
-                <strong>Casey health note</strong>
-                <span>Peanut allergy · Cetirizine as needed</span>
-              </div>
-            </article>
-            <article>
-              <PawPrint size={17} />
-              <div>
-                <strong>Milo vet</strong>
-                <span>Desert Paws Veterinary · rabies booster due Jun 20</span>
-              </div>
-            </article>
-          </div>
+          {familyMembers.length > 0 ? (
+            <div className="emergency-list">
+              <article>
+                <IdCard size={17} />
+                <div>
+                  <strong>Primary contact</strong>
+                  <span>{identity.name}</span>
+                </div>
+              </article>
+              <article>
+                <Stethoscope size={17} />
+                <div>
+                  <strong>Casey health note</strong>
+                  <span>Peanut allergy · Cetirizine as needed</span>
+                </div>
+              </article>
+              <article>
+                <PawPrint size={17} />
+                <div>
+                  <strong>Milo vet</strong>
+                  <span>
+                    Desert Paws Veterinary · rabies booster due Jun 20
+                  </span>
+                </div>
+              </article>
+            </div>
+          ) : (
+            <p className="empty-note">
+              Emergency basics appear once you add family profiles.
+            </p>
+          )}
 
           <div className="map-section">
             <h3>Care loops</h3>
-            <div className="recurring-list compact-recurring-list">
-              {recurringCareItems.slice(0, 3).map((item) => (
-                <article className="recurring-card" key={item.id}>
-                  <span className={`care-dot care-${item.category}`} />
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p>{item.cadence}</p>
-                    <small>Next due {formatShortDate(item.nextDue)}</small>
-                  </div>
-                </article>
-              ))}
-            </div>
+            {recurringCareItems.length > 0 ? (
+              <div className="recurring-list compact-recurring-list">
+                {recurringCareItems.slice(0, 3).map((item) => (
+                  <article className="recurring-card" key={item.id}>
+                    <span className={`care-dot care-${item.category}`} />
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.cadence}</p>
+                      <small>Next due {formatShortDate(item.nextDue)}</small>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="empty-note">No recurring care loops yet.</p>
+            )}
           </div>
         </aside>
       </div>
@@ -475,14 +526,20 @@ function VaultDetailDialog({
             <LockKeyhole size={18} />
             <span>Private details</span>
           </div>
-          <p>{isSensitiveVisible ? item.detail : "Hidden until you reveal them."}</p>
+          <p>
+            {isSensitiveVisible ? item.detail : "Hidden until you reveal them."}
+          </p>
           {isSensitiveVisible ? (
             <span className="vault-private-state">
               <CheckCircle2 size={14} />
               Visible for this session
             </span>
           ) : (
-            <button className="secondary-button compact-button" type="button" onClick={onReveal}>
+            <button
+              className="secondary-button compact-button"
+              type="button"
+              onClick={onReveal}
+            >
               <Eye size={15} />
               Reveal details
             </button>
@@ -502,7 +559,9 @@ function VaultDetailDialog({
           <article className="brief-detail-card">
             <span>Trust note</span>
             <h3>Human approved</h3>
-            <p>LifeMap can suggest records, but saving stays user-controlled.</p>
+            <p>
+              LifeMap can suggest records, but saving stays user-controlled.
+            </p>
           </article>
         </div>
       </section>
