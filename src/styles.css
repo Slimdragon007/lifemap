@@ -8251,3 +8251,106 @@ button.notebook-row:active {
   color: var(--ink-quiet, #b39a82);
   opacity: 1;
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Family admin map: calm it down. Capture on the left; the dense extracted
+   map is hidden behind a 'see the full map' button instead of dumped inline.
+   ────────────────────────────────────────────────────────────────────────── */
+.app-shell.view-family .workspace {
+  width: min(100%, 720px);
+  margin-inline: auto;
+}
+
+.app-shell.view-family .work-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 600px) {
+  .app-shell.view-family .work-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.app-shell.view-family .panel {
+  border: 1px solid var(--line, #ecdfcd);
+  border-radius: var(--radius-panel, 18px);
+  background: var(--paper, #fcf7ee);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell.view-family .panel:hover {
+  transform: none;
+}
+
+/* The 'Click here to see the full map' button (right column, collapsed state). */
+.see-full-map {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 120px;
+  padding: 22px 20px;
+  border: 1px dashed var(--line, #ecdfcd);
+  border-radius: 16px;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent, #cf7a52);
+  cursor: pointer;
+  transition: transform var(--motion-press, 100ms) var(--ease, ease);
+}
+
+.see-full-map:active {
+  transform: scale(0.99);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .see-full-map:active {
+    transform: none !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Capture + Review desktop cleanup: the gradient 'sheet' card around Capture
+   and Review's far-right-floating toggles both clashed with the flat notebook.
+   ────────────────────────────────────────────────────────────────────────── */
+.app-shell.view-capture .capture-sheet {
+  width: 100%;
+  max-height: none;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* Clean approval rows: drop the lonely icon and the redundant state label, and
+   pin just the toggle into the top-right corner, aligned with the title — so it
+   reads as one tidy row instead of a toggle floating above the text. */
+.app-shell.view-review .approval-card {
+  position: relative;
+}
+
+.app-shell.view-review .approval-icon,
+.app-shell.view-review .approval-selection-state {
+  display: none;
+}
+
+.app-shell.view-review .approval-card-top {
+  position: absolute;
+  top: 14px;
+  right: 2px;
+  margin: 0;
+  gap: 0;
+}
+
+.app-shell.view-review .approval-card h3 {
+  padding-right: 56px;
+}

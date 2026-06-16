@@ -274,6 +274,7 @@ function App() {
   >({});
   const [toastMessage, setToastMessage] = useState<string>();
   const [view, setView] = useState<AppView>("today");
+  const [showFullMap, setShowFullMap] = useState(false);
   const [selectedSetupBucketId, setSelectedSetupBucketId] =
     useState<SetupBucketId>();
   const selectedSetupBucket = useMemo(
@@ -899,53 +900,12 @@ function App() {
             >
               <header className="topbar">
                 <div>
-                  <span className="workspace-kicker">
-                    <Sparkles size={14} />
-                    LifeMap AI command center
-                  </span>
                   <h1 id="page-title">Family admin map</h1>
                   <p>
-                    A calm control room for messy family admin: due dates,
-                    missing records, waiting-on, next actions, and approvals.
+                    Paste messy family admin and LifeMap turns it into your map.
                   </p>
-                  <span className="storage-note">
-                    Demo data is stored in this browser only.
-                  </span>
-                </div>
-                <div className="status-strip" aria-label="Map health">
-                  <StatusPill
-                    label={`${map.dueItems.length} due`}
-                    tone="urgent"
-                  />
-                  <StatusPill
-                    label={`${map.missingInfo.length} missing`}
-                    tone="warning"
-                  />
-                  <StatusPill
-                    label={`${map.nextActions.length} actions`}
-                    tone="calm"
-                  />
                 </div>
               </header>
-
-              <div className="family-loop-bar" aria-label="LifeMap workflow">
-                <span>
-                  <Inbox size={14} />
-                  Capture
-                </span>
-                <span>
-                  <Sparkles size={14} />
-                  Organize map
-                </span>
-                <span>
-                  <Bell size={14} />
-                  Review approvals
-                </span>
-                <span>
-                  <CheckCircle2 size={14} />
-                  Stage next moves
-                </span>
-              </div>
 
               <div className="work-grid">
                 <section
@@ -954,34 +914,10 @@ function App() {
                 >
                   <div className="panel-heading">
                     <div>
-                      <h2 id="intake-title">Forwarded intake</h2>
-                      <span>Source: email</span>
+                      <h2 id="intake-title">Paste anything</h2>
+                      <span>Email, notes, forms, travel plans</span>
                     </div>
                     <FileText size={18} />
-                  </div>
-                  <div
-                    className="intake-meta"
-                    aria-label="Intake analysis stages"
-                  >
-                    <span className="meta-step active">Capture</span>
-                    <span
-                      className={
-                        analyzeStatus === "loading"
-                          ? "meta-step active"
-                          : "meta-step"
-                      }
-                    >
-                      Extract
-                    </span>
-                    <span
-                      className={
-                        analyzeStatus === "success"
-                          ? "meta-step active"
-                          : "meta-step"
-                      }
-                    >
-                      Approve
-                    </span>
                   </div>
                   <div className="sample-strip" aria-label="Sample intakes">
                     <span>Try a sample</span>
@@ -1035,91 +971,104 @@ function App() {
                   <AnalyzeNotice status={analyzeStatus} error={analyzeError} />
                 </section>
 
-                <section
-                  className="panel map-panel"
-                  aria-labelledby="map-title"
-                >
-                  <div className="panel-heading">
-                    <div>
-                      <h2 id="map-title">Extracted map</h2>
-                      <span>{map.sourceEvidence.length} source links</span>
+                {showFullMap ? (
+                  <section
+                    className="panel map-panel"
+                    aria-labelledby="map-title"
+                  >
+                    <div className="panel-heading">
+                      <div>
+                        <h2 id="map-title">Extracted map</h2>
+                        <span>{map.sourceEvidence.length} source links</span>
+                      </div>
+                      <ShieldCheck size={18} />
                     </div>
-                    <ShieldCheck size={18} />
-                  </div>
 
-                  <SourceEvidenceRow sources={map.sourceEvidence} />
+                    <SourceEvidenceRow sources={map.sourceEvidence} />
 
-                  <div className="map-section">
-                    <h3>What is due</h3>
-                    <div className="due-list">
-                      {map.dueItems.map((item) => (
-                        <article className="due-row" key={item.title}>
-                          <Clock3 size={18} />
-                          <div>
-                            <strong>{item.title}</strong>
-                            <span>{item.dueDate}</span>
-                            <small>{item.sourceQuote}</small>
-                          </div>
-                        </article>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="split-map">
                     <div className="map-section">
-                      <h3>What is missing</h3>
-                      <ul className="plain-list">
-                        {map.missingInfo.map((item) => (
-                          <li key={item.id} title={item.sourceQuote}>
-                            <strong>{item.label}</strong>
-                            <span>{item.reason}</span>
+                      <h3>What is due</h3>
+                      <div className="due-list">
+                        {map.dueItems.map((item) => (
+                          <article className="due-row" key={item.title}>
+                            <Clock3 size={18} />
+                            <div>
+                              <strong>{item.title}</strong>
+                              <span>{item.dueDate}</span>
+                              <small>{item.sourceQuote}</small>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="split-map">
+                      <div className="map-section">
+                        <h3>What is missing</h3>
+                        <ul className="plain-list">
+                          {map.missingInfo.map((item) => (
+                            <li key={item.id} title={item.sourceQuote}>
+                              <strong>{item.label}</strong>
+                              <span>{item.reason}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="map-section">
+                        <h3>Waiting on</h3>
+                        {map.waitingOn.map((party) => (
+                          <div className="waiting-card" key={party.id}>
+                            <UserRoundCheck size={18} />
+                            <div>
+                              <strong>{party.name}</strong>
+                              <span>{party.reason}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="map-section">
+                      <h3>Next 3 actions</h3>
+                      <ol className="action-list">
+                        {map.nextActions.map((action) => (
+                          <li key={action.id}>
+                            <Check size={16} />
+                            <span>{action.label}</span>
+                            <small>{action.owner}</small>
                           </li>
                         ))}
-                      </ul>
+                      </ol>
                     </div>
-                    <div className="map-section">
-                      <h3>Waiting on</h3>
-                      {map.waitingOn.map((party) => (
-                        <div className="waiting-card" key={party.id}>
-                          <UserRoundCheck size={18} />
-                          <div>
-                            <strong>{party.name}</strong>
-                            <span>{party.reason}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="map-section">
-                    <h3>Next 3 actions</h3>
-                    <ol className="action-list">
-                      {map.nextActions.map((action) => (
-                        <li key={action.id}>
-                          <Check size={16} />
-                          <span>{action.label}</span>
-                          <small>{action.owner}</small>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                </section>
+                  </section>
+                ) : (
+                  <button
+                    className="see-full-map"
+                    type="button"
+                    onClick={() => setShowFullMap(true)}
+                  >
+                    <span>Click here to see the full map</span>
+                    <ChevronRight size={18} />
+                  </button>
+                )}
               </div>
             </section>
 
-            <ApprovalQueue
-              disabledApprovals={disabledApprovals}
-              editedApprovals={editedApprovals}
-              selectedCount={selectedApprovals.length}
-              stagedRun={stagedRun}
-              sentDraftIds={sentDraftIds}
-              sendingDraftId={sendingDraftId}
-              variant="rail"
-              onReview={() => setIsReviewOpen(true)}
-              onSave={saveApprovalBody}
-              onToggle={toggleApproval}
-              onSendDraft={handleSendDraft}
-            />
+            {showFullMap ? (
+              <ApprovalQueue
+                disabledApprovals={disabledApprovals}
+                editedApprovals={editedApprovals}
+                selectedCount={selectedApprovals.length}
+                stagedRun={stagedRun}
+                sentDraftIds={sentDraftIds}
+                sendingDraftId={sendingDraftId}
+                variant="rail"
+                onReview={() => setIsReviewOpen(true)}
+                onSave={saveApprovalBody}
+                onToggle={toggleApproval}
+                onSendDraft={handleSendDraft}
+              />
+            ) : null}
           </>
         ) : view === "review" ? (
           <section

@@ -94,6 +94,10 @@ async function openFamilyMap(user: ReturnType<typeof userEvent.setup>) {
   await user.click(
     screen.getByRole("button", { name: "Open family admin map" }),
   );
+  // The extracted map + approvals are collapsed by default; reveal them.
+  await user.click(
+    screen.getByRole("button", { name: "Click here to see the full map" }),
+  );
 }
 
 describe("LifeMap MVP app", () => {
@@ -159,12 +163,15 @@ describe("LifeMap MVP app", () => {
       screen.getByRole("heading", { name: "Family admin map" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Demo data is stored in this browser only."),
-    ).toBeInTheDocument();
-    expect(screen.getByText("LifeMap AI command center")).toBeInTheDocument();
-    expect(
       screen.getByRole("button", { name: "Open LifeMap AI" }),
     ).toBeInTheDocument();
+    // The map is collapsed by default behind a single calm button.
+    expect(
+      screen.getByRole("button", { name: "Click here to see the full map" }),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Click here to see the full map" }),
+    );
     expect(
       screen.getByText("Choose what LifeMap should hold for review."),
     ).toBeInTheDocument();
