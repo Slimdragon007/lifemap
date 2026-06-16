@@ -7345,3 +7345,211 @@ body {
     animation-duration: 1.4s;
   }
 }
+
+/* ============================================================
+   Low-stimulus "notebook" layout — Today screen
+   Scoped under .atlas-today so the shared .panel/.atlas-* card
+   chrome used by other screens is never touched. Borderless rows
+   on the paper background; one accent; everything else behind
+   a "show more" expander. Source of truth:
+   docs/lifemap-lowstim-motion-v2.html
+   ============================================================ */
+
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.atlas-today .lowstim-today {
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+}
+
+.atlas-today .lowstim-brief {
+  margin: 8px 0 30px;
+  max-width: 32ch;
+  font-size: 19px;
+  line-height: 1.45;
+  color: var(--ink, #2c2018);
+}
+
+.atlas-today .lowstim-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Borderless row: the only chrome is a 1px bottom border. The row keeps the
+   .atlas-priority-card class so the locked motion contract (140ms settle +
+   scale(0.98) press, verified by tests/e2e/motion.spec.ts) still applies. */
+.atlas-today .lowstim-item {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 16px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--line, #ecdfcd);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  color: var(--ink, #2c2018);
+  cursor: pointer;
+}
+
+.atlas-today .lowstim-item:hover {
+  background: none;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Preserve the press feedback (scale 0.98) over the higher-specificity hover
+   reset above, so the locked motion contract holds on the borderless rows. */
+.atlas-today .lowstim-item:active {
+  transform: scale(0.98);
+}
+
+.atlas-today .lowstim-item.first {
+  font-weight: 600;
+}
+
+.atlas-today .lowstim-item.priority-completed .lowstim-text,
+.atlas-today .lowstim-item.priority-snoozed .lowstim-text {
+  color: var(--ink-quiet, #b39a82);
+  text-decoration: line-through;
+}
+
+.atlas-today .lowstim-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent, #cf7a52);
+}
+
+.atlas-today .lowstim-qn {
+  flex: none;
+  width: 14px;
+  text-align: center;
+  font-family: var(--font-mono, "Fragment Mono", monospace);
+  font-size: 12px;
+  color: var(--ink-quiet, #b39a82);
+}
+
+.atlas-today .lowstim-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.atlas-today .lowstim-when {
+  flex: none;
+  margin-left: auto;
+  font-family: var(--font-mono, "Fragment Mono", monospace);
+  font-size: 11.5px;
+  color: var(--ink-quiet, #b39a82);
+  white-space: nowrap;
+}
+
+.atlas-today .lowstim-item-quiet {
+  color: var(--ink-soft, #6f6356);
+}
+
+.atlas-today .lowstim-showmore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 16px 0 6px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent, #cf7a52);
+  cursor: pointer;
+}
+
+.atlas-today .lowstim-chev {
+  transition: transform 200ms var(--ease, ease);
+}
+
+.atlas-today .lowstim-showmore.open .lowstim-chev {
+  transform: rotate(180deg);
+}
+
+.atlas-today .lowstim-more[hidden] {
+  display: none;
+}
+
+.atlas-today .lowstim-capture {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  margin-top: 26px;
+  padding: 11px 16px;
+  border: 1px solid var(--line, #ecdfcd);
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink, #2c2018);
+  cursor: pointer;
+  transition: transform var(--motion-press, 100ms) var(--ease, ease);
+}
+
+.atlas-today .lowstim-capture:active {
+  transform: scale(0.98);
+}
+
+.atlas-today .lowstim-foot {
+  margin-top: 30px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ink-quiet, #b39a82);
+}
+
+.atlas-today .lowstim-foot b {
+  font-weight: 600;
+  color: var(--ink-soft, #6f6356);
+}
+
+.atlas-today .lowstim-areas {
+  margin-top: 30px;
+}
+
+.atlas-today .lowstim-briefmeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.atlas-today .lowstim-briefmeta .grounding-note {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink-quiet, #b39a82);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-today .lowstim-capture:active {
+    transform: none !important;
+  }
+}

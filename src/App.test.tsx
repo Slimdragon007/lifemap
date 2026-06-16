@@ -115,20 +115,8 @@ describe("LifeMap MVP app", () => {
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Paste anything messy." }),
-    ).toBeInTheDocument();
-    expect(
       screen.getByRole("button", { name: "Capture anything" }),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "School form" }));
-    expect(
-      screen.getByRole("heading", { name: "Ask LifeMap AI" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByDisplayValue(/Westview Elementary/i),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Back to Today" }));
-    expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Capture" }));
     expect(
       screen.getByRole("heading", { name: "Ask LifeMap AI" }),
@@ -288,12 +276,8 @@ describe("LifeMap MVP app", () => {
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
 
-    expect(
-      screen.getByRole("heading", { name: "Make LifeMap yours" }),
-    ).toBeInTheDocument();
-    await user.click(
-      screen.getByRole("button", { name: "Start guided setup" }),
-    );
+    // A fresh household reaches guided setup by tapping a starter life-area tile.
+    await user.click(screen.getByRole("button", { name: "Records Set up" }));
 
     expect(
       screen.getByRole("heading", { name: "Guided setup" }),
@@ -975,37 +959,27 @@ describe("LifeMap MVP app", () => {
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
 
-    expect(
-      screen.getByRole("heading", { name: "Next three moves" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Start capture update/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Start Field trip permission slip/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Review 3 approvals/i }),
-    ).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("button", { name: /Start capture update/i }),
-    );
+    // Capture: the quiet "Capture anything" action opens the AI capture flow.
+    await user.click(screen.getByRole("button", { name: "Capture anything" }));
     expect(
       screen.getByRole("heading", { name: "Ask LifeMap AI" }),
     ).toBeInTheDocument();
-
     await user.click(screen.getByRole("button", { name: "Back to Today" }));
+
+    // Priority: tapping a priority row opens its focused dialog.
     await user.click(
-      screen.getByRole("button", { name: /Start Field trip permission slip/i }),
+      screen.getByRole("button", {
+        name: "Open priority Field trip permission slip",
+      }),
     );
     expect(
       screen.getByRole("dialog", { name: "Field trip permission slip" }),
     ).toBeInTheDocument();
-
     await user.click(screen.getByRole("button", { name: "Close" }));
+
+    // Approvals: the notification bell routes to Review.
     await user.click(
-      screen.getByRole("button", { name: /Review 3 approvals/i }),
+      screen.getByRole("button", { name: "Review notifications" }),
     );
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
   });

@@ -1,0 +1,992 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LifeMap — The Calm Redesign (interactive plan)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesque:wght@400;500;600;700&family=Fragment+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #fcf7ee;
+        --card: #fffdf8;
+        --ink: #2c2018;
+        --ink-soft: #6f6356;
+        --ink-quiet: #b39a82;
+        --line: #ecdfcd;
+        --accent: #cf7a52;
+        --accent-soft: #f4e3d8;
+        --sage: #7fa284;
+        --good: #4f7d57;
+        --warn: #b9663f;
+        --shadow: 0 30px 70px rgba(44, 32, 24, 0.13);
+        --radius: 16px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Hanken Grotesque", system-ui, sans-serif;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 40px 22px 90px;
+      }
+      .eyebrow {
+        font-family: "Fragment Mono", monospace;
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      h1 {
+        font-size: 34px;
+        line-height: 1.15;
+        margin: 10px 0 12px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      h2 {
+        font-size: 22px;
+        margin: 0 0 6px;
+        font-weight: 700;
+      }
+      .lead {
+        font-size: 18px;
+        color: var(--ink-soft);
+        max-width: 60ch;
+      }
+      section {
+        margin-top: 56px;
+      }
+      .section-head {
+        margin-bottom: 22px;
+      }
+      .section-head p {
+        margin: 4px 0 0;
+        color: var(--ink-soft);
+        max-width: 64ch;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: var(--accent-soft);
+        color: var(--warn);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 13px;
+        border-radius: 999px;
+      }
+
+      /* Toggle */
+      .toggle-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+      }
+      .seg {
+        display: inline-flex;
+        background: #f1e7d6;
+        border-radius: 999px;
+        padding: 4px;
+        border: 1px solid var(--line);
+      }
+      .seg button {
+        border: 0;
+        background: none;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--ink-soft);
+        padding: 8px 18px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition:
+          background 0.14s ease,
+          color 0.14s ease;
+      }
+      .seg button.on {
+        background: var(--ink);
+        color: var(--paper);
+      }
+      .seg.alt button.on {
+        background: var(--accent);
+      }
+
+      /* Phone frame */
+      .stage {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 34px;
+        align-items: start;
+      }
+      @media (max-width: 760px) {
+        .stage {
+          grid-template-columns: 1fr;
+        }
+      }
+      .phone {
+        width: 320px;
+        max-width: 100%;
+        border-radius: 30px;
+        background: var(--paper);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--line);
+        overflow: hidden;
+        position: relative;
+      }
+      .phone-screen {
+        height: 600px;
+        overflow-y: auto;
+        padding: 26px 20px 80px;
+        scrollbar-width: thin;
+      }
+      .phone-screen::-webkit-scrollbar {
+        width: 6px;
+      }
+      .phone-screen::-webkit-scrollbar-thumb {
+        background: var(--line);
+        border-radius: 6px;
+      }
+      .tabbar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 58px;
+        background: rgba(252, 247, 238, 0.94);
+        backdrop-filter: blur(8px);
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        font-size: 10px;
+        color: var(--ink-quiet);
+      }
+      .tabbar b {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+      }
+      .tab .ti {
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        background: var(--line);
+      }
+      .tab.act .ti {
+        background: var(--accent);
+      }
+
+      /* Notebook (AFTER) elements */
+      .nb-date {
+        font-size: 12px;
+        color: var(--ink-quiet);
+        letter-spacing: 0.02em;
+      }
+      .nb-brief {
+        font-size: 19px;
+        line-height: 1.45;
+        max-width: 25ch;
+        margin: 12px 0 30px;
+      }
+      .nb-list {
+        display: flex;
+        flex-direction: column;
+      }
+      .nb-item {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 16px 4px;
+        border-bottom: 1px solid var(--line);
+        font-size: 15px;
+        cursor: pointer;
+        background: none;
+        border-left: 0;
+        border-right: 0;
+        border-top: 0;
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+        color: var(--ink);
+        transition: transform 0.1s ease;
+      }
+      .nb-item:active {
+        transform: scale(0.98);
+      }
+      .nb-item.first {
+        font-weight: 600;
+      }
+      .nb-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        flex: none;
+      }
+      .nb-qn {
+        width: 14px;
+        font-family: "Fragment Mono", monospace;
+        font-size: 12px;
+        color: var(--ink-quiet);
+        flex: none;
+        text-align: center;
+      }
+      .nb-when {
+        margin-left: auto;
+        font-size: 11.5px;
+        color: var(--ink-quiet);
+        font-family: "Fragment Mono", monospace;
+      }
+      .nb-showmore {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        width: 100%;
+        background: none;
+        border: 0;
+        padding: 16px 0 6px;
+        margin-top: 6px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--accent);
+        cursor: pointer;
+      }
+      .nb-chev {
+        transition: transform 0.2s ease;
+        font-size: 11px;
+      }
+      .nb-showmore.open .nb-chev {
+        transform: rotate(180deg);
+      }
+      .nb-more[hidden] {
+        display: none;
+      }
+      .nb-foot {
+        margin-top: 30px;
+        font-size: 12.5px;
+        line-height: 1.65;
+        color: var(--ink-quiet);
+      }
+      .nb-foot b {
+        color: var(--ink-soft);
+        font-weight: 600;
+      }
+
+      /* Dense (BEFORE) elements */
+      .dn-card {
+        background: var(--card);
+        border: 1px solid rgba(44, 32, 24, 0.1);
+        border-radius: 14px;
+        box-shadow: 0 10px 24px rgba(44, 32, 24, 0.06);
+        padding: 14px;
+        margin-bottom: 12px;
+      }
+      .dn-card .k {
+        font-family: "Fragment Mono", monospace;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--ink-quiet);
+      }
+      .dn-card h3 {
+        margin: 4px 0 6px;
+        font-size: 15px;
+      }
+      .dn-card p {
+        margin: 0;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+      }
+      .dn-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .dn-btn {
+        background: #f6efe2;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 11px;
+        color: var(--ink-soft);
+      }
+      .dn-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        text-align: center;
+      }
+      .dn-metrics div b {
+        font-size: 18px;
+      }
+      .dn-metrics div span {
+        font-size: 10px;
+        color: var(--ink-quiet);
+        display: block;
+      }
+
+      .notes {
+        align-self: start;
+      }
+      .note {
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        margin-bottom: 12px;
+      }
+      .note .t {
+        font-weight: 600;
+        margin-bottom: 3px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .note p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+      .dotmark {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex: none;
+      }
+      .d-keep {
+        background: var(--good);
+      }
+      .d-move {
+        background: var(--accent);
+      }
+      .d-drop {
+        background: var(--ink-quiet);
+      }
+
+      /* Relocation map */
+      .reloc {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 760px) {
+        .reloc {
+          grid-template-columns: 1fr;
+        }
+      }
+      .rl {
+        border: 1px solid var(--line);
+        background: var(--card);
+        border-radius: 12px;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition:
+          border-color 0.14s ease,
+          transform 0.1s ease;
+      }
+      .rl:hover {
+        border-color: var(--accent);
+      }
+      .rl:active {
+        transform: scale(0.99);
+      }
+      .rl .top {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .rl .dest {
+        margin-top: 8px;
+        font-size: 13px;
+        color: var(--ink-soft);
+        display: none;
+      }
+      .rl.open .dest {
+        display: block;
+      }
+      .chip {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 999px;
+        margin-left: auto;
+      }
+      .chip.keep {
+        background: #e3efe5;
+        color: var(--good);
+      }
+      .chip.move {
+        background: var(--accent-soft);
+        color: var(--warn);
+      }
+      .chip.drop {
+        background: #efe7db;
+        color: var(--ink-quiet);
+      }
+
+      /* Safety grid */
+      .safe {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 760px) {
+        .safe {
+          grid-template-columns: 1fr;
+        }
+      }
+      .safe .item {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+      .check {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--good);
+        color: #fff;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+        font-weight: 700;
+      }
+      .safe .item b {
+        display: block;
+        margin-bottom: 2px;
+      }
+      .safe .item span {
+        font-size: 13.5px;
+        color: var(--ink-soft);
+      }
+
+      .steps {
+        counter-reset: s;
+        display: grid;
+        gap: 10px;
+      }
+      .step {
+        display: flex;
+        gap: 13px;
+        align-items: flex-start;
+        padding: 14px 16px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+      .step::before {
+        counter-increment: s;
+        content: counter(s);
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 700;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+      }
+      .step b {
+        display: block;
+      }
+      .step span {
+        font-size: 13.5px;
+        color: var(--ink-soft);
+      }
+      .toast {
+        position: fixed;
+        bottom: 22px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: var(--ink);
+        color: var(--paper);
+        padding: 11px 18px;
+        border-radius: 999px;
+        font-size: 14px;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+        z-index: 50;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      .foot-note {
+        margin-top: 60px;
+        padding: 18px 20px;
+        border-radius: 12px;
+        border: 1px dashed var(--ink-quiet);
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+      .legend {
+        display: flex;
+        gap: 16px;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="eyebrow">LifeMap · proposed redesign</div>
+        <h1>The calm "notebook" — finally on the real app</h1>
+        <p class="lead">
+          The warm colors and gentle motion already shipped. What never got
+          built is the <b>calm layout</b> you approved: one quiet screen, three
+          things, everything else a tap away. This is a layout change only — the
+          AI, your login, your data, and saving all keep working exactly as they
+          do now (verified live today).
+        </p>
+        <div style="margin-top: 16px">
+          <span class="pill"
+            >⚠ Nothing here changes how the app works — only how it looks and
+            what it shows first</span
+          >
+        </div>
+      </header>
+
+      <!-- BEFORE / AFTER -->
+      <section>
+        <div class="section-head">
+          <h2>1 · The Today screen, before and after</h2>
+          <p>
+            Same data, same features. The "after" screen is live — tap the rows,
+            open "Show more." This is exactly what families would see.
+          </p>
+        </div>
+        <div class="toggle-row">
+          <div class="seg" id="ba-seg">
+            <button data-ba="before">Before (today)</button>
+            <button data-ba="after" class="on">After (notebook)</button>
+          </div>
+          <span style="font-size: 13px; color: var(--ink-quiet)"
+            >Toggle to compare</span
+          >
+        </div>
+
+        <div class="stage">
+          <div class="phone">
+            <div class="phone-screen" id="screen"></div>
+            <div class="tabbar">
+              <div class="tab act">
+                <div class="ti"></div>
+                <b>Today</b>
+              </div>
+              <div class="tab">
+                <div class="ti"></div>
+                Capture
+              </div>
+              <div class="tab">
+                <div class="ti"></div>
+                Calendar
+              </div>
+              <div class="tab">
+                <div class="ti"></div>
+                Vault
+              </div>
+              <div class="tab">
+                <div class="ti"></div>
+                More
+              </div>
+            </div>
+          </div>
+
+          <div class="notes" id="notes"></div>
+        </div>
+      </section>
+
+      <!-- RELOCATION MAP -->
+      <section>
+        <div class="section-head">
+          <h2>2 · Where every piece goes</h2>
+          <p>
+            Nothing is deleted from the product — the busy parts move to the tab
+            where they belong, so Today stays calm. Tap any card to see where it
+            lands.
+          </p>
+        </div>
+        <div class="legend">
+          <span><i class="dotmark d-keep"></i> Stays on Today</span>
+          <span><i class="dotmark d-move"></i> Moves to another tab</span>
+          <span><i class="dotmark d-drop"></i> Removed (redundant)</span>
+        </div>
+        <div class="reloc" id="reloc"></div>
+      </section>
+
+      <!-- SAFETY -->
+      <section>
+        <div class="section-head">
+          <h2>3 · What cannot break</h2>
+          <p>
+            This is a real product for real families. Every guarantee below is
+            enforced by how the change is built and checked.
+          </p>
+        </div>
+        <div class="safe" id="safe"></div>
+      </section>
+
+      <!-- BUILD ORDER -->
+      <section>
+        <div class="section-head">
+          <h2>4 · How it ships — one calm step at a time</h2>
+          <p>
+            Today first, in front of you on your phone, before anything else
+            moves. Each step is tested and reversible.
+          </p>
+        </div>
+        <div class="steps" id="steps"></div>
+      </section>
+
+      <div class="foot-note">
+        <b>One honest cleanup:</b> my live functionality test earlier left a
+        fake "Maple Elementary" school item and 2 draft messages in your real
+        account. Nothing was sent. I'll wipe that clean as part of this work so
+        your real space is empty again.
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      // ---------- screen renderers ----------
+      const afterScreen = `
+        <div class="nb-date">Tuesday, June 16</div>
+        <p class="nb-brief">One thing is time-sensitive today. The rest can wait.</p>
+        <div class="nb-list">
+          <button class="nb-item first" data-task="Field-trip permission slip + $12">
+            <span class="nb-dot"></span>
+            <span>Field-trip slip + $12 to the office</span>
+            <span class="nb-when">Wed</span>
+          </button>
+          <button class="nb-item" data-task="Liam's immunization record">
+            <span class="nb-qn">2</span>
+            <span>Liam's immunization record to the nurse</span>
+            <span class="nb-when">Fri</span>
+          </button>
+          <button class="nb-item" data-task="Picture-day order forms">
+            <span class="nb-qn">3</span>
+            <span>Picture-day order forms</span>
+            <span class="nb-when">Mon</span>
+          </button>
+        </div>
+        <button class="nb-showmore" id="sm">
+          <span id="sm-l">Show 2 more this week</span><span class="nb-chev">⌄</span>
+        </button>
+        <div class="nb-more" id="more" hidden>
+          <div class="nb-list">
+            <button class="nb-item" data-task="Pack a peanut-free lunch">
+              <span class="nb-qn">4</span>
+              <span>Pack a peanut-free lunch (Fri)</span>
+              <span class="nb-when">Fri</span>
+            </button>
+            <button class="nb-item" data-task="Open loop: immunization record">
+              <span class="nb-qn">○</span>
+              <span>Waiting: nurse needs the record on file</span>
+              <span class="nb-when">—</span>
+            </button>
+          </div>
+        </div>
+        <div class="nb-foot">
+          Waiting on <b>Maple Elementary front office</b> — they need the signed slip.<br />
+          Nothing else needs you today.
+        </div>`;
+
+      const beforeScreen = `
+        <div class="dn-card"><div class="k">LifeMap AI</div><h3>Paste anything messy.</h3><p>School forms, doctor notes, passport tasks…</p>
+          <div class="dn-grid" style="margin-top:10px"><div class="dn-btn">School form</div><div class="dn-btn">Doctor appt</div><div class="dn-btn">Passport</div><div class="dn-btn">Pet vaccine</div></div></div>
+        <div class="dn-card"><div class="k">First-run setup</div><h3>Make LifeMap yours</h3><p>Pick family, pets, travel, records, school…</p></div>
+        <div class="dn-card"><div class="k">AI · Daily Brief</div><h3>Daily Brief</h3><p>Turn in the field-trip slip and $12 is the clearest thing to move today.</p><p style="margin-top:6px">1 event coming up.</p><p>Everyone is on track.</p></div>
+        <div class="dn-card"><div class="k">Daily path</div><h3>Next three moves</h3>
+          <div class="dn-grid" style="margin-top:8px"><div class="dn-btn">Capture update</div><div class="dn-btn">Start: slip + $12</div><div class="dn-btn">Review 2 approvals</div></div></div>
+        <div class="dn-card"><h3>Top Priorities</h3>
+          <div class="dn-btn" style="margin-top:6px">School · Field-trip slip + $12 · Due soon</div>
+          <div class="dn-btn" style="margin-top:6px">Immunization record · Due soon</div>
+          <div class="dn-btn" style="margin-top:6px">Picture-day forms · Upcoming</div></div>
+        <div class="dn-card"><h3>Your LifeMap</h3>
+          <div class="dn-grid" style="margin-top:6px"><div class="dn-btn">Records · Set up</div><div class="dn-btn">Travel · Set up</div><div class="dn-btn">Health · Set up</div><div class="dn-btn">Home · Set up</div></div></div>
+        <div class="dn-card"><h3>Open loops</h3><p>Liam's immunization record — nurse needs it before the trip.</p></div>
+        <div class="dn-card"><div class="dn-grid"><div class="dn-btn">LifeMap AI</div><div class="dn-btn">More tools</div></div></div>
+        <div class="dn-card"><h3>Suggested messages</h3><p>Drafts from the family map appear here for approval.</p></div>
+        <div class="dn-card"><div class="dn-metrics"><div><b>3</b><span>due</span></div><div><b>1</b><span>missing</span></div><div><b>0</b><span>waiting</span></div><div><b>3</b><span>actions</span></div></div></div>`;
+
+      const afterNotes = [
+        [
+          "d-keep",
+          "Date + one-line brief",
+          "The single most useful sentence, nothing else competing for attention.",
+        ],
+        [
+          "d-keep",
+          "Three things",
+          "Borderless rows. The time-sensitive one gets the coral dot; the rest are quietly numbered.",
+        ],
+        [
+          "d-move",
+          "Show more",
+          "Everything beyond the three things — extra tasks, open loops — is one calm tap away.",
+        ],
+        [
+          "d-keep",
+          "Quiet footer",
+          "Who you're waiting on, then reassurance: nothing else needs you today.",
+        ],
+      ];
+      const beforeNotes = [
+        [
+          "d-drop",
+          "11 stacked cards",
+          "Every section is a card with borders, shadows and blur, all fighting for attention at once.",
+        ],
+        [
+          "d-move",
+          "No 'show more'",
+          "Nothing is hidden — the whole backlog, stats and tools are dumped on the first screen.",
+        ],
+        [
+          "d-drop",
+          "Calm colors, busy page",
+          "The warm palette shipped, but the layout is still the old dashboard. That's the mismatch.",
+        ],
+      ];
+
+      const screen = document.getElementById("screen");
+      const notes = document.getElementById("notes");
+      function renderNotes(list) {
+        notes.innerHTML = list
+          .map(
+            (n) =>
+              `<div class="note"><div class="t"><span class="dotmark ${n[0]}"></span>${n[1]}</div><p>${n[2]}</p></div>`,
+          )
+          .join("");
+      }
+      function setView(which) {
+        if (which === "after") {
+          screen.innerHTML = afterScreen;
+          renderNotes(afterNotes);
+          wireAfter();
+        } else {
+          screen.innerHTML = beforeScreen;
+          renderNotes(beforeNotes);
+        }
+      }
+      function wireAfter() {
+        const sm = document.getElementById("sm");
+        const more = document.getElementById("more");
+        const lbl = document.getElementById("sm-l");
+        sm.addEventListener("click", () => {
+          const opening = more.hasAttribute("hidden");
+          if (opening) more.removeAttribute("hidden");
+          else more.setAttribute("hidden", "");
+          sm.classList.toggle("open", opening);
+          lbl.textContent = opening ? "Show less" : "Show 2 more this week";
+        });
+        screen.querySelectorAll(".nb-item").forEach((b) => {
+          b.addEventListener("click", () =>
+            toast("Opens “" + b.dataset.task + "” — same as today"),
+          );
+        });
+      }
+
+      document.querySelectorAll("#ba-seg button").forEach((b) => {
+        b.addEventListener("click", () => {
+          document
+            .querySelectorAll("#ba-seg button")
+            .forEach((x) => x.classList.remove("on"));
+          b.classList.add("on");
+          setView(b.dataset.ba);
+        });
+      });
+
+      // ---------- relocation ----------
+      const reloc = [
+        [
+          "keep",
+          "Date + brief",
+          "Stays on Today",
+          "The calm header of the new screen.",
+        ],
+        [
+          "keep",
+          "Top 3 priorities",
+          "Stays on Today",
+          "Becomes the three borderless rows — the heart of the screen.",
+        ],
+        [
+          "move",
+          "Suggested messages",
+          "→ Review tab",
+          "Draft messages belong with approvals, where you send them.",
+        ],
+        [
+          "move",
+          "Your LifeMap areas",
+          "→ More tab",
+          "The setup grid is navigation, not a daily task — it moves to More.",
+        ],
+        [
+          "move",
+          "Capture / setup promos",
+          "→ More + Capture tab",
+          "Capture already has its own tab; the promos move there.",
+        ],
+        [
+          "move",
+          "Open loops",
+          "→ Today 'show more'",
+          "Folded under the expander so the calm default stays clean.",
+        ],
+        [
+          "move",
+          "Full Daily Brief",
+          "→ Brief dialog",
+          "One line on Today; the full brief opens in its existing dialog on tap.",
+        ],
+        [
+          "drop",
+          "Next-three-moves panel",
+          "Removed",
+          "Its actions live in the rows + Capture tab now — no separate panel needed.",
+        ],
+        [
+          "drop",
+          "Loop command buttons",
+          "Removed",
+          "Redundant with the bottom tab bar.",
+        ],
+        [
+          "drop",
+          "Map stats (4 metrics)",
+          "Removed from Today",
+          "Numbers that don't drive a daily decision; optional in More.",
+        ],
+      ];
+      document.getElementById("reloc").innerHTML = reloc
+        .map(
+          (r, i) =>
+            `<div class="rl" data-i="${i}"><div class="top"><span class="dotmark d-${r[0]}"></span>${r[1]}<span class="chip ${r[0]}">${r[2]}</span></div><div class="dest">${r[3]}</div></div>`,
+        )
+        .join("");
+      document.querySelectorAll(".rl").forEach((el) => {
+        el.addEventListener("click", () => el.classList.toggle("open"));
+      });
+
+      // ---------- safety ----------
+      const safe = [
+        [
+          "The AI capture loop",
+          "Paste → analyze → route → save is untouched. Verified working live on the real app today.",
+        ],
+        [
+          "Your login & data",
+          "Auth, your account, and Supabase saving don't change. Reload-and-it's-still-there keeps working.",
+        ],
+        [
+          "Approvals never auto-send",
+          "The approve-before-send pipeline stays exactly as-is. Drafts still wait for you.",
+        ],
+        [
+          "Other screens stay intact",
+          "New styles are scoped to each screen, so the shared card style other pages use isn't disturbed.",
+        ],
+        [
+          "Motion stays calm",
+          "The press/settle motion contract is preserved and re-checked by the automated browser tests.",
+        ],
+        [
+          "Tested before you see it",
+          "151 unit tests + browser tests run on every change; the screen is verified on a phone before shipping.",
+        ],
+      ];
+      document.getElementById("safe").innerHTML = safe
+        .map(
+          (s) =>
+            `<div class="item"><div class="check">✓</div><div><b>${s[0]}</b><span>${s[1]}</span></div></div>`,
+        )
+        .join("");
+
+      // ---------- steps ----------
+      const steps = [
+        [
+          "Today screen → notebook",
+          "Rebuild Today into date + brief + 3 rows + show-more + footer. You review it on your phone before anything else.",
+        ],
+        [
+          "Review tab",
+          "Receives the relocated draft messages, flattened to calm rows.",
+        ],
+        ["More tab", "Receives the setup + AI promos and the life-areas grid."],
+        [
+          "Calendar · Vault · Capture",
+          "Same calm flattening: single column, borderless rows, one accent.",
+        ],
+        [
+          "Verify + clean up",
+          "Run all tests, re-check motion, wipe the test data from your account, then deploy only on your 'ship it'.",
+        ],
+      ];
+      document.getElementById("steps").innerHTML = steps
+        .map(
+          (s) =>
+            `<div class="step"><div><b>${s[0]}</b><span>${s[1]}</span></div></div>`,
+        )
+        .join("");
+
+      // ---------- toast ----------
+      let tt;
+      const toastEl = document.getElementById("toast");
+      function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add("show");
+        clearTimeout(tt);
+        tt = setTimeout(() => toastEl.classList.remove("show"), 1600);
+      }
+
+      // init
+      setView("after");
+    </script>
+  </body>
+</html>

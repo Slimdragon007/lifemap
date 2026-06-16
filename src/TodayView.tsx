@@ -1,19 +1,6 @@
-import {
-  Archive,
-  Bell,
-  CheckCircle2,
-  ChevronRight,
-  FileText,
-  HeartPulse,
-  Home,
-  Inbox,
-  MessageSquare,
-  Plane,
-  RefreshCw,
-  ShieldCheck,
-  Sparkles,
-  UsersRound,
-} from "lucide-react";
+import { Bell, ChevronDown, ChevronRight, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { STARTER_LIFE_AREAS, getSetupLifeArea } from "./lifeAreas";
 import type { BriefPriority, DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
 import type { RecommendedBucket, SetupProfile } from "./setupBuckets";
@@ -50,24 +37,25 @@ function TodayView({
   approvalCount,
   status,
   error,
-  captureExamples,
   priorityActionStates,
   setupBuckets,
   setupProfile,
   onGenerateBrief,
   onOpenBrief,
   onOpenBrainDump,
-  onOpenFamilyMap,
   onOpenSetup,
   onOpenSetupBucket,
   onOpenApprovals,
   onOpenPriority,
 }: TodayViewProps) {
+  const [showMore, setShowMore] = useState(false);
+
   const todayDate = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
   }).format(new Date());
+
   const topPriorities =
     brief.topPriorities.length > 0
       ? brief.topPriorities.slice(0, 3)
@@ -78,42 +66,35 @@ function TodayView({
             reason: "LifeMap will turn it into your next calm move.",
           },
         ];
+
+  // Everything beyond the three things lives behind "show more": open loops
+  // first (what is waiting on clarity), then the items that can wait.
+  const extras = [
+    ...brief.openLoops.map((loop) => ({
+      id: loop.id,
+      label: loop.label,
+      detail: loop.blockedBy,
+      when: "waiting",
+    })),
+    ...brief.canWait.map((item) => ({
+      id: item.id,
+      label: item.label,
+      detail: item.reason,
+      when: "later",
+    })),
+  ];
+
+  const waiting = brief.openLoops[0] ?? null;
+
+  // "Your LifeMap" area tiles — kept on Today (Slim likes the icon tiles for
+  // picking a capture area). Icons come from the shared mapping in lifeAreas.ts.
   const lifeAreas =
     setupBuckets.length > 0
       ? setupBuckets.map((bucket) => ({
           ...getSetupLifeArea(bucket, setupProfile),
           onClick: () => onOpenSetupBucket(bucket),
         }))
-      : [
-          {
-            id: "records-starter",
-            label: "Records",
-            meta: "Set up",
-            icon: ShieldCheck,
-            onClick: onOpenSetup,
-          },
-          {
-            id: "travel-starter",
-            label: "Travel",
-            meta: "Set up",
-            icon: Plane,
-            onClick: onOpenSetup,
-          },
-          {
-            id: "health-starter",
-            label: "Health",
-            meta: "Set up",
-            icon: HeartPulse,
-            onClick: onOpenSetup,
-          },
-          {
-            id: "home-starter",
-            label: "Home",
-            meta: "Set up",
-            icon: Home,
-            onClick: onOpenSetup,
-          },
-        ];
+      : STARTER_LIFE_AREAS.map((area) => ({ ...area, onClick: onOpenSetup }));
 
   return (
     <section
@@ -156,217 +137,100 @@ function TodayView({
             <h1 id="today-title">Today</h1>
             <p>{todayDate}</p>
           </div>
-          <button
-            aria-label="Open LifeMap tools"
-            className="atlas-icon-button"
-            type="button"
-            onClick={onOpenFamilyMap}
-          >
-            <Archive size={15} />
-          </button>
         </div>
       </header>
 
-      <div className="atlas-stack">
-        <section
-          className="atlas-ai-card panel"
-          aria-labelledby="lifemap-ai-title"
-        >
-          <div className="atlas-ai-card-copy">
-            <span className="atlas-capture-label">LifeMap AI</span>
-            <h2 id="lifemap-ai-title">Paste anything messy.</h2>
-            <p>
-              School forms, doctor notes, passport tasks, pet vaccines, travel
-              plans. I will turn it into the next three moves.
-            </p>
-          </div>
-          <button
-            className="atlas-ai-primary"
-            type="button"
-            onClick={() => onOpenBrainDump()}
-          >
-            Capture anything
-            <ChevronRight size={15} />
-          </button>
-          <div className="atlas-ai-examples" aria-label="LifeMap AI examples">
-            {captureExamples.map((example) => (
-              <button
-                key={example.label}
-                type="button"
-                onClick={() => onOpenBrainDump(example.rawIntake)}
-              >
-                {example.label}
-              </button>
-            ))}
-          </div>
-        </section>
+      <div className="lowstim-today">
+        <p className="lowstim-brief">{brief.todaySummary}</p>
 
-        {setupBuckets.length === 0 ? (
-          <section
-            className="atlas-setup-prompt panel"
-            aria-labelledby="today-setup-title"
-          >
-            <span className="atlas-setup-prompt-icon">
-              <UsersRound size={18} />
-            </span>
-            <div>
-              <span className="atlas-capture-label">First-run setup</span>
-              <h2 id="today-setup-title">Make LifeMap yours</h2>
-              <p>
-                Pick family, pets, travel, records, school, health, meals, and
-                home loops once. LifeMap will shape Today around those buckets.
-              </p>
-            </div>
+        <h2 className="sr-only">Top Priorities</h2>
+        <div className="lowstim-list">
+          {topPriorities.map((priority, index) => {
+            const actionState = priorityActionStates[priority.id];
+            const isFirst = index === 0;
+            const whenLabel =
+              actionState === "completed"
+                ? "Done"
+                : actionState === "snoozed"
+                  ? "Tomorrow"
+                  : getPriorityWhen(priority.label, priority.reason, index);
+            const className = [
+              "lowstim-item",
+              "atlas-priority-card",
+              isFirst ? "first" : "",
+              actionState ? `priority-${actionState}` : "",
+            ]
+              .filter(Boolean)
+              .join(" ");
+            return (
+              <button
+                aria-label={`Open priority ${priority.label}`}
+                className={className}
+                key={priority.id}
+                type="button"
+                onClick={() => onOpenPriority(priority)}
+              >
+                {isFirst ? (
+                  <span className="lowstim-dot" aria-hidden="true" />
+                ) : (
+                  <span className="lowstim-qn" aria-hidden="true">
+                    {index + 1}
+                  </span>
+                )}
+                <span className="lowstim-text">{priority.label}</span>
+                <span className="lowstim-when">{whenLabel}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {extras.length > 0 ? (
+          <>
             <button
-              className="atlas-link-button"
+              aria-expanded={showMore}
+              className={`lowstim-showmore${showMore ? " open" : ""}`}
               type="button"
-              onClick={onOpenSetup}
+              onClick={() => setShowMore((value) => !value)}
             >
-              Start guided setup
-              <ChevronRight size={14} />
+              <span>
+                {showMore
+                  ? "Show less"
+                  : `Show ${extras.length} more this week`}
+              </span>
+              <ChevronDown className="lowstim-chev" size={14} />
             </button>
-          </section>
+            <div className="lowstim-more" hidden={!showMore}>
+              <div className="lowstim-list">
+                {extras.map((item) => (
+                  <button
+                    className="lowstim-item lowstim-item-quiet"
+                    key={item.id}
+                    type="button"
+                    onClick={onOpenBrief}
+                  >
+                    <span className="lowstim-qn" aria-hidden="true">
+                      ○
+                    </span>
+                    <span className="lowstim-text">{item.label}</span>
+                    <span className="lowstim-when">{item.when}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
         ) : null}
 
-        <section className="atlas-brief-card panel" aria-label="Daily Brief">
-          <div className="atlas-card-topline">
-            <div className="atlas-card-title">
-              <Sparkles size={16} />
-              <h2>Daily Brief</h2>
-            </div>
-            <span>
-              <Sparkles size={13} />
-              AI
-            </span>
-          </div>
-          <div className="atlas-brief-copy">
-            <p>{brief.todaySummary}</p>
-            <p>{formatEventLine(brief.openLoops.length || 1)}</p>
-            <p>
-              {brief.conflicts.length > 0
-                ? `${brief.conflicts.length} conflict needs a decision.`
-                : "Everyone is on track."}
-            </p>
-          </div>
-          <button
-            className="atlas-link-button"
-            type="button"
-            onClick={onOpenBrief}
-          >
-            View full brief
-            <ChevronRight size={14} />
-          </button>
-          <p className="grounding-note">{brief.groundingNote}</p>
-          <BriefNotice
-            status={status}
-            error={error}
-            onOpenBrainDump={onOpenBrainDump}
-          />
-        </section>
-
-        <section
-          className="atlas-daily-plan panel"
-          aria-labelledby="daily-plan-title"
+        <button
+          className="lowstim-capture"
+          type="button"
+          onClick={() => onOpenBrainDump()}
         >
-          <div className="atlas-daily-plan-copy">
-            <span>Daily path</span>
-            <h2 id="daily-plan-title">Next three moves</h2>
-            <p>
-              Add any fresh context, clear the first priority, then review what
-              LifeMap staged for approval.
-            </p>
-          </div>
-          <div className="atlas-daily-plan-actions">
-            <button
-              aria-label="Start capture update"
-              type="button"
-              onClick={() => onOpenBrainDump()}
-            >
-              <Inbox size={17} />
-              <span>
-                <strong>Capture update</strong>
-                <small>Paste anything new.</small>
-              </span>
-            </button>
-            <button
-              aria-label={`Start ${topPriorities[0].label}`}
-              type="button"
-              onClick={() => onOpenPriority(topPriorities[0])}
-            >
-              <CheckCircle2 size={17} />
-              <span>
-                <strong>Start: {topPriorities[0].label}</strong>
-                <small>Start the first real action.</small>
-              </span>
-            </button>
-            <button
-              aria-label={`Review ${approvalCount} approvals`}
-              type="button"
-              onClick={onOpenApprovals}
-            >
-              <Bell size={17} />
-              <span>
-                <strong>Review approvals</strong>
-                <small>{formatApprovalCount(approvalCount)} waiting.</small>
-              </span>
-            </button>
-          </div>
-        </section>
-
-        <section className="atlas-section" aria-labelledby="priorities-title">
-          <h2 id="priorities-title">Top Priorities</h2>
-          <div className="atlas-priority-list">
-            {topPriorities.map((priority, index) => {
-              const visual = getPriorityVisual(
-                priority.label,
-                priority.reason,
-                index,
-              );
-              const Icon = visual.icon;
-              const actionState = priorityActionStates[priority.id];
-              const statusLabel =
-                actionState === "completed"
-                  ? "Done"
-                  : actionState === "snoozed"
-                    ? "Tomorrow"
-                    : visual.status;
-              const statusTone =
-                actionState === "completed"
-                  ? "done"
-                  : actionState === "snoozed"
-                    ? "snoozed"
-                    : visual.tone;
-              return (
-                <button
-                  aria-label={`Open priority ${priority.label}`}
-                  className={
-                    actionState
-                      ? `atlas-priority-card priority-${actionState}`
-                      : "atlas-priority-card"
-                  }
-                  key={priority.id}
-                  type="button"
-                  onClick={() => onOpenPriority(priority)}
-                >
-                  <span className="atlas-priority-icon">
-                    <Icon size={18} />
-                  </span>
-                  <div>
-                    <span>{visual.category}</span>
-                    <strong>{priority.label}</strong>
-                    <small>{priority.reason}</small>
-                  </div>
-                  <span className={`atlas-status-badge ${statusTone}`}>
-                    {statusLabel}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+          Capture anything
+          <ChevronRight size={15} />
+        </button>
 
         <section
-          className="atlas-section atlas-lifemap-section"
+          className="atlas-section atlas-lifemap-section lowstim-areas"
           aria-labelledby="lifemap-title"
         >
           <h2 id="lifemap-title">Your LifeMap</h2>
@@ -386,206 +250,49 @@ function TodayView({
           </div>
         </section>
 
-        <section
-          className="atlas-quiet-panel panel"
-          aria-labelledby="loops-title"
-        >
-          <div className="panel-heading">
-            <div>
-              <h2 id="loops-title">Open loops</h2>
-              <span>{brief.openLoops.length} waiting for clarity</span>
-            </div>
-            <Sparkles size={18} />
-          </div>
-          {brief.openLoops.length > 0 ? (
-            <ul className="plain-list">
-              {brief.openLoops.map((loop) => (
-                <li key={loop.id}>
-                  <strong>{loop.label}</strong>
-                  <span>{loop.blockedBy}</span>
-                </li>
-              ))}
-            </ul>
+        <div className="lowstim-briefmeta">
+          <button
+            className="atlas-link-button"
+            type="button"
+            onClick={onOpenBrief}
+          >
+            View full brief
+            <ChevronRight size={14} />
+          </button>
+          <p className="grounding-note">{brief.groundingNote}</p>
+        </div>
+
+        <p className="lowstim-foot">
+          {waiting ? (
+            <>
+              Waiting on <b>{waiting.label}</b> — {waiting.blockedBy}
+              <br />
+              Nothing else needs you today.
+            </>
           ) : (
-            <p className="empty-note">No major blockers in the current map.</p>
+            "Nothing else needs you today."
           )}
-        </section>
+        </p>
 
-        <section
-          className="atlas-quiet-panel panel command-panel"
-          aria-label="LifeMap loop"
-        >
-          <div className="loop-steps">
-            <button type="button" onClick={() => onOpenBrainDump()}>
-              <Inbox size={18} />
-              <span>LifeMap AI</span>
-              <ChevronRight size={15} />
-            </button>
-            <button type="button" onClick={onOpenFamilyMap}>
-              <Sparkles size={18} />
-              <span>More tools</span>
-              <ChevronRight size={15} />
-            </button>
-            <button type="button" onClick={onOpenApprovals}>
-              <CheckCircle2 size={18} />
-              <span>{approvalCount} to review</span>
-              <ChevronRight size={15} />
-            </button>
-          </div>
-        </section>
-
-        <section
-          className="atlas-quiet-panel panel message-panel"
-          aria-labelledby="messages-title"
-        >
-          <div className="panel-heading">
-            <div>
-              <h2 id="messages-title">Suggested messages</h2>
-              <span>Nothing sends without approval</span>
-            </div>
-            <MessageSquare size={18} />
-          </div>
-          {brief.suggestedMessages.length > 0 ? (
-            <div className="message-stack">
-              {brief.suggestedMessages.map((message) => (
-                <article className="message-preview" key={message.id}>
-                  <span>To {message.recipient}</span>
-                  <strong>{message.subject}</strong>
-                  <p>{message.body}</p>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="empty-note">
-              Drafts from the family map will appear here for approval.
-            </p>
-          )}
-        </section>
-
-        <section
-          className="atlas-quiet-panel panel metrics-panel"
-          aria-label="Current map stats"
-        >
-          <div>
-            <strong>{map.dueItems.length}</strong>
-            <span>due</span>
-          </div>
-          <div>
-            <strong>{map.missingInfo.length}</strong>
-            <span>missing</span>
-          </div>
-          <div>
-            <strong>{map.waitingOn.length}</strong>
-            <span>waiting</span>
-          </div>
-          <div>
-            <strong>{map.nextActions.length}</strong>
-            <span>actions</span>
-          </div>
-        </section>
+        <BriefNotice
+          status={status}
+          error={error}
+          onOpenBrainDump={onOpenBrainDump}
+        />
       </div>
     </section>
   );
 }
 
-function formatEventLine(count: number) {
-  return `${count} ${count === 1 ? "event" : "events"} coming up.`;
-}
-
-function formatApprovalCount(count: number) {
-  return `${count} ${count === 1 ? "approval" : "approvals"}`;
-}
-
-function getSetupLifeArea(bucket: RecommendedBucket, profile: SetupProfile) {
-  switch (bucket.id) {
-    case "family-profiles": {
-      const profileCount = profile.adults + profile.children + profile.pets;
-      return {
-        id: bucket.id,
-        label: "Profiles",
-        meta: formatTileCount(profileCount, "profile"),
-        icon: UsersRound,
-      };
-    }
-    case "school-command":
-      return {
-        id: bucket.id,
-        label: "School",
-        meta: formatTileCount(Math.max(1, profile.children), "kid"),
-        icon: FileText,
-      };
-    case "vault-records":
-      return {
-        id: bucket.id,
-        label: "Records",
-        meta: "IDs + cards",
-        icon: ShieldCheck,
-      };
-    case "pet-care":
-      return {
-        id: bucket.id,
-        label: "Pets",
-        meta: formatTileCount(Math.max(1, profile.pets), "pet"),
-        icon: HeartPulse,
-      };
-    case "travel-command":
-      return {
-        id: bucket.id,
-        label: "Travel",
-        meta: "Trips + TSA",
-        icon: Plane,
-      };
-    case "health-loop":
-      return {
-        id: bucket.id,
-        label: "Health",
-        meta: "Meds + visits",
-        icon: HeartPulse,
-      };
-    case "meal-loop":
-      return {
-        id: bucket.id,
-        label: "Meals",
-        meta: "Lunches",
-        icon: FileText,
-      };
-    case "home-admin":
-      return {
-        id: bucket.id,
-        label: "Home",
-        meta: "Admin loops",
-        icon: Home,
-      };
-    case "money-admin":
-      return {
-        id: bucket.id,
-        label: "Money",
-        meta: "Renewals",
-        icon: Archive,
-      };
-  }
-}
-
-function formatTileCount(count: number, label: string) {
-  return `${count} ${count === 1 ? label : `${label}s`}`;
-}
-
-function getPriorityVisual(label: string, reason: string, index: number) {
+function getPriorityWhen(label: string, reason: string, index: number) {
   const text = `${label} ${reason}`.toLowerCase();
-
   if (
     text.includes("passport") ||
     text.includes("travel") ||
     text.includes("flight")
   ) {
-    return {
-      category: "Travel",
-      icon: Plane,
-      status: "Due soon",
-      tone: "due",
-    };
+    return "soon";
   }
-
   if (
     text.includes("doctor") ||
     text.includes("dental") ||
@@ -595,33 +302,16 @@ function getPriorityVisual(label: string, reason: string, index: number) {
     text.includes("vaccine") ||
     text.includes("vet")
   ) {
-    return {
-      category: "Health",
-      icon: HeartPulse,
-      status: "Upcoming",
-      tone: "upcoming",
-    };
+    return "upcoming";
   }
-
   if (
     text.includes("home") ||
     text.includes("bill") ||
     text.includes("insurance")
   ) {
-    return {
-      category: "Home",
-      icon: Home,
-      status: "Due soon",
-      tone: "due",
-    };
+    return "soon";
   }
-
-  return {
-    category: index === 1 ? "Travel" : "School",
-    icon: index === 1 ? Plane : FileText,
-    status: index === 2 ? "Upcoming" : "Due soon",
-    tone: index === 2 ? "upcoming" : "due",
-  };
+  return index === 2 ? "upcoming" : "soon";
 }
 
 function BriefNotice({
