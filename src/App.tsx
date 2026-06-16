@@ -866,6 +866,8 @@ function App() {
           <CalendarView
             analysis={map}
             dismissedSuggestionIds={dismissedSuggestionIds}
+            familyEvents={samples.familyEvents}
+            recurringCareItems={samples.recurringCareItems}
             savedSuggestionIds={savedSuggestionIds}
             onDismissSuggestion={dismissSuggestion}
             onSaveSuggestion={saveSuggestion}

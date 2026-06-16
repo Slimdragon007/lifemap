@@ -9,15 +9,17 @@ import { useMemo, useState } from "react";
 import {
   buildCalendarEventsFromAnalysis,
   calendarLayers,
-  familyEvents,
-  recurringCareItems,
   type CalendarLayer,
+  type FamilyEvent,
+  type RecurringCareItem,
 } from "./familyOS";
 import type { LifeMapAnalysis } from "./lifemap";
 import GoogleConnection from "./GoogleConnection";
 
 type CalendarViewProps = {
   analysis: LifeMapAnalysis;
+  familyEvents: FamilyEvent[];
+  recurringCareItems: RecurringCareItem[];
   savedSuggestionIds: Set<string>;
   dismissedSuggestionIds: Set<string>;
   onSaveSuggestion: (id: string) => void;
@@ -27,6 +29,8 @@ type CalendarViewProps = {
 
 function CalendarView({
   analysis,
+  familyEvents,
+  recurringCareItems,
   savedSuggestionIds,
   dismissedSuggestionIds,
   onSaveSuggestion,
@@ -54,7 +58,7 @@ function CalendarView({
   );
   const allEvents = useMemo(
     () => [...visibleAnalysisEvents, ...familyEvents],
-    [visibleAnalysisEvents],
+    [visibleAnalysisEvents, familyEvents],
   );
 
   const visibleEvents = useMemo(
@@ -103,6 +107,7 @@ function CalendarView({
           <span className="status-pill calm">
             {recurringCareItems.length} recurring
           </span>
+
           <span className="status-pill warning">
             {visibleAnalysisEvents.length} from AI
           </span>
@@ -168,15 +173,21 @@ function CalendarView({
           </div>
 
           <div className="event-timeline">
-            {visibleEvents.map((event) => (
-              <EventCard
-                event={event}
-                isSaved={savedSuggestionIds.has(event.id)}
-                onDismissSuggestion={onDismissSuggestion}
-                onSaveSuggestion={onSaveSuggestion}
-                key={event.id}
-              />
-            ))}
+            {visibleEvents.length > 0 ? (
+              visibleEvents.map((event) => (
+                <EventCard
+                  event={event}
+                  isSaved={savedSuggestionIds.has(event.id)}
+                  onDismissSuggestion={onDismissSuggestion}
+                  onSaveSuggestion={onSaveSuggestion}
+                  key={event.id}
+                />
+              ))
+            ) : (
+              <p className="empty-note">
+                No events yet. Captured dates will appear here.
+              </p>
+            )}
           </div>
         </section>
 
@@ -192,18 +203,22 @@ function CalendarView({
             <CalendarDays size={18} />
           </div>
           <div className="recurring-list">
-            {recurringCareItems.map((item) => (
-              <article className="recurring-card" key={item.id}>
-                <span className={`care-dot care-${item.category}`} />
-                <div>
-                  <h3>{item.title}</h3>
-                  <p>
-                    {item.cadence} · {item.owner}
-                  </p>
-                  <small>Next due {formatShortDate(item.nextDue)}</small>
-                </div>
-              </article>
-            ))}
+            {recurringCareItems.length > 0 ? (
+              recurringCareItems.map((item) => (
+                <article className="recurring-card" key={item.id}>
+                  <span className={`care-dot care-${item.category}`} />
+                  <div>
+                    <h3>{item.title}</h3>
+                    <p>
+                      {item.cadence} · {item.owner}
+                    </p>
+                    <small>Next due {formatShortDate(item.nextDue)}</small>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="empty-note">No recurring loops yet.</p>
+            )}
           </div>
         </aside>
       </div>
