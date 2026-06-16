@@ -1154,6 +1154,33 @@ function App() {
               onToggle={toggleApproval}
               onSendDraft={handleSendDraft}
             />
+            <section
+              className="panel message-panel"
+              aria-labelledby="messages-title"
+            >
+              <div className="panel-heading">
+                <div>
+                  <h2 id="messages-title">Suggested messages</h2>
+                  <span>Nothing sends without approval</span>
+                </div>
+                <MessageSquare size={18} />
+              </div>
+              {dailyBrief.suggestedMessages.length > 0 ? (
+                <div className="message-stack">
+                  {dailyBrief.suggestedMessages.map((message) => (
+                    <article className="message-preview" key={message.id}>
+                      <span>To {message.recipient}</span>
+                      <strong>{message.subject}</strong>
+                      <p>{message.body}</p>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-note">
+                  Drafts from the family map will appear here for approval.
+                </p>
+              )}
+            </section>
           </section>
         ) : view === "launchPlan" ? (
           <LaunchPlanView onBack={() => setView("more")} />

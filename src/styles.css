@@ -7553,3 +7553,76 @@ body {
     transform: none !important;
   }
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Low-stim flattening for the remaining primary screens (Review, Calendar,
+   Vault, Capture). Mirrors the Today notebook: single calm column, one accent,
+   card chrome removed (no shadow/blur/hover-lift). Scoped under each
+   .app-shell.view-* so the shared .panel base style, dialogs, and every other
+   surface stay untouched. Specificity (0,2,0 from .app-shell.view-x + the
+   element class) beats the layered base rules without !important.
+   ────────────────────────────────────────────────────────────────────────── */
+.app-shell.view-review .workspace,
+.app-shell.view-calendar .workspace,
+.app-shell.view-vault .workspace,
+.app-shell.view-capture .workspace {
+  width: min(100%, 720px);
+  margin-inline: auto;
+}
+
+/* Collapse the multi-column dashboards into one quiet column. */
+.app-shell.view-calendar .calendar-grid,
+.app-shell.view-vault .vault-grid,
+.app-shell.view-capture .composer-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Strip panel chrome: a single hairline border, no shadow / blur / lift. */
+.app-shell.view-review .panel,
+.app-shell.view-calendar .panel,
+.app-shell.view-vault .panel,
+.app-shell.view-capture .panel {
+  border: 1px solid var(--line, #ecdfcd);
+  border-radius: var(--radius-panel, 18px);
+  background: var(--paper, #fcf7ee);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell.view-review .panel:hover,
+.app-shell.view-calendar .panel:hover,
+.app-shell.view-vault .panel:hover,
+.app-shell.view-capture .panel:hover {
+  transform: none;
+}
+
+/* Inner cards → borderless rows: drop the shadow/blur/lift; keep their one
+   accent edge (the ::before bar) as the single point of color. */
+.app-shell.view-calendar .event-card,
+.app-shell.view-calendar .recurring-card,
+.app-shell.view-review .approval-card,
+.app-shell.view-vault .vault-card,
+.app-shell.view-capture .capture-type-card {
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell.view-calendar .event-card:hover,
+.app-shell.view-calendar .recurring-card:hover,
+.app-shell.view-review .approval-card:hover,
+.app-shell.view-vault .vault-card:hover,
+.app-shell.view-capture .capture-type-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Capture's "choose what this is" tiles: tighten into a quiet single column. */
+.app-shell.view-capture .capture-type-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
