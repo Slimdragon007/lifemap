@@ -7574,9 +7574,17 @@ body {
 .app-shell.view-calendar .calendar-grid,
 .app-shell.view-vault .vault-grid,
 .app-shell.view-capture .composer-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 18px;
+  align-items: start;
+}
+
+/* Stack the paste box above the results on narrow screens. */
+@media (max-width: 600px) {
+  .app-shell.view-capture .composer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* Strip panel chrome: a single hairline border, no shadow / blur / lift. */
@@ -8134,24 +8142,10 @@ button.notebook-row:active {
 }
 
 /* Step rail → quiet inline text, no box. */
+/* Hide the redundant 1-2-3 step rail — the paste→results layout already
+   tells the story, and the rail just added floating clutter. */
 .app-shell.view-capture .capture-path {
-  margin: 14px 0 8px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-}
-
-.app-shell.view-capture .capture-path li {
-  background: none;
-  border: 0;
-  color: var(--ink-quiet, #b39a82);
-}
-
-.app-shell.view-capture .capture-path li.active {
-  background: none;
-  color: var(--accent, #cf7a52);
+  display: none;
 }
 
 /* Type picker → quiet hairline tiles with a monochrome icon. */
