@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LifeMap — Haven Design Tokens</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Hanken+Grotesque:wght@400..800&family=Fragment+Mono:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --display: "Fraunces", serif;
+        --ui: "Hanken Grotesque", sans-serif;
+        --mono: "Fragment Mono", monospace;
+        --cream: #fcf7ee;
+        --cream-deep: #faf2e8;
+        --paper: #fffefa;
+        --line: #ecdfcd;
+        --ink: #2c2018;
+        --ink-body: #6f6356;
+        --ink-quiet: #b39a82;
+        --coral: #ef8d63;
+        --coral-deep: #cf7a52;
+        --blush: #ef7d92;
+        --peach: #f0b46a;
+        --sky: #86c3dc;
+        --sage: #7fa284;
+        --atmosphere:
+          radial-gradient(
+            46% 30% at 12% 6%,
+            rgba(255, 198, 150, 0.55) 0%,
+            transparent 62%
+          ),
+          radial-gradient(
+            42% 28% at 92% 12%,
+            rgba(255, 173, 184, 0.5) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            60% 44% at 84% 98%,
+            rgba(168, 210, 224, 0.45) 0%,
+            transparent 62%
+          ),
+          linear-gradient(180deg, #fcf7ee, #faf2e8 60%, #f4f1ec);
+        --cta: linear-gradient(120deg, #ef8d63, #ef7d92);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: var(--ui);
+        color: var(--ink);
+        background: var(--atmosphere) fixed;
+        min-height: 100vh;
+        padding: 48px 22px 80px;
+        line-height: 1.5;
+      }
+      .grain {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.4;
+        mix-blend-mode: multiply;
+        z-index: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+      }
+      .wrap {
+        max-width: 860px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--coral-deep);
+      }
+      h1 {
+        font-family: var(--display);
+        font-weight: 340;
+        font-size: clamp(40px, 9vw, 72px);
+        line-height: 0.98;
+        letter-spacing: -0.02em;
+        margin: 14px 0 6px;
+      }
+      h1 em {
+        font-style: italic;
+        color: var(--coral-deep);
+      }
+      .lede {
+        font-size: 17px;
+        color: var(--ink-body);
+        max-width: 54ch;
+      }
+      .sec {
+        margin-top: 54px;
+      }
+      .sec > h2 {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ink-quiet);
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 26px;
+      }
+      .card {
+        background: rgba(255, 254, 250, 0.7);
+        backdrop-filter: blur(6px);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        padding: 26px 28px;
+        margin-bottom: 14px;
+      }
+
+      /* type ramp */
+      .type-row {
+        display: flex;
+        align-items: baseline;
+        gap: 18px;
+        flex-wrap: wrap;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .type-row:last-child {
+        border-bottom: 0;
+      }
+      .type-row .tk {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink-quiet);
+        width: 188px;
+        flex: 0 0 auto;
+      }
+      .d1 {
+        font-family: var(--display);
+        font-weight: 300;
+        font-size: 46px;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .d1 em {
+        font-style: italic;
+        color: var(--coral-deep);
+      }
+      .d2 {
+        font-family: var(--display);
+        font-weight: 410;
+        font-size: 26px;
+        letter-spacing: -0.01em;
+      }
+      .u1 {
+        font-family: var(--ui);
+        font-weight: 700;
+        font-size: 18px;
+      }
+      .u2 {
+        font-family: var(--ui);
+        font-weight: 500;
+        font-size: 15px;
+        color: var(--ink-body);
+      }
+      .m1 {
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--coral-deep);
+      }
+
+      /* swatches */
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+      }
+      .sw {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: var(--paper);
+      }
+      .sw .chip {
+        height: 78px;
+      }
+      .sw .meta {
+        padding: 11px 13px;
+      }
+      .sw .nm {
+        font-family: var(--ui);
+        font-weight: 700;
+        font-size: 13px;
+      }
+      .sw .hex {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--ink-quiet);
+        margin-top: 2px;
+      }
+      .sw .tok {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--coral-deep);
+        margin-top: 5px;
+      }
+
+      /* form row */
+      .forms {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+      }
+      .radii {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .rad {
+        width: 84px;
+        height: 84px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        display: grid;
+        place-items: end center;
+        padding-bottom: 8px;
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--ink-quiet);
+      }
+      .cta-demo {
+        background: var(--cta);
+        color: #fff;
+        border-radius: 22px;
+        padding: 16px 22px;
+        box-shadow: 0 18px 36px -18px rgba(239, 125, 120, 0.7);
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .cta-demo b {
+        font-family: var(--display);
+        font-weight: 420;
+        font-size: 17px;
+      }
+      .cta-demo .arw {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.22);
+        display: grid;
+        place-items: center;
+      }
+      .pip-demo {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .pip {
+        width: 18px;
+        height: 18px;
+        border-radius: 44% 56% 60% 40%/50% 45% 55% 50%;
+      }
+      .foot {
+        margin-top: 56px;
+        font-size: 13px;
+        color: var(--ink-quiet);
+        font-style: italic;
+        font-family: var(--display);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grain"></div>
+    <div class="wrap">
+      <div class="eyebrow">LifeMap · Design System</div>
+      <h1>Haven <em>tokens.</em></h1>
+      <p class="lede">
+        The locked foundation for LifeMap's calm-editorial direction. Fonts
+        loaded, palette and form defined — ready to apply to screens
+        deliberately. Nothing in the app has changed yet.
+      </p>
+
+      <div class="sec">
+        <h2>Type · display / ui / mono</h2>
+        <div class="card">
+          <div class="type-row">
+            <div class="tk">--haven-font-display<br />Fraunces · 300</div>
+            <div class="d1">Good morning, <em>Alex.</em></div>
+          </div>
+          <div class="type-row">
+            <div class="tk">--haven-font-display<br />Fraunces · 410</div>
+            <div class="d2">Field trip permission slip</div>
+          </div>
+          <div class="type-row">
+            <div class="tk">--haven-font-ui<br />Hanken Grotesque · 700</div>
+            <div class="u1">Three things need you today</div>
+          </div>
+          <div class="type-row">
+            <div class="tk">--haven-font-ui<br />Hanken Grotesque · 500</div>
+            <div class="u2">Emma · still needs a signature</div>
+          </div>
+          <div class="type-row">
+            <div class="tk">--haven-font-mono<br />Fragment Mono</div>
+            <div class="m1">DUE TOMORROW · 12 DAYS</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2>Palette</h2>
+        <div class="card">
+          <div class="swatches">
+            <div class="sw">
+              <div class="chip" style="background: #fcf7ee"></div>
+              <div class="meta">
+                <div class="nm">Cream</div>
+                <div class="hex">#FCF7EE</div>
+                <div class="tok">--haven-cream</div>
+              </div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #fffefa"></div>
+              <div class="meta">
+                <div class="nm">Paper</div>
+                <div class="hex">#FFFEFA</div>
+                <div class="tok">--haven-paper</div>
+              </div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #2c2018"></div>
+              <div class="meta">
+                <div class="nm">Ink</div>
+                <div class="hex">#2C2018</div>
+                <div class="tok">--haven-ink</div>
+              </div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #6f6356"></div>
+              <div class="meta">
+                <div class="nm">Ink · body</div>
+                <div class="hex">#6F6356</div>
+                <div class="tok">--haven-ink-body</div>
+              </div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #ef8d63"></div>
+              <div class="meta">
+                <div class="nm">Coral</div>
+                <div class="hex">#EF8D63</div>
+                <div class="tok">--haven-coral</div>
+              </div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #cf7a52"></div>
+              <div class="meta">
+                <div class="nm">Coral · deep</div>
+                <div class="hex">#CF7A52</div>
+                <div class="tok">--haven-coral-deep</div>
+              </div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #ef7d92"></div>
+              <div class="meta">
+                <div class="nm">Blush</div>
+                <div class="hex">#EF7D92</div>
+                <div class="tok">--haven-blush</div>
+              </div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #f0b46a"></div>
+              <div class="meta">
+                <div class="nm">Peach</div>
+                <div class="hex">#F0B46A</div>
+                <div class="tok">--haven-peach</div>
+              </div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #86c3dc"></div>
+              <div class="meta">
+                <div class="nm">Sky</div>
+                <div class="hex">#86C3DC</div>
+                <div class="tok">--haven-sky</div>
+              </div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #7fa284"></div>
+              <div class="meta">
+                <div class="nm">Sage</div>
+                <div class="hex">#7FA284</div>
+                <div class="tok">--haven-sage</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2>Form · radius / shadow / accents</h2>
+        <div class="card">
+          <div class="forms">
+            <div class="radii">
+              <div class="rad" style="border-radius: 12px">12 · control</div>
+              <div class="rad" style="border-radius: 16px">16 · panel</div>
+              <div class="rad" style="border-radius: 22px">22 · card</div>
+            </div>
+            <div class="cta-demo">
+              <b>Capture something new</b>
+              <div class="arw">→</div>
+            </div>
+            <div class="pip-demo">
+              <span class="pip" style="background: #ef8d63"></span>
+              <span class="pip" style="background: #f0b46a"></span>
+              <span class="pip" style="background: #86c3dc"></span>
+              <span
+                style="
+                  font-family: var(--mono);
+                  font-size: 11px;
+                  color: var(--ink-quiet);
+                "
+                >organic accent pips</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="foot">
+        Compare with the four directions in lifemap-ui-directions.html · Haven
+        is the default tab.
+      </p>
+    </div>
+  </body>
+</html>

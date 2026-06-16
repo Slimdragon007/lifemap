@@ -1,8 +1,10 @@
 :root {
-  --font-ui: "Aptos", Inter, ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-display: "Iowan Old Style", "New York", "Source Serif 4", Georgia,
-    "Times New Roman", serif;
+  --font-ui:
+    "Aptos", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-display:
+    "Iowan Old Style", "New York", "Source Serif 4", Georgia, "Times New Roman",
+    serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
   --color-canvas-warm: #fbf8f1;
@@ -71,4 +73,64 @@
   --shadow-row-hover: 0 14px 30px rgba(36, 61, 92, 0.09);
 
   --motion-standard: cubic-bezier(0.2, 0.72, 0.2, 1);
+
+  /* ----------------------------------------------------------------- */
+  /* HAVEN direction — calm editorial + organic warmth.                */
+  /* Additive: defined and ready, but NOT yet wired to the active      */
+  /* --font-* / --color-* tokens. Screens adopt it deliberately later  */
+  /* by repointing consumers to these values.                          */
+  /* ----------------------------------------------------------------- */
+
+  /* Type — characterful, no system/Inter defaults */
+  --haven-font-display:
+    "Fraunces", "Iowan Old Style", "Source Serif 4", Georgia, serif;
+  --haven-font-ui:
+    "Hanken Grotesque", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --haven-font-mono:
+    "Fragment Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  /* Canvas & surfaces — warm paper */
+  --haven-cream: #fcf7ee;
+  --haven-cream-deep: #faf2e8;
+  --haven-paper: #fffefa;
+  --haven-line: #ecdfcd;
+
+  /* Ink */
+  --haven-ink: #2c2018;
+  --haven-ink-body: #6f6356;
+  --haven-ink-quiet: #b39a82;
+
+  /* Accents — coral-forward, with peach / sky / blush / sage */
+  --haven-coral: #ef8d63;
+  --haven-coral-deep: #cf7a52;
+  --haven-blush: #ef7d92;
+  --haven-peach: #f0b46a;
+  --haven-sky: #86c3dc;
+  --haven-sage: #7fa284;
+
+  /* Atmosphere & gradients */
+  --gradient-haven-atmosphere:
+    radial-gradient(
+      46% 30% at 12% 6%,
+      rgba(255, 198, 150, 0.55) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      42% 28% at 92% 12%,
+      rgba(255, 173, 184, 0.5) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      60% 44% at 84% 98%,
+      rgba(168, 210, 224, 0.45) 0%,
+      transparent 62%
+    ),
+    linear-gradient(180deg, #fcf7ee 0%, #faf2e8 60%, #f4f1ec 100%);
+  --gradient-haven-cta: linear-gradient(120deg, #ef8d63, #ef7d92);
+
+  /* Form */
+  --haven-radius-card: 22px;
+  --haven-radius-pill: 999px;
+  --haven-shadow-cta: 0 18px 36px -18px rgba(239, 125, 120, 0.7);
+  --haven-shadow-card: 0 16px 34px -22px rgba(120, 60, 90, 0.5);
 }
