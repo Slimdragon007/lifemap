@@ -223,7 +223,7 @@ p {
     var(--shadow-command),
     inset 0 1px 0 rgba(255, 255, 255, 0.86);
   backdrop-filter: blur(26px) saturate(1.08);
-  animation: rise-in 420ms var(--ease) both;
+  animation: rise-in var(--motion-cap) var(--ease) both;
 }
 
 .login-brand-row {
@@ -560,7 +560,7 @@ h1 {
 .panel {
   overflow: hidden;
   padding: 18px;
-  animation: rise-in 360ms var(--ease) both;
+  animation: rise-in var(--motion-enter) var(--ease) both;
 }
 
 .panel:hover {
@@ -1606,7 +1606,7 @@ a:focus-visible {
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
 
   to {
@@ -1631,15 +1631,33 @@ a:focus-visible {
   }
 }
 
-@keyframes assistant-breathe {
-  0%,
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
+/* Press feedback: one calibrated scale on tap (~100ms), transform/opacity only.
+   Specific/later :active rules (.more-row, .auth-submit, .atlas-priority-card)
+   intentionally override this by source order. Collapsed by reduced-motion. */
+.nav-item,
+.nav-capture-button,
+.atlas-area-tile,
+.vault-card,
+.event-card,
+.area-row,
+.primary-button,
+.secondary-button,
+.atlas-ai-primary,
+.atlas-link-button {
+  transition: transform var(--motion-press) var(--ease);
+}
 
-  45% {
-    transform: scale(1.045) rotate(8deg);
-  }
+.nav-item:active,
+.nav-capture-button:active,
+.atlas-area-tile:active,
+.vault-card:active,
+.event-card:active,
+.area-row:active,
+.primary-button:active,
+.secondary-button:active,
+.atlas-ai-primary:active,
+.atlas-link-button:active {
+  transform: scale(0.98);
 }
 
 @media (max-width: 1180px) {
@@ -1850,6 +1868,24 @@ a:focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+
+  /* Default to stillness: no press scale on tap. State changes still read via
+     color/opacity, just without any transform motion. */
+  .nav-item:active,
+  .nav-capture-button:active,
+  .atlas-area-tile:active,
+  .vault-card:active,
+  .event-card:active,
+  .area-row:active,
+  .primary-button:active,
+  .secondary-button:active,
+  .atlas-ai-primary:active,
+  .atlas-link-button:active,
+  .atlas-priority-card:active,
+  .more-row:active,
+  .auth-submit:active {
+    transform: none !important;
+  }
 }
 
 /* Brain dump view */
@@ -1992,7 +2028,6 @@ button.nav-item {
     inset 0 0 0 15px rgba(255, 255, 255, 0.5),
     0 22px 54px rgba(18, 24, 38, 0.2),
     0 10px 26px rgba(58, 107, 255, 0.14);
-  animation: assistant-breathe 4.8s var(--ease) infinite;
 }
 
 .assistant-orb::after {
@@ -5954,11 +5989,20 @@ button.nav-item {
   cursor: pointer;
   font: inherit;
   text-align: left;
+  transition:
+    transform var(--motion-state) var(--ease),
+    opacity var(--motion-state) var(--ease),
+    background var(--motion-state) var(--ease),
+    border-color var(--motion-state) var(--ease);
 }
 
 .atlas-priority-card:hover {
   background: rgba(255, 255, 255, 0.9);
   transform: translateY(-1px);
+}
+
+.atlas-priority-card:active {
+  transform: scale(0.98);
 }
 
 .atlas-priority-icon {
@@ -6041,11 +6085,14 @@ button.nav-item {
 .atlas-priority-card.priority-completed {
   border-color: rgba(127, 162, 132, 0.28);
   background: rgba(237, 246, 237, 0.7);
+  opacity: 0.55;
+  transform: scale(0.99);
 }
 
 .atlas-priority-card.priority-snoozed {
   border-color: rgba(90, 70, 97, 0.2);
   background: rgba(244, 237, 245, 0.7);
+  opacity: 0.55;
 }
 
 .atlas-area-grid {
