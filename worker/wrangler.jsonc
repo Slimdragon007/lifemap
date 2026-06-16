@@ -9,9 +9,19 @@
     "SUPABASE_URL": "https://tljijkoqfnimnkpzhozy.supabase.co",
     "SUPABASE_ANON_KEY": "REPLACE_WITH_LIFEMAP_SUPABASE_ANON_KEY",
     "SEND_FROM": "notify@REPLACE_WITH_VERIFIED_DOMAIN",
+    "GOOGLE_CLIENT_ID": "REPLACE_WITH_GOOGLE_OAUTH_CLIENT_ID",
+    "GOOGLE_REDIRECT_URI": "https://lifemap-api.m-haslim.workers.dev/api/google/callback",
+    "APP_ORIGIN": "https://lifemap-d33.pages.dev",
   },
   "send_email": [{ "name": "EMAIL" }],
+  "kv_namespaces": [
+    { "binding": "GOOGLE_TOKENS", "id": "REPLACE_WITH_KV_NAMESPACE_ID" },
+  ],
   "secrets": {
-    "required": ["OPENAI_API_KEY"],
+    "required": [
+      "OPENAI_API_KEY",
+      "GOOGLE_CLIENT_SECRET",
+      "GOOGLE_OAUTH_STATE_SECRET",
+    ],
   },
 }

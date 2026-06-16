@@ -29,6 +29,17 @@ The API is a single Cloudflare Worker (`worker/lifemap-api.mjs`) used in both lo
 - `POST /api/classify`
 - `POST /api/brief`
 - `POST /api/send` — **authenticated** (Supabase bearer token). Sends an approved draft as email and records it in `sent_messages`.
+- `POST /api/google/auth-url`, `GET /api/google/callback`, `GET /api/google/status`, `POST /api/google/disconnect` — Google Calendar connect (Phase 1).
+
+### Google Calendar connect (`/api/google/*`, Phase 1)
+
+Lets a signed-in user connect their Google account so a later phase can write calendar events. OAuth tokens are stored **only** in the `GOOGLE_TOKENS` Cloudflare KV namespace (never in the browser, never in Supabase). The callback is tied to the initiating user by an HMAC-signed `state`. To enable in production:
+
+- Create a **Google Cloud** project + OAuth 2.0 **Web** client; consent screen in **testing** mode with the founder account as a test user.
+- Authorized redirect URI = `https://lifemap-api.m-haslim.workers.dev/api/google/callback`.
+- Vars (`worker/wrangler.jsonc`): `GOOGLE_CLIENT_ID`, `GOOGLE_REDIRECT_URI`, `APP_ORIGIN` (the Pages app URL).
+- Secrets (`wrangler secret put`): `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_STATE_SECRET` (any long random string).
+- Create the KV namespace and put its id in `worker/wrangler.jsonc`: `wrangler kv namespace create GOOGLE_TOKENS` → copy the `id` into the `kv_namespaces` binding.
 
 ### Email send (`/api/send`)
 

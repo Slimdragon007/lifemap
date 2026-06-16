@@ -14,6 +14,7 @@ import {
   type CalendarLayer,
 } from "./familyOS";
 import type { LifeMapAnalysis } from "./lifemap";
+import GoogleConnection from "./GoogleConnection";
 
 type CalendarViewProps = {
   analysis: LifeMapAnalysis;
@@ -81,7 +82,10 @@ function CalendarView({
   }
 
   return (
-    <section className="workspace calendar-workspace" aria-labelledby="calendar-title">
+    <section
+      className="workspace calendar-workspace"
+      aria-labelledby="calendar-title"
+    >
       <header className="topbar">
         <div>
           <span className="workspace-kicker">
@@ -90,10 +94,7 @@ function CalendarView({
           </span>
           <h1 id="calendar-title">Calendar</h1>
           <p>School, health, pets, meals, travel, and admin in one view.</p>
-          <span className="storage-note">
-            Current AI due dates appear here before real calendar sync is
-            connected.
-          </span>
+          <GoogleConnection />
         </div>
         <div className="status-strip" aria-label="Calendar summary">
           <span className="status-pill urgent">
@@ -119,7 +120,10 @@ function CalendarView({
           </div>
 
           {pendingAnalysisEvents.length > 0 ? (
-            <section className="suggestion-review-bar" aria-label="Calendar suggestions">
+            <section
+              className="suggestion-review-bar"
+              aria-label="Calendar suggestions"
+            >
               <div>
                 <strong>
                   LifeMap found {pendingAnalysisEvents.length} calendar{" "}
@@ -131,7 +135,9 @@ function CalendarView({
                 className="secondary-button compact-button"
                 type="button"
                 onClick={() =>
-                  onSaveSuggestions(pendingAnalysisEvents.map((event) => event.id))
+                  onSaveSuggestions(
+                    pendingAnalysisEvents.map((event) => event.id),
+                  )
                 }
               >
                 Save all
@@ -174,7 +180,10 @@ function CalendarView({
           </div>
         </section>
 
-        <aside className="panel recurring-panel" aria-labelledby="recurring-title">
+        <aside
+          className="panel recurring-panel"
+          aria-labelledby="recurring-title"
+        >
           <div className="panel-heading">
             <div>
               <h2 id="recurring-title">Recurring loops</h2>
@@ -216,58 +225,58 @@ function EventCard({
   const isGenerated = event.id.startsWith("ai-event-");
 
   return (
-              <article
-                className={
-                  isGenerated
-                    ? `event-card generated-event layer-${event.layer}`
-                    : `event-card layer-${event.layer}`
-                }
-              >
-                <div className="event-date">
-                  <span>{formatMonth(event.date)}</span>
-                  <strong>{formatDay(event.date)}</strong>
-                </div>
-                <div>
-                  <div className="event-card-top">
-                    <h3>{event.title}</h3>
-                    <span>{event.owner}</span>
-                  </div>
-                  {isGenerated ? (
-                    <span className="generated-label">
-                      {isSaved ? "Saved to LifeMap" : "Needs review"}
-                    </span>
-                  ) : null}
-                  <p>
-                    <Clock3 size={14} />
-                    {event.time}
-                  </p>
-                  <small>Source: {event.source}</small>
-                  {event.needsPrep ? (
-                    <div className="prep-note">
-                      <CheckCircle2 size={14} />
-                      {event.needsPrep}
-                    </div>
-                  ) : null}
-                  {isGenerated && !isSaved ? (
-                    <div className="suggestion-actions">
-                      <button
-                        className="secondary-button compact-button"
-                        type="button"
-                        onClick={() => onSaveSuggestion(event.id)}
-                      >
-                        Save
-                      </button>
-                      <button
-                        className="ghost-button compact-button"
-                        type="button"
-                        onClick={() => onDismissSuggestion(event.id)}
-                      >
-                        Dismiss
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              </article>
+    <article
+      className={
+        isGenerated
+          ? `event-card generated-event layer-${event.layer}`
+          : `event-card layer-${event.layer}`
+      }
+    >
+      <div className="event-date">
+        <span>{formatMonth(event.date)}</span>
+        <strong>{formatDay(event.date)}</strong>
+      </div>
+      <div>
+        <div className="event-card-top">
+          <h3>{event.title}</h3>
+          <span>{event.owner}</span>
+        </div>
+        {isGenerated ? (
+          <span className="generated-label">
+            {isSaved ? "Saved to LifeMap" : "Needs review"}
+          </span>
+        ) : null}
+        <p>
+          <Clock3 size={14} />
+          {event.time}
+        </p>
+        <small>Source: {event.source}</small>
+        {event.needsPrep ? (
+          <div className="prep-note">
+            <CheckCircle2 size={14} />
+            {event.needsPrep}
+          </div>
+        ) : null}
+        {isGenerated && !isSaved ? (
+          <div className="suggestion-actions">
+            <button
+              className="secondary-button compact-button"
+              type="button"
+              onClick={() => onSaveSuggestion(event.id)}
+            >
+              Save
+            </button>
+            <button
+              className="ghost-button compact-button"
+              type="button"
+              onClick={() => onDismissSuggestion(event.id)}
+            >
+              Dismiss
+            </button>
+          </div>
+        ) : null}
+      </div>
+    </article>
   );
 }
 

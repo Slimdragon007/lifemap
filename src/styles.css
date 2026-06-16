@@ -7008,3 +7008,64 @@ body {
   gap: 8px;
   margin-top: 8px;
 }
+
+.evidence-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.evidence-chip {
+  cursor: pointer;
+}
+
+.evidence-chip.open {
+  outline: 2px solid rgba(77, 126, 255, 0.5);
+}
+
+.evidence-quote {
+  margin-top: 8px;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.privacy-section-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.privacy-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.privacy-card h2 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.privacy-card p {
+  margin: 0;
+  opacity: 0.85;
+}
+
+.google-connect {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.google-connect-note {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.google-connected {
+  font-weight: 600;
+  color: #1f8a4c;
+}

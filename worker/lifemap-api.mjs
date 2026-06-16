@@ -1,4 +1,15 @@
 import { createCloudflareMailer } from "./mailer.mjs";
+import {
+  buildAuthUrl,
+  deleteCreds,
+  exchangeCode,
+  googleEmailFromIdToken,
+  loadCreds,
+  revokeToken,
+  saveCreds,
+  signState,
+  verifyState,
+} from "./google.mjs";
 
 const INVALID_INPUT_ERROR =
   "Paste an email, form text, screenshot notes, or task details first.";
@@ -26,6 +37,10 @@ export default {
         200,
         corsHeaders,
       );
+    }
+
+    if (url.pathname.startsWith("/api/google/")) {
+      return handleGoogleRoute(url, request, env, corsHeaders);
     }
 
     if (
@@ -224,6 +239,135 @@ export async function sendPayload({
     status: 200,
     body: { ok: true, id: stored.id, sentAt: new Date().toISOString() },
   };
+}
+
+async function handleGoogleRoute(url, request, env, corsHeaders) {
+  const authHeader = request.headers.get("Authorization");
+  if (request.method === "GET" && url.pathname === "/api/google/callback") {
+    const location = await googleCallback({ requestUrl: url, env });
+    return new Response(null, {
+      status: 302,
+      headers: { ...corsHeaders, Location: location },
+    });
+  }
+  if (request.method === "GET" && url.pathname === "/api/google/status") {
+    const result = await googleStatusPayload({ authHeader, env });
+    return jsonResponse(result.body, result.status, corsHeaders);
+  }
+  if (request.method === "POST" && url.pathname === "/api/google/auth-url") {
+    const result = await googleAuthUrlPayload({ authHeader, env });
+    return jsonResponse(result.body, result.status, corsHeaders);
+  }
+  if (request.method === "POST" && url.pathname === "/api/google/disconnect") {
+    const result = await googleDisconnectPayload({ authHeader, env });
+    return jsonResponse(result.body, result.status, corsHeaders);
+  }
+  return jsonResponse({ ok: false, error: "Not found." }, 404, corsHeaders);
+}
+
+export async function googleAuthUrlPayload({
+  authHeader,
+  env,
+  fetchImpl = fetch,
+}) {
+  const auth = await verifySupabaseUser(authHeader, env, fetchImpl);
+  if (!auth.ok) {
+    return { status: 401, body: { ok: false, error: UNAUTHENTICATED_ERROR } };
+  }
+  const state = await signState(
+    {
+      userId: auth.id,
+      nonce: crypto.randomUUID(),
+      exp: Math.floor(Date.now() / 1000) + 600,
+    },
+    env.GOOGLE_OAUTH_STATE_SECRET,
+  );
+  const url = buildAuthUrl({
+    clientId: env.GOOGLE_CLIENT_ID,
+    redirectUri: env.GOOGLE_REDIRECT_URI,
+    state,
+  });
+  return { status: 200, body: { ok: true, url } };
+}
+
+export async function googleStatusPayload({
+  authHeader,
+  env,
+  kv = env.GOOGLE_TOKENS,
+  fetchImpl = fetch,
+}) {
+  const auth = await verifySupabaseUser(authHeader, env, fetchImpl);
+  if (!auth.ok) {
+    return { status: 401, body: { ok: false, error: UNAUTHENTICATED_ERROR } };
+  }
+  const creds = await loadCreds(kv, auth.id);
+  return {
+    status: 200,
+    body: { ok: true, connected: Boolean(creds), email: creds?.email },
+  };
+}
+
+export async function googleDisconnectPayload({
+  authHeader,
+  env,
+  kv = env.GOOGLE_TOKENS,
+  fetchImpl = fetch,
+}) {
+  const auth = await verifySupabaseUser(authHeader, env, fetchImpl);
+  if (!auth.ok) {
+    return { status: 401, body: { ok: false, error: UNAUTHENTICATED_ERROR } };
+  }
+  const creds = await loadCreds(kv, auth.id);
+  if (creds?.refresh_token) {
+    try {
+      await revokeToken(creds.refresh_token, fetchImpl);
+    } catch (error) {
+      console.error("Google token revoke failed", error);
+    }
+  }
+  await deleteCreds(kv, auth.id);
+  return { status: 200, body: { ok: true } };
+}
+
+export async function googleCallback({
+  requestUrl,
+  env,
+  kv = env.GOOGLE_TOKENS,
+  fetchImpl = fetch,
+}) {
+  const appOrigin = (env.APP_ORIGIN || "").replace(/\/$/, "");
+  const code = requestUrl.searchParams.get("code");
+  const state = requestUrl.searchParams.get("state");
+  const verified = state
+    ? await verifyState(state, env.GOOGLE_OAUTH_STATE_SECRET)
+    : null;
+  if (!code || !verified) {
+    return `${appOrigin}/?google=error`;
+  }
+
+  const exchanged = await exchangeCode(
+    {
+      code,
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+      redirectUri: env.GOOGLE_REDIRECT_URI,
+    },
+    fetchImpl,
+  );
+  if (!exchanged.ok) {
+    console.error("Google code exchange failed", exchanged.error);
+    return `${appOrigin}/?google=error`;
+  }
+
+  const tokens = exchanged.tokens;
+  await saveCreds(kv, verified.userId, {
+    refresh_token: tokens.refresh_token,
+    access_token: tokens.access_token,
+    expiry: Math.floor(Date.now() / 1000) + (Number(tokens.expires_in) || 0),
+    email: googleEmailFromIdToken(tokens.id_token),
+    scope: "calendar.events",
+  });
+  return `${appOrigin}/?google=connected`;
 }
 
 async function callOpenAi({

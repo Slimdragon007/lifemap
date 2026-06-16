@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   analyzeWithAi,
+  disconnectGoogle,
   generateBriefWithAi,
+  getGoogleAuthUrl,
+  getGoogleStatus,
   resolveApiOrigin,
   sendDraftEmail,
 } from "./api";
@@ -231,5 +234,64 @@ describe("sendDraftEmail", () => {
         }),
       }),
     );
+  });
+});
+
+describe("google calendar client", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("getGoogleAuthUrl posts with a bearer token and returns the url", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      json: async () => ({ ok: true, url: "https://accounts.google.com/x" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await getGoogleAuthUrl(
+      "user-token",
+      "https://api.example.com",
+    );
+
+    expect(result).toEqual({ ok: true, url: "https://accounts.google.com/x" });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://api.example.com/api/google/auth-url");
+    expect((init?.headers as Record<string, string>).Authorization).toBe(
+      "Bearer user-token",
+    );
+  });
+
+  test("getGoogleStatus returns the connection state", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      json: async () => ({ ok: true, connected: true, email: "a@b.com" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await getGoogleStatus(
+      "user-token",
+      "https://api.example.com",
+    );
+
+    expect(result).toEqual({ ok: true, connected: true, email: "a@b.com" });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "https://api.example.com/api/google/status",
+    );
+  });
+
+  test("disconnectGoogle posts to the disconnect endpoint", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      json: async () => ({ ok: true }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await disconnectGoogle(
+      "user-token",
+      "https://api.example.com",
+    );
+
+    expect(result).toEqual({ ok: true });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://api.example.com/api/google/disconnect");
+    expect(init?.method).toBe("POST");
   });
 });

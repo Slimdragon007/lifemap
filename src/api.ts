@@ -198,6 +198,99 @@ export async function sendDraftEmail(
   }
 }
 
+export type GoogleAuthUrlResult =
+  | { ok: true; url: string }
+  | { ok: false; error: string };
+
+export type GoogleStatusResult =
+  | { ok: true; connected: boolean; email?: string }
+  | { ok: false; error: string };
+
+export async function getGoogleAuthUrl(
+  accessToken: string,
+  origin = getApiOrigin(),
+): Promise<GoogleAuthUrlResult> {
+  if (!origin) {
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+  try {
+    const response = await fetch(`${origin}/api/google/auth-url`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const payload: unknown = await response.json();
+    if (
+      isRecord(payload) &&
+      payload.ok === true &&
+      typeof payload.url === "string"
+    ) {
+      return { ok: true, url: payload.url };
+    }
+    return {
+      ok: false,
+      error: readError(isRecord(payload) ? payload.error : undefined),
+    };
+  } catch (error) {
+    console.error("LifeMap google auth-url request failed", error);
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+}
+
+export async function getGoogleStatus(
+  accessToken: string,
+  origin = getApiOrigin(),
+): Promise<GoogleStatusResult> {
+  if (!origin) {
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+  try {
+    const response = await fetch(`${origin}/api/google/status`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const payload: unknown = await response.json();
+    if (isRecord(payload) && payload.ok === true) {
+      return {
+        ok: true,
+        connected: payload.connected === true,
+        email: typeof payload.email === "string" ? payload.email : undefined,
+      };
+    }
+    return {
+      ok: false,
+      error: readError(isRecord(payload) ? payload.error : undefined),
+    };
+  } catch (error) {
+    console.error("LifeMap google status request failed", error);
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+}
+
+export async function disconnectGoogle(
+  accessToken: string,
+  origin = getApiOrigin(),
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!origin) {
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+  try {
+    const response = await fetch(`${origin}/api/google/disconnect`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const payload: unknown = await response.json();
+    if (isRecord(payload) && payload.ok === true) {
+      return { ok: true };
+    }
+    return {
+      ok: false,
+      error: readError(isRecord(payload) ? payload.error : undefined),
+    };
+  } catch (error) {
+    console.error("LifeMap google disconnect request failed", error);
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+}
+
 function getApiOrigin(): string | undefined {
   return resolveApiOrigin(
     import.meta.env.VITE_API_ORIGIN,
