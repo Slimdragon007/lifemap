@@ -40,7 +40,7 @@ export default defineConfig({
   projects: [
     {
       name: "demo-desktop",
-      testMatch: /smoke\.spec\.ts/,
+      testMatch: /(smoke|motion)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL: DEMO_URL },
     },
     {
