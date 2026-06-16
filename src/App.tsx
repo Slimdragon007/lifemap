@@ -1413,10 +1413,9 @@ function CaptureWorkspace({
             >
               <div className="panel-heading">
                 <div>
-                  <h2 id="ai-intake-title">Drop the messy thing here</h2>
+                  <h2 id="ai-intake-title">Paste anything</h2>
                   <span>
-                    Email, screenshot notes, forms, travel plans, or family
-                    admin
+                    Email, notes, forms, travel plans — however messy.
                   </span>
                 </div>
                 <Inbox size={18} />
@@ -1482,9 +1481,13 @@ function CaptureWorkspace({
             >
               <div className="panel-heading">
                 <div>
-                  <h2 id="capture-result-title">What LifeMap will organize</h2>
+                  <h2 id="capture-result-title">
+                    LifeMap organizes it for you
+                  </h2>
                   <span>
-                    Results route into Today, Vault, Calendar, and Review.
+                    It finds what&apos;s due, what&apos;s missing, and what
+                    needs you — then files it into Today, Vault, Calendar &amp;
+                    Review.
                   </span>
                 </div>
                 <ShieldCheck size={18} />
@@ -1539,14 +1542,7 @@ function CaptureWorkspace({
                     </button>
                   </div>
                 </section>
-              ) : (
-                <ol className="capture-route-list">
-                  <li>Today gets the top priorities.</li>
-                  <li>Vault keeps records and missing documents.</li>
-                  <li>Calendar shows deadlines and appointments.</li>
-                  <li>Review holds reminders and drafts for approval.</li>
-                </ol>
-              )}
+              ) : null}
             </section>
           </div>
         </div>

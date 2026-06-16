@@ -602,7 +602,7 @@ describe("LifeMap MVP app", () => {
     expect(within(capture).getByText("Ready to analyze")).toBeInTheDocument();
     expect(
       within(capture).getByRole("heading", {
-        name: "Drop the messy thing here",
+        name: "Paste anything",
       }),
     ).toBeInTheDocument();
     expect(
