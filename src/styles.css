@@ -7069,3 +7069,244 @@ body {
   font-weight: 600;
   color: #1f8a4c;
 }
+
+/* ===================================================================== */
+/* Haven sign-in — the calm first impression (first screen on Haven).    */
+/* ===================================================================== */
+.haven-auth {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 64px;
+  padding: 32px 22px calc(env(safe-area-inset-bottom, 0px) + 32px);
+  font-family: var(--haven-font-ui);
+  color: var(--haven-ink);
+  overflow: hidden;
+}
+.haven-auth-atmos {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--gradient-haven-atmosphere);
+}
+.haven-auth-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+}
+
+/* desktop-only hero column */
+.haven-auth-aside {
+  position: relative;
+  z-index: 2;
+  display: none;
+  max-width: 360px;
+}
+.haven-auth-eyebrow {
+  font-family: var(--haven-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--haven-coral-deep);
+}
+.haven-auth-pitch {
+  font-family: var(--haven-font-display);
+  font-weight: 330;
+  font-size: 40px;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  color: var(--haven-ink);
+  margin: 20px 0 24px;
+}
+.haven-auth-pitch em {
+  font-style: italic;
+  color: var(--haven-coral-deep);
+}
+.haven-auth-foot {
+  font-family: var(--haven-font-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--haven-ink-quiet);
+}
+
+/* the card */
+.haven-auth-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 412px;
+  background: rgba(255, 254, 250, 0.82);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 30px 70px -34px rgba(120, 70, 50, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border-radius: 28px;
+  padding: 38px 34px 30px;
+  animation: haven-auth-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes haven-auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+.haven-auth-wordmark {
+  font-family: var(--haven-font-display);
+  font-weight: 400;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  color: var(--haven-coral-deep);
+}
+.haven-auth-card h1 {
+  position: relative;
+  display: inline-block;
+  font-family: var(--haven-font-display);
+  font-weight: 330;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--haven-ink);
+  margin: 16px 0 0;
+}
+.haven-auth-card h1 em {
+  font-style: italic;
+  color: var(--haven-coral-deep);
+}
+.haven-auth-underline {
+  position: absolute;
+  left: 2px;
+  bottom: -10px;
+  width: 140px;
+  height: 13px;
+  color: var(--haven-peach);
+}
+.haven-auth-lede {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--haven-ink-body);
+  margin: 22px 0 26px;
+  max-width: 32ch;
+}
+
+.haven-auth-form {
+  display: grid;
+  gap: 15px;
+}
+.haven-field {
+  display: grid;
+  gap: 6px;
+}
+.haven-field > span {
+  font-family: var(--haven-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--haven-ink-quiet);
+}
+.haven-field input {
+  font-family: var(--haven-font-ui);
+  font-size: 15.5px;
+  color: var(--haven-ink);
+  background: #fffdf8;
+  border: 1px solid var(--haven-line);
+  border-radius: 14px;
+  padding: 13px 15px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.haven-field input::placeholder {
+  color: #c8b9a4;
+}
+.haven-field input:focus {
+  outline: none;
+  border-color: var(--haven-coral);
+  box-shadow: 0 0 0 4px rgba(239, 141, 99, 0.16);
+}
+
+.haven-auth-msg {
+  font-size: 13.5px;
+  line-height: 1.4;
+  border-radius: 12px;
+  padding: 11px 14px;
+  margin: 2px 0;
+}
+.haven-auth-msg.error {
+  color: #b0452f;
+  background: rgba(214, 106, 74, 0.1);
+  border: 1px solid rgba(214, 106, 74, 0.25);
+}
+.haven-auth-msg.success {
+  color: #4f7a55;
+  background: rgba(127, 162, 132, 0.14);
+  border: 1px solid rgba(127, 162, 132, 0.3);
+}
+
+.haven-auth-submit {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  font-family: var(--haven-font-display);
+  font-weight: 420;
+  font-size: 17px;
+  color: #fff;
+  padding: 15px 20px;
+  border-radius: 16px;
+  background: var(--gradient-haven-cta);
+  box-shadow: var(--haven-shadow-cta);
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+.haven-auth-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: saturate(1.05);
+}
+.haven-auth-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+.haven-auth-submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.haven-auth-switch {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--haven-font-ui);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--haven-coral-deep);
+  text-align: center;
+  transition: opacity 0.2s ease;
+}
+.haven-auth-switch:hover {
+  opacity: 0.72;
+}
+
+@media (min-width: 880px) {
+  .haven-auth-aside {
+    display: block;
+  }
+  .haven-auth-card {
+    padding: 44px 40px 34px;
+  }
+}

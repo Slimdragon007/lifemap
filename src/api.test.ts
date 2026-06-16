@@ -103,9 +103,13 @@ describe("resolveApiOrigin", () => {
 describe("analyzeWithAi", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
   });
 
   test("posts intake to the local API and returns normalized analysis", async () => {
+    // Isolate from any ambient VITE_API_ORIGIN (e.g. a local .env.local) so the
+    // default localhost origin is exercised deterministically.
+    vi.stubEnv("VITE_API_ORIGIN", "");
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ ok: true, analysis: aiAnalysis }),
@@ -165,9 +169,11 @@ describe("analyzeWithAi", () => {
 describe("generateBriefWithAi", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
   });
 
   test("posts the current analysis to the local brief API", async () => {
+    vi.stubEnv("VITE_API_ORIGIN", "");
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ ok: true, brief: dailyBrief }),

@@ -1,4 +1,4 @@
-import { ChevronRight, Map } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { getSupabase } from "./supabaseClient";
 
@@ -43,38 +43,78 @@ function AuthScreen() {
   }
 
   return (
-    <main className="login-shell">
-      <div className="ambient-field" aria-hidden="true" />
-      <section className="login-panel" aria-labelledby="auth-title">
-        <div className="login-brand-row">
-          <span className="brand-mark login-mark">
-            <Map size={22} />
-          </span>
-          <span>Private mental-load AI</span>
-        </div>
-        <h1 id="auth-title">
-          {mode === "signin" ? "Welcome back" : "Create your LifeMap"}
-        </h1>
-        <p>Map your life, clear your head, know your next move.</p>
+    <main className="haven-auth">
+      <div className="haven-auth-atmos" aria-hidden="true" />
+      <div className="haven-auth-grain" aria-hidden="true" />
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label className="auth-field">
+      <section className="haven-auth-aside" aria-hidden="true">
+        <span className="haven-auth-eyebrow">Private mental-load AI</span>
+        <p className="haven-auth-pitch">
+          Forward the mess.
+          <br />
+          I'll hand back your
+          <br />
+          <em>next three things.</em>
+        </p>
+        <span className="haven-auth-foot">
+          for parents &amp; busy brains · calm by design
+        </span>
+      </section>
+
+      <section className="haven-auth-card" aria-labelledby="auth-title">
+        <span className="haven-auth-wordmark">LifeMap</span>
+        <h1 id="auth-title">
+          {mode === "signin" ? (
+            <>
+              Welcome <em>back.</em>
+            </>
+          ) : (
+            <>
+              Make some <em>room.</em>
+            </>
+          )}
+          <svg
+            className="haven-auth-underline"
+            viewBox="0 0 150 14"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M2 9C38 4 96 3 148 8"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+          </svg>
+        </h1>
+        <p className="haven-auth-lede">
+          {mode === "signin"
+            ? "Map your life, clear your head, know your next move."
+            : "One calm home for the family-admin chaos. Let's set it up."}
+        </p>
+
+        <form className="haven-auth-form" onSubmit={handleSubmit}>
+          <label className="haven-field">
             <span>Email</span>
             <input
               autoComplete="email"
+              placeholder="you@example.com"
               required
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
           </label>
-          <label className="auth-field">
+          <label className="haven-field">
             <span>Password</span>
             <input
               autoComplete={
                 mode === "signup" ? "new-password" : "current-password"
               }
               minLength={8}
+              placeholder={
+                mode === "signup" ? "at least 8 characters" : "••••••••"
+              }
               required
               type="password"
               value={password}
@@ -83,37 +123,37 @@ function AuthScreen() {
           </label>
 
           {error ? (
-            <p className="analyze-notice error" aria-live="polite">
+            <p className="haven-auth-msg error" aria-live="polite">
               {error}
             </p>
           ) : null}
           {notice ? (
-            <p className="analyze-notice success" aria-live="polite">
+            <p className="haven-auth-msg success" aria-live="polite">
               {notice}
             </p>
           ) : null}
 
           <button
-            className="primary-button login-button"
+            className="haven-auth-submit"
             disabled={status === "loading"}
             type="submit"
           >
             {status === "loading" ? (
               <>
                 <span className="spinner" aria-hidden="true" />
-                {mode === "signin" ? "Signing in..." : "Creating..."}
+                {mode === "signin" ? "Signing in…" : "Creating…"}
               </>
             ) : (
               <>
                 {mode === "signin" ? "Sign in" : "Sign up"}
-                <ChevronRight size={16} />
+                <ArrowRight size={17} aria-hidden="true" />
               </>
             )}
           </button>
         </form>
 
         <button
-          className="auth-switch"
+          className="haven-auth-switch"
           type="button"
           onClick={() => {
             setMode((current) => (current === "signin" ? "signup" : "signin"));
