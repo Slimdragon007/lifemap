@@ -7622,8 +7622,8 @@ body {
 
 /* Capture's "choose what this is" tiles: tighten into a quiet single column. */
 .app-shell.view-capture .capture-type-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px;
 }
 
