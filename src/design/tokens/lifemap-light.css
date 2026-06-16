@@ -1,136 +1,98 @@
 :root {
+  /* ================================================================= */
+  /* LOW-STIMULUS — the app's design language (replaces Haven).         */
+  /* Warm, near-monochrome, one rationed coral accent, calm by design.  */
+  /* Variable NAMES are kept stable so every screen inherits at once;   */
+  /* only the VALUES changed from the old cool/blue theme.              */
+  /* ================================================================= */
+
+  /* Type — quiet humanist sans everywhere (no serif display) */
   --font-ui:
-    "Aptos", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+    "Hanken Grotesque", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-display:
-    "Iowan Old Style", "New York", "Source Serif 4", Georgia, "Times New Roman",
-    serif;
-  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    "Hanken Grotesque", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono:
+    "Fragment Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
 
-  --color-canvas-warm: #fbf8f1;
-  --color-canvas-app: #f5f9ff;
-  --color-canvas-login: #edf7ff;
-  --color-canvas-soft-blue: #e4f1ff;
-  --color-canvas-soft-warm: #fff2e8;
+  /* Canvas — warm cream, minimal variation */
+  --color-canvas-warm: #fcf7ee;
+  --color-canvas-app: #fcf7ee;
+  --color-canvas-login: #fcf7ee;
+  --color-canvas-soft-blue: #faf2e8;
+  --color-canvas-soft-warm: #faf2e8;
 
-  --color-surface-glass: rgba(255, 255, 255, 0.76);
-  --color-surface-panel: rgba(255, 255, 255, 0.88);
+  /* Surfaces — flat warm paper (low-stim: less glass, more calm) */
+  --color-surface-glass: rgba(255, 254, 250, 0.86);
+  --color-surface-panel: #fffefa;
   --color-surface-panel-strong: #fffefa;
-  --color-surface-command: rgba(255, 255, 255, 0.92);
-  --color-surface-command-soft: rgba(246, 251, 255, 0.86);
-  --color-surface-nav: rgba(255, 255, 255, 0.9);
-  --color-surface-capture: rgba(255, 255, 255, 0.96);
-  --color-surface-row: rgba(255, 255, 255, 0.68);
-  --color-backdrop-capture: rgba(245, 249, 255, 0.52);
+  --color-surface-command: #fffefa;
+  --color-surface-command-soft: #fcf7ee;
+  --color-surface-nav: rgba(252, 247, 238, 0.92);
+  --color-surface-capture: #fffefa;
+  --color-surface-row: #fffefa;
+  --color-backdrop-capture: rgba(252, 247, 238, 0.55);
 
-  --color-text-primary: #1f2937;
-  --color-text-strong: #111827;
-  --color-text-secondary: #5f6b7a;
-  --color-text-quiet: #8a94a3;
-  --color-text-inverse: #ffffff;
+  /* Ink — warm browns */
+  --color-text-primary: #2c2018;
+  --color-text-strong: #211712;
+  --color-text-secondary: #6f6356;
+  --color-text-quiet: #b39a82;
+  --color-text-inverse: #fffefa;
 
-  --color-border-subtle: rgba(35, 55, 82, 0.1);
-  --color-border-strong: rgba(35, 55, 82, 0.16);
-  --color-focus-ring: rgba(77, 126, 255, 0.28);
+  /* Borders — warm line */
+  --color-border-subtle: #ecdfcd;
+  --color-border-strong: #e0cfb8;
+  --color-focus-ring: rgba(207, 122, 82, 0.32);
 
-  --color-accent-blue: #4d7eff;
-  --color-accent-blue-strong: #2f62d8;
-  --color-accent-blue-soft: rgba(77, 126, 255, 0.1);
-  --color-accent-sky: #dcefff;
-  --color-accent-warm: #d97852;
-  --color-accent-warm-soft: rgba(217, 120, 82, 0.13);
-  --color-accent-clay: #d26a4a;
-  --color-accent-plum: #6a5772;
+  /* Accent — single rationed coral (the old "blue" is now coral everywhere) */
+  --color-accent-blue: #cf7a52;
+  --color-accent-blue-strong: #b9663f;
+  --color-accent-blue-soft: rgba(207, 122, 82, 0.12);
+  --color-accent-sky: #f0e3d2;
+  --color-accent-warm: #cf7a52;
+  --color-accent-warm-soft: rgba(207, 122, 82, 0.13);
+  --color-accent-clay: #cf7a52;
+  --color-accent-plum: #6f6356;
   --color-accent-sage: #7fa284;
-  --color-accent-amber: #b76525;
-  --color-status-danger: #ad4b3c;
+  --color-accent-amber: #c98a3f;
+  --color-status-danger: #b65a45;
 
-  --color-action-ink: #203047;
-  --gradient-action-primary: linear-gradient(
-    135deg,
-    #426fff 0%,
-    #5b93ff 54%,
-    #d97852 100%
-  );
-  --gradient-command-surface: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.96) 0%,
-    rgba(239, 247, 255, 0.9) 56%,
-    rgba(255, 239, 229, 0.82) 100%
-  );
+  --color-action-ink: #2c2018;
+
+  /* Gradients — flattened toward calm (CTA is a quiet coral, surfaces are paper) */
+  --gradient-action-primary: linear-gradient(180deg, #ef8d63 0%, #cf7a52 100%);
+  --gradient-command-surface: linear-gradient(180deg, #fffefa 0%, #fcf7ee 100%);
 
   --radius-control: 12px;
   --radius-panel: 16px;
-  --radius-command: 20px;
+  --radius-command: 18px;
   --radius-pill: 999px;
 
-  --shadow-panel-soft: 0 12px 30px rgba(36, 61, 92, 0.08);
-  --shadow-panel: 0 22px 60px rgba(36, 61, 92, 0.13);
-  --shadow-command: 0 28px 76px rgba(57, 92, 133, 0.18);
-  --shadow-nav: 0 22px 60px rgba(57, 92, 133, 0.16);
-  --shadow-control: 0 10px 24px rgba(47, 98, 216, 0.13);
-  --shadow-row: 0 9px 22px rgba(36, 61, 92, 0.055);
-  --shadow-row-hover: 0 14px 30px rgba(36, 61, 92, 0.09);
+  /* Shadows — softer, warm-neutral, less heavy */
+  --shadow-panel-soft: 0 8px 20px rgba(120, 90, 60, 0.06);
+  --shadow-panel: 0 16px 40px rgba(120, 90, 60, 0.09);
+  --shadow-command: 0 20px 50px rgba(120, 90, 60, 0.12);
+  --shadow-nav: 0 -2px 22px rgba(120, 90, 60, 0.07);
+  --shadow-control: 0 8px 18px rgba(207, 122, 82, 0.12);
+  --shadow-row: 0 6px 16px rgba(120, 90, 60, 0.05);
+  --shadow-row-hover: 0 10px 22px rgba(120, 90, 60, 0.08);
 
-  --motion-standard: cubic-bezier(0.2, 0.72, 0.2, 1);
+  /* Motion — the locked "Right-sized" spec */
+  --motion-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --motion-press: 100ms;
+  --motion-state: 140ms;
+  --motion-enter: 220ms;
+  --motion-cap: 300ms;
 
-  /* ----------------------------------------------------------------- */
-  /* HAVEN direction — calm editorial + organic warmth.                */
-  /* Additive: defined and ready, but NOT yet wired to the active      */
-  /* --font-* / --color-* tokens. Screens adopt it deliberately later  */
-  /* by repointing consumers to these values.                          */
-  /* ----------------------------------------------------------------- */
-
-  /* Type — characterful, no system/Inter defaults */
-  --haven-font-display:
-    "Fraunces", "Iowan Old Style", "Source Serif 4", Georgia, serif;
-  --haven-font-ui:
-    "Hanken Grotesque", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --haven-font-mono:
-    "Fragment Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
-
-  /* Canvas & surfaces — warm paper */
-  --haven-cream: #fcf7ee;
-  --haven-cream-deep: #faf2e8;
-  --haven-paper: #fffefa;
-  --haven-line: #ecdfcd;
-
-  /* Ink */
-  --haven-ink: #2c2018;
-  --haven-ink-body: #6f6356;
-  --haven-ink-quiet: #b39a82;
-
-  /* Accents — coral-forward, with peach / sky / blush / sage */
-  --haven-coral: #ef8d63;
-  --haven-coral-deep: #cf7a52;
-  --haven-blush: #ef7d92;
-  --haven-peach: #f0b46a;
-  --haven-sky: #86c3dc;
-  --haven-sage: #7fa284;
-
-  /* Atmosphere & gradients */
-  --gradient-haven-atmosphere:
-    radial-gradient(
-      46% 30% at 12% 6%,
-      rgba(255, 198, 150, 0.55) 0%,
-      transparent 62%
-    ),
-    radial-gradient(
-      42% 28% at 92% 12%,
-      rgba(255, 173, 184, 0.5) 0%,
-      transparent 60%
-    ),
-    radial-gradient(
-      60% 44% at 84% 98%,
-      rgba(168, 210, 224, 0.45) 0%,
-      transparent 62%
-    ),
-    linear-gradient(180deg, #fcf7ee 0%, #faf2e8 60%, #f4f1ec 100%);
-  --gradient-haven-cta: linear-gradient(120deg, #ef8d63, #ef7d92);
-
-  /* Form */
-  --haven-radius-card: 22px;
-  --haven-radius-pill: 999px;
-  --haven-shadow-cta: 0 18px 36px -18px rgba(239, 125, 120, 0.7);
-  --haven-shadow-card: 0 16px 34px -22px rgba(120, 60, 90, 0.5);
+  /* Single warm accent exposed semantically for new low-stim components */
+  --accent: #cf7a52;
+  --accent-soft: #ef8d63;
+  --paper: #fcf7ee;
+  --paper-raised: #fffefa;
+  --warm-line: #ecdfcd;
+  --warm-ink: #2c2018;
+  --warm-ink-soft: #6f6356;
+  --warm-ink-quiet: #b39a82;
 }

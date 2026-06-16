@@ -6,7 +6,8 @@ type Mode = "signin" | "signup";
 
 // Real email + password auth (no magic links — they resolve to the wrong
 // localhost when a link is opened on a phone). Shown only when Supabase is
-// configured; otherwise App keeps the demo login.
+// configured; otherwise App keeps the demo login. Low-stimulus design:
+// quiet warm cream, one coral accent, no decorative motion.
 function AuthScreen() {
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
@@ -43,58 +44,20 @@ function AuthScreen() {
   }
 
   return (
-    <main className="haven-auth">
-      <div className="haven-auth-atmos" aria-hidden="true" />
-      <div className="haven-auth-grain" aria-hidden="true" />
-
-      <section className="haven-auth-aside" aria-hidden="true">
-        <span className="haven-auth-eyebrow">Private mental-load AI</span>
-        <p className="haven-auth-pitch">
-          Forward the mess.
-          <br />
-          I'll hand back your
-          <br />
-          <em>next three things.</em>
-        </p>
-        <span className="haven-auth-foot">
-          for parents &amp; busy brains · calm by design
-        </span>
-      </section>
-
-      <section className="haven-auth-card" aria-labelledby="auth-title">
-        <span className="haven-auth-wordmark">LifeMap</span>
-        <h1 id="auth-title">
-          {mode === "signin" ? (
-            <>
-              Welcome <em>back.</em>
-            </>
-          ) : (
-            <>
-              Make some <em>room.</em>
-            </>
-          )}
-          <svg
-            className="haven-auth-underline"
-            viewBox="0 0 150 14"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M2 9C38 4 96 3 148 8"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-          </svg>
+    <main className="auth">
+      <section className="auth-card" aria-labelledby="auth-title">
+        <span className="auth-mark">LifeMap</span>
+        <h1 id="auth-title" className="auth-title">
+          {mode === "signin" ? "Welcome back." : "Let's set things down."}
         </h1>
-        <p className="haven-auth-lede">
+        <p className="auth-lede">
           {mode === "signin"
             ? "Map your life, clear your head, know your next move."
-            : "One calm home for the family-admin chaos. Let's set it up."}
+            : "One calm home for the family-admin chaos."}
         </p>
 
-        <form className="haven-auth-form" onSubmit={handleSubmit}>
-          <label className="haven-field">
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <label className="auth-field">
             <span>Email</span>
             <input
               autoComplete="email"
@@ -105,7 +68,7 @@ function AuthScreen() {
               onChange={(event) => setEmail(event.target.value)}
             />
           </label>
-          <label className="haven-field">
+          <label className="auth-field">
             <span>Password</span>
             <input
               autoComplete={
@@ -123,18 +86,18 @@ function AuthScreen() {
           </label>
 
           {error ? (
-            <p className="haven-auth-msg error" aria-live="polite">
+            <p className="auth-msg error" aria-live="polite">
               {error}
             </p>
           ) : null}
           {notice ? (
-            <p className="haven-auth-msg success" aria-live="polite">
+            <p className="auth-msg success" aria-live="polite">
               {notice}
             </p>
           ) : null}
 
           <button
-            className="haven-auth-submit"
+            className="auth-submit"
             disabled={status === "loading"}
             type="submit"
           >
@@ -153,7 +116,7 @@ function AuthScreen() {
         </form>
 
         <button
-          className="haven-auth-switch"
+          className="auth-switch"
           type="button"
           onClick={() => {
             setMode((current) => (current === "signin" ? "signup" : "signin"));

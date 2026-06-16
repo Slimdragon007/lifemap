@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LifeMap — Where We Are</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Hanken+Grotesque:wght@400..800&family=Fragment+Mono:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --display: "Fraunces", serif;
+        --ui: "Hanken Grotesque", sans-serif;
+        --mono: "Fragment Mono", monospace;
+        --cream: #fcf7ee;
+        --paper: #fffefa;
+        --line: #ecdfcd;
+        --ink: #2c2018;
+        --body: #6f6356;
+        --quiet: #b39a82;
+        --coral: #ef8d63;
+        --coral-deep: #cf7a52;
+        --blush: #ef7d92;
+        --peach: #f0b46a;
+        --sky: #86c3dc;
+        --sage: #7fa284;
+        --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+        --atmos:
+          radial-gradient(
+            46% 30% at 12% 6%,
+            rgba(255, 198, 150, 0.5),
+            transparent 62%
+          ),
+          radial-gradient(
+            42% 28% at 92% 10%,
+            rgba(255, 173, 184, 0.45),
+            transparent 60%
+          ),
+          radial-gradient(
+            60% 44% at 84% 98%,
+            rgba(168, 210, 224, 0.4),
+            transparent 62%
+          ),
+          linear-gradient(180deg, #fcf7ee, #faf2e8 60%, #f4f1ec);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: var(--ui);
+        color: var(--ink);
+        background: var(--atmos) fixed;
+        min-height: 100vh;
+        line-height: 1.5;
+        padding: 42px 20px 90px;
+      }
+      .grain {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.4;
+        mix-blend-mode: multiply;
+        z-index: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+      }
+      .wrap {
+        max-width: 760px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--coral-deep);
+      }
+      h1 {
+        font-family: var(--display);
+        font-weight: 330;
+        font-size: clamp(40px, 9vw, 60px);
+        line-height: 0.98;
+        letter-spacing: -0.02em;
+        margin: 12px 0 6px;
+      }
+      h1 em {
+        font-style: italic;
+        color: var(--coral-deep);
+      }
+      .lede {
+        font-size: 16px;
+        color: var(--body);
+        max-width: 54ch;
+      }
+      .bigbar {
+        margin: 26px 0 6px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px 20px;
+      }
+      .bigbar .steps {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+      .bigbar .seg {
+        flex: 1;
+        height: 8px;
+        border-radius: 6px;
+        background: #eadfce;
+      }
+      .seg.done {
+        background: linear-gradient(90deg, var(--sage), #9bb89f);
+      }
+      .seg.now {
+        background: linear-gradient(90deg, var(--peach), var(--coral));
+        animation: pulse 2s var(--ease) infinite;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.55;
+        }
+      }
+      .bigbar .lbls {
+        display: flex;
+        justify-content: space-between;
+        font-family: var(--mono);
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--quiet);
+      }
+      .bigbar .lbls b {
+        color: var(--ink);
+      }
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin: 24px 0 4px;
+        flex-wrap: wrap;
+      }
+      .tab {
+        font-family: var(--ui);
+        font-weight: 700;
+        font-size: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 254, 250, 0.6);
+        color: var(--body);
+        border-radius: 999px;
+        padding: 9px 16px;
+        cursor: pointer;
+        transition: 0.25s var(--ease);
+      }
+      .tab[aria-selected="true"] {
+        background: var(--ink);
+        color: #fdf6ec;
+        border-color: var(--ink);
+      }
+      .panel {
+        display: none;
+        animation: rise 0.5s var(--ease);
+      }
+      .panel.on {
+        display: block;
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .sec-h {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--quiet);
+        margin: 26px 2px 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--line);
+      }
+      .row {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        background: rgba(255, 254, 250, 0.7);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 15px 17px;
+        margin-bottom: 10px;
+      }
+      .row .ic {
+        flex: 0 0 auto;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 14px;
+        margin-top: 1px;
+      }
+      .ic.ok {
+        background: rgba(127, 162, 132, 0.18);
+        color: #4f7a55;
+      }
+      .ic.wait {
+        background: rgba(240, 180, 106, 0.22);
+        color: #b07d2c;
+      }
+      .ic.go {
+        background: rgba(239, 141, 99, 0.2);
+        color: var(--coral-deep);
+      }
+      .row h3 {
+        font-family: var(--display);
+        font-weight: 420;
+        font-size: 18px;
+        letter-spacing: -0.01em;
+      }
+      .row p {
+        font-size: 13.5px;
+        color: var(--body);
+        margin-top: 3px;
+      }
+      .row a {
+        color: var(--coral-deep);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .pill {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        border-radius: 7px;
+        margin-top: 8px;
+        display: inline-block;
+      }
+      .pill.live {
+        background: rgba(127, 162, 132, 0.16);
+        color: #4f7a55;
+      }
+      .pill.prev {
+        background: rgba(134, 195, 220, 0.18);
+        color: #3f7e96;
+      }
+      .pill.pend {
+        background: rgba(240, 180, 106, 0.2);
+        color: #b07d2c;
+      }
+      .cta {
+        border-radius: 20px;
+        padding: 20px 22px;
+        background: linear-gradient(120deg, #ef8d63, #ef7d92);
+        color: #fff;
+        box-shadow: 0 18px 40px -18px rgba(239, 125, 120, 0.7);
+        margin-bottom: 14px;
+      }
+      .cta b {
+        font-family: var(--display);
+        font-weight: 430;
+        font-size: 19px;
+      }
+      .cta p {
+        font-size: 14px;
+        margin-top: 6px;
+        opacity: 0.95;
+      }
+      .cta a {
+        color: #fff;
+        font-weight: 700;
+      }
+      .foot {
+        margin-top: 34px;
+        font-family: var(--display);
+        font-style: italic;
+        color: var(--quiet);
+        font-size: 14px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grain"></div>
+    <div class="wrap">
+      <div class="eyebrow">LifeMap · Where we are · Jun 16</div>
+      <h1>It's <em>real</em> now.</h1>
+      <p class="lede">
+        A domain, a beautiful login, email that actually sends — all live
+        tonight. Here's the map, and the two things left.
+      </p>
+
+      <div class="bigbar">
+        <div class="steps">
+          <div class="seg done"></div>
+          <div class="seg done"></div>
+          <div class="seg done"></div>
+          <div class="seg now"></div>
+        </div>
+        <div class="lbls">
+          <b>Built ✓</b><b>Shipped ✓</b><b>Email live ✓</b
+          ><span style="color: #b07d2c">Polish · in progress</span>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-p="live">
+          Live now
+        </button>
+        <button class="tab" role="tab" aria-selected="false" data-p="next">
+          What's next
+        </button>
+        <button class="tab" role="tab" aria-selected="false" data-p="how">
+          Behind it
+        </button>
+      </div>
+
+      <section class="panel on" id="live">
+        <div class="sec-h">Live in production</div>
+        <div class="row">
+          <div class="ic ok">✓</div>
+          <div>
+            <h3>Real home: app.getlifemap.com</h3>
+            <p>
+              Your own domain (getlifemap.com), SSL on, app served from
+              <a href="https://app.getlifemap.com">app.getlifemap.com</a>. No
+              more lifemap-d33.
+            </p>
+            <span class="pill live">live</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="ic ok">✓</div>
+          <div>
+            <h3>Email sending — getlifemap.com</h3>
+            <p>
+              Domain verified (DKIM/SPF/DMARC), sender notify@getlifemap.com,
+              sent_messages audit table, /api/send live. A real test email
+              delivered.
+            </p>
+            <span class="pill live">live · tested</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="ic ok">✓</div>
+          <div>
+            <h3>The AI loop</h3>
+            <p>
+              Forward the mess → real gpt-5.5 sorts it into your next 3 things.
+              Working in prod.
+            </p>
+            <span class="pill live">live</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="ic ok">✓</div>
+          <div>
+            <h3>Shipped features</h3>
+            <p>
+              Send-a-draft, source-evidence expansion, Privacy page, Reset demo,
+              Haven fonts loaded.
+            </p>
+            <span class="pill live">live</span>
+          </div>
+        </div>
+
+        <div class="sec-h">Ready to flip live</div>
+        <div class="row">
+          <div class="ic go">→</div>
+          <div>
+            <h3>Beautiful Haven sign-in</h3>
+            <p>
+              Calm, warm, branded — replaces the demo "Alex Kim" screen. Also
+              flips the whole site from demo to <b>real auth</b>. Preview:
+              <a href="https://haven-login-preview.lifemap-d33.pages.dev"
+                >haven-login-preview…</a
+              >
+            </p>
+            <span class="pill prev">preview — say "ship it"</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="next">
+        <div class="cta">
+          <b>Right now: “ship it”</b>
+          <p>
+            Deploy the Haven login → app.getlifemap.com goes from demo to real
+            auth + a gorgeous front door.
+          </p>
+        </div>
+        <div class="sec-h">Then, whenever you've got energy</div>
+        <div class="row">
+          <div class="ic wait">2</div>
+          <div>
+            <h3>Apply the Haven look to the screens</h3>
+            <p>
+              Right now the fonts are loaded + the login is Haven. Next: make
+              Today, Calendar, Capture actually <i>look</i> like Haven (the warm
+              calm you loved).
+            </p>
+            <span class="pill pend">queued</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="ic wait">3</div>
+          <div>
+            <h3>Google Calendar connect</h3>
+            <p>
+              Connect button is live but needs a ~10-min Google OAuth setup
+              (like email was) before it works.
+            </p>
+            <span class="pill pend">needs config</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="ic wait">4</div>
+          <div>
+            <h3>Nice-to-haves</h3>
+            <p>
+              Password reset flow, a marketing landing at getlifemap.com (bare
+              domain is free), onboarding for first-time users.
+            </p>
+            <span class="pill pend">later</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="how">
+        <div class="sec-h">How it got here (process held)</div>
+        <div class="row">
+          <div class="ic ok">✓</div>
+          <div>
+            <h3>Brainstorm → spec → plan → TDD → review → ship</h3>
+            <p>
+              Every feature went through the full loop. 132 tests stay green;
+              gates run on Node 22.
+            </p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="ic ok">✓</div>
+          <div>
+            <h3>Caught real bugs before users did</h3>
+            <p>
+              A prod-breaking CORS bug (pre-merge review) and the
+              demo-mode-build issue (today) — both found + fixed, not shipped
+              broken.
+            </p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="ic ok">✓</div>
+          <div>
+            <h3>Your accounts, mapped</h3>
+            <p>
+              Notion "Accounts & Access" index tracks every login (no passwords
+              stored). Cloudflare + Supabase + domain + OpenAI + GitHub.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <p class="foot">
+        From "I don't have an email" to a shipped, branded product — in one
+        night.
+      </p>
+    </div>
+    <script>
+      const tabs = [...document.querySelectorAll(".tab")];
+      const panels = {};
+      document.querySelectorAll(".panel").forEach((p) => (panels[p.id] = p));
+      tabs.forEach((t) =>
+        t.addEventListener("click", () => {
+          tabs.forEach((x) => x.setAttribute("aria-selected", String(x === t)));
+          Object.values(panels).forEach((p) => p.classList.remove("on"));
+          const panel = panels[t.dataset.p];
+          if (panel) panel.classList.add("on");
+        }),
+      );
+    </script>
+  </body>
+</html>
