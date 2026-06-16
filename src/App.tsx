@@ -35,6 +35,9 @@ import {
 import {
   authoritativeRemoteState,
   clearStoredDemoState,
+  emptyAnalysis,
+  emptyDailyBrief,
+  initialAppState,
   loadStoredDemoState,
   saveStoredDemoState,
 } from "./storage";
@@ -199,12 +202,14 @@ type CaptureRoute = {
 };
 
 function App() {
-  const [initialState] = useState(loadStoredDemoState);
+  const [initialState] = useState(() =>
+    initialAppState({ demoMode, stored: loadStoredDemoState() }),
+  );
   const [isLoggedIn, setIsLoggedIn] = useState(
     initialState.isLoggedIn ?? false,
   );
-  const [intake, setIntake] = useState(initialState.intake ?? starterIntake);
-  const [map, setMap] = useState(initialState.analysis ?? presentationAnalysis);
+  const [intake, setIntake] = useState(initialState.intake);
+  const [map, setMap] = useState(initialState.analysis);
   const approvals = useMemo(() => buildApprovalQueue(map), [map]);
   const [disabledApprovals, setDisabledApprovals] = useState<Set<string>>(
     () => new Set(initialState.disabledApprovalIds ?? []),
@@ -258,7 +263,7 @@ function App() {
   >("idle");
   const [analyzeError, setAnalyzeError] = useState<string>();
   const [dailyBrief, setDailyBrief] = useState<DailyBrief>(
-    initialState.dailyBrief ?? presentationBrief,
+    initialState.dailyBrief,
   );
   const [briefStatus, setBriefStatus] = useState<BriefStatus>("idle");
   const [briefError, setBriefError] = useState<string>();
@@ -411,12 +416,12 @@ function App() {
     // demo/local state cannot bleed into an authenticated account.
     const full = authoritativeRemoteState(state);
     setIntake(full.intake ?? "");
-    setMap(full.analysis ?? presentationAnalysis);
+    setMap(full.analysis ?? emptyAnalysis());
     setDisabledApprovals(new Set(full.disabledApprovalIds ?? []));
     setApprovalBodyEdits(full.approvalBodyEdits ?? {});
     setSavedSuggestionIds(new Set(full.savedSuggestionIds ?? []));
     setDismissedSuggestionIds(new Set(full.dismissedSuggestionIds ?? []));
-    setDailyBrief(full.dailyBrief ?? presentationBrief);
+    setDailyBrief(full.dailyBrief ?? emptyDailyBrief());
     setSetupProfile(
       normalizeSetupProfile(full.setupProfile ?? defaultSetupProfile),
     );
