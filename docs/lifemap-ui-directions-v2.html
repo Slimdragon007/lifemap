@@ -1,0 +1,1270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LifeMap — Design Directions, grounded</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Hanken+Grotesque:wght@300..800&family=Fragment+Mono&family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --shell-bg: #f4f1ea;
+        --shell-ink: #211c16;
+        --shell-ink-soft: #6b6256;
+        --shell-line: #e0d8ca;
+        --shell-card: #fffdf8;
+        --shell-accent: #c2603a;
+        --ui: "Hanken Grotesque", system-ui, sans-serif;
+        --display: "Fraunces", Georgia, serif;
+        --mono: "Fragment Mono", ui-monospace, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: var(--ui);
+        background: var(--shell-bg);
+        color: var(--shell-ink);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        background-image: radial-gradient(
+          circle at 0 0,
+          rgba(0, 0, 0, 0.015) 1px,
+          transparent 1px
+        );
+        background-size: 4px 4px;
+      }
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 28px;
+      }
+
+      /* ---- masthead ---- */
+      header.top {
+        padding: 72px 0 36px;
+        border-bottom: 1px solid var(--shell-line);
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--shell-accent);
+      }
+      h1.title {
+        font-family: var(--display);
+        font-weight: 380;
+        font-size: clamp(34px, 5.4vw, 58px);
+        line-height: 1.04;
+        letter-spacing: -0.015em;
+        margin: 14px 0 16px;
+      }
+      h1.title em {
+        font-style: italic;
+        color: var(--shell-accent);
+      }
+      .lede {
+        max-width: 60ch;
+        font-size: 17px;
+        color: var(--shell-ink-soft);
+      }
+      .lede a {
+        color: var(--shell-ink);
+        text-decoration-color: var(--shell-line);
+        text-underline-offset: 3px;
+      }
+      .masthead-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 24px;
+      }
+      .pill {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        letter-spacing: 0.04em;
+        padding: 7px 12px;
+        border: 1px solid var(--shell-line);
+        border-radius: 999px;
+        background: var(--shell-card);
+        color: var(--shell-ink-soft);
+      }
+
+      /* ---- principles legend ---- */
+      .legend {
+        padding: 36px 0 8px;
+      }
+      .legend h2 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 22px;
+        margin-bottom: 4px;
+      }
+      .legend p {
+        color: var(--shell-ink-soft);
+        font-size: 14.5px;
+        max-width: 64ch;
+        margin-bottom: 20px;
+      }
+      .pgrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+        gap: 12px;
+      }
+      .pcard {
+        background: var(--shell-card);
+        border: 1px solid var(--shell-line);
+        border-radius: 14px;
+        padding: 14px 15px;
+      }
+      .pcard .pid {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--shell-accent);
+        letter-spacing: 0.08em;
+      }
+      .pcard .pname {
+        font-weight: 650;
+        font-size: 13.5px;
+        margin: 3px 0 5px;
+      }
+      .pcard .pdesc {
+        font-size: 12px;
+        color: var(--shell-ink-soft);
+        line-height: 1.45;
+      }
+
+      /* ---- direction section ---- */
+      section.dir {
+        padding: 54px 0;
+        border-bottom: 1px solid var(--shell-line);
+      }
+      .dir-head {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+      }
+      .dir-num {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--shell-ink-soft);
+      }
+      .dir-name {
+        font-family: var(--display);
+        font-weight: 420;
+        font-size: 30px;
+        letter-spacing: -0.01em;
+      }
+      .dir-tag {
+        font-family: var(--mono);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        padding: 5px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--shell-line);
+        color: var(--shell-ink-soft);
+      }
+      .dir-bet {
+        font-size: 16px;
+        color: var(--shell-ink-soft);
+        max-width: 64ch;
+        margin-bottom: 30px;
+      }
+      .dir-bet b {
+        color: var(--shell-ink);
+        font-weight: 650;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 44px;
+        align-items: start;
+      }
+      @media (max-width: 820px) {
+        .split {
+          grid-template-columns: 1fr;
+          gap: 32px;
+        }
+      }
+
+      /* device frame (shared) */
+      .device {
+        width: 340px;
+        max-width: 100%;
+        border-radius: 34px;
+        padding: 11px;
+        background: #1c1812;
+        box-shadow:
+          0 30px 60px -28px rgba(40, 28, 16, 0.55),
+          0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .screen {
+        border-radius: 25px;
+        overflow: hidden;
+        height: 660px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+      .screen .statusbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 13px 22px 4px;
+        font-size: 12px;
+        font-weight: 600;
+        opacity: 0.7;
+      }
+      .screen .body {
+        flex: 1;
+        overflow: hidden;
+        padding: 8px 20px 22px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* why panel (shared) */
+      .why h3 {
+        font-family: var(--display);
+        font-weight: 430;
+        font-size: 21px;
+        margin-bottom: 4px;
+      }
+      .why .sub {
+        font-size: 13px;
+        color: var(--shell-ink-soft);
+        margin-bottom: 18px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 22px;
+      }
+      .chip {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        padding: 6px 11px;
+        border-radius: 999px;
+        border: 1px solid var(--shell-line);
+        color: var(--shell-ink-soft);
+        background: var(--shell-card);
+        opacity: 0.5;
+      }
+      .chip.on {
+        opacity: 1;
+        border-color: var(--shell-accent);
+        color: var(--shell-accent);
+        background: #fff;
+      }
+      .chip.lead {
+        background: var(--shell-accent);
+        color: #fff;
+        border-color: var(--shell-accent);
+      }
+      .reasons {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .reasons li {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        font-size: 14.5px;
+        color: var(--shell-ink);
+        line-height: 1.5;
+      }
+      .reasons .ref {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: #fff;
+        background: var(--shell-accent);
+        border-radius: 6px;
+        padding: 3px 7px;
+        height: fit-content;
+        white-space: nowrap;
+        margin-top: 2px;
+      }
+      .reasons b {
+        font-weight: 680;
+      }
+      .scorebar {
+        display: flex;
+        gap: 6px;
+        margin-top: 24px;
+        align-items: center;
+      }
+      .scorebar .lab {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--shell-ink-soft);
+        letter-spacing: 0.08em;
+        margin-right: 4px;
+      }
+      .dot {
+        width: 26px;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--shell-line);
+      }
+      .dot.m {
+        background: #cbb9a4;
+      }
+      .dot.h {
+        background: var(--shell-accent);
+      }
+
+      /* =================== DIRECTION 1: HAVEN =================== */
+      .dir-haven .screen {
+        background: #fcf7ee;
+        color: #2c2018;
+        font-family: "Hanken Grotesque", sans-serif;
+      }
+      .dir-haven .statusbar {
+        color: #2c2018;
+      }
+      .h-atmos {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            120% 80% at 0% 0%,
+            rgba(239, 141, 99, 0.2),
+            transparent 55%
+          ),
+          radial-gradient(
+            120% 80% at 100% 10%,
+            rgba(134, 195, 220, 0.18),
+            transparent 50%
+          );
+        pointer-events: none;
+      }
+      .h-eyebrow {
+        font-family: "Fragment Mono", monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #cf7a52;
+        position: relative;
+      }
+      .h-brief {
+        font-family: "Fraunces", serif;
+        font-weight: 360;
+        font-size: 21px;
+        line-height: 1.28;
+        margin: 8px 0 22px;
+        position: relative;
+        letter-spacing: -0.01em;
+      }
+      .h-brief em {
+        font-style: italic;
+        color: #cf7a52;
+      }
+      .h-label {
+        font-family: "Fragment Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #b39a82;
+        margin: 0 0 11px;
+        position: relative;
+      }
+      .h-action {
+        background: #fffefa;
+        border: 1px solid #ecdfcd;
+        border-radius: 18px;
+        padding: 15px 16px;
+        margin-bottom: 11px;
+        position: relative;
+        box-shadow: 0 8px 18px -14px rgba(120, 80, 40, 0.4);
+      }
+      .h-action.lead {
+        background: linear-gradient(120deg, #ef8d63, #ef7d92);
+        border: none;
+        color: #fff;
+        box-shadow: 0 14px 28px -14px rgba(239, 125, 110, 0.7);
+      }
+      .h-action .t {
+        font-weight: 640;
+        font-size: 14.5px;
+        line-height: 1.3;
+      }
+      .h-action .m {
+        font-size: 12px;
+        opacity: 0.72;
+        margin-top: 3px;
+      }
+      .h-action.lead .m {
+        opacity: 0.9;
+      }
+      .h-foot {
+        margin-top: auto;
+        display: flex;
+        gap: 9px;
+        position: relative;
+      }
+      .h-mini {
+        flex: 1;
+        background: #fffefa;
+        border: 1px solid #ecdfcd;
+        border-radius: 14px;
+        padding: 10px 12px;
+      }
+      .h-mini .k {
+        font-family: "Fragment Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #b39a82;
+      }
+      .h-mini .v {
+        font-size: 12.5px;
+        font-weight: 600;
+        margin-top: 3px;
+        color: #2c2018;
+      }
+      .dir-haven {
+        --shell-accent: #cf7a52;
+      }
+
+      /* =================== DIRECTION 2: FOCUS-FIRST =================== */
+      .dir-focus .screen {
+        background: #15140f;
+        color: #f3efe6;
+        font-family: "Bricolage Grotesque", sans-serif;
+      }
+      .dir-focus .statusbar {
+        color: #f3efe6;
+      }
+      .f-top {
+        font-family: "Fragment Mono", monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #9b9486;
+      }
+      .f-of {
+        color: #e8b15a;
+      }
+      .f-hero {
+        margin: auto 0;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .f-kicker {
+        font-family: "Fragment Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #e8b15a;
+      }
+      .f-headline {
+        font-family: "Bricolage Grotesque", sans-serif;
+        font-weight: 720;
+        font-size: 30px;
+        line-height: 1.06;
+        letter-spacing: -0.02em;
+      }
+      .f-meta {
+        font-size: 13.5px;
+        color: #b8b1a4;
+      }
+      .f-cta {
+        background: #e8b15a;
+        color: #1a1610;
+        border: none;
+        border-radius: 15px;
+        padding: 15px;
+        font-family: inherit;
+        font-weight: 700;
+        font-size: 15px;
+        width: 100%;
+        cursor: pointer;
+        letter-spacing: -0.01em;
+      }
+      .f-defer {
+        background: none;
+        border: none;
+        color: #8d8676;
+        font-size: 13px;
+        font-family: inherit;
+        width: 100%;
+        padding: 8px;
+        cursor: pointer;
+      }
+      .f-rest {
+        margin-top: auto;
+        border-top: 1px solid #2c2920;
+        padding-top: 14px;
+      }
+      .f-rest .rk {
+        font-family: "Fragment Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #6f695c;
+        margin-bottom: 9px;
+      }
+      .f-ghost {
+        font-size: 13px;
+        color: #6f695c;
+        padding: 6px 0;
+        display: flex;
+        justify-content: space-between;
+      }
+      .dir-focus {
+        --shell-accent: #b87320;
+      }
+
+      /* =================== DIRECTION 3: LOW-STIMULUS =================== */
+      .dir-quiet .screen {
+        background: #f6f6f4;
+        color: #33332f;
+        font-family: "Hanken Grotesque", sans-serif;
+      }
+      .dir-quiet .statusbar {
+        color: #33332f;
+        opacity: 0.45;
+      }
+      .q-date {
+        font-size: 12px;
+        color: #9b9b95;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+      }
+      .q-brief {
+        font-size: 18px;
+        font-weight: 400;
+        line-height: 1.45;
+        color: #4a4a44;
+        margin: 10px 0 34px;
+        max-width: 24ch;
+      }
+      .q-dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #7a9b86;
+        margin-right: 9px;
+        vertical-align: middle;
+      }
+      .q-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .q-item {
+        padding: 17px 0;
+        border-bottom: 1px solid #e6e6e2;
+        font-size: 15px;
+        font-weight: 450;
+        color: #33332f;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+      }
+      .q-item .qn {
+        font-size: 12px;
+        color: #b5b5af;
+        font-variant-numeric: tabular-nums;
+        width: 14px;
+      }
+      .q-item.first {
+        font-weight: 600;
+      }
+      .q-item .when {
+        margin-left: auto;
+        font-size: 11.5px;
+        color: #a0a09a;
+        font-weight: 500;
+      }
+      .q-foot {
+        margin-top: auto;
+        font-size: 12px;
+        color: #a0a09a;
+        line-height: 1.6;
+        padding-top: 18px;
+      }
+      .q-foot b {
+        color: #6a6a63;
+        font-weight: 600;
+      }
+      .dir-quiet {
+        --shell-accent: #5f7e6b;
+      }
+
+      /* =================== DIRECTION 4: SCAFFOLDED =================== */
+      .dir-scaffold .screen {
+        background: #eef1f4;
+        color: #222a31;
+        font-family: "Hanken Grotesque", sans-serif;
+      }
+      .dir-scaffold .statusbar {
+        color: #222a31;
+      }
+      .s-prog {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 4px;
+      }
+      .s-prog .bar {
+        flex: 1;
+        height: 7px;
+        border-radius: 4px;
+        background: #dbe1e7;
+        overflow: hidden;
+      }
+      .s-prog .bar i {
+        display: block;
+        height: 100%;
+        width: 33%;
+        background: #3f7d8c;
+        border-radius: 4px;
+      }
+      .s-prog .lab {
+        font-family: "Fragment Mono", monospace;
+        font-size: 10px;
+        color: #5d6b76;
+        letter-spacing: 0.04em;
+      }
+      .s-brief {
+        font-size: 13.5px;
+        color: #5d6b76;
+        margin: 10px 0 18px;
+        line-height: 1.45;
+      }
+      .s-chunk {
+        background: #fff;
+        border: 1px solid #dde3e9;
+        border-radius: 14px;
+        padding: 13px 14px;
+        margin-bottom: 11px;
+      }
+      .s-chunk .ch {
+        font-family: "Fragment Mono", monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #7c8893;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .s-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        padding: 7px 0;
+        font-size: 14px;
+        line-height: 1.35;
+      }
+      .s-box {
+        width: 19px;
+        height: 19px;
+        border-radius: 6px;
+        border: 2px solid #c2ccd4;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .s-row.done .s-box {
+        background: #3f7d8c;
+        border-color: #3f7d8c;
+        position: relative;
+      }
+      .s-row.done .s-box::after {
+        content: "✓";
+        color: #fff;
+        font-size: 12px;
+        position: absolute;
+        top: -2px;
+        left: 3px;
+      }
+      .s-row.done .tx {
+        color: #9aa6af;
+        text-decoration: line-through;
+      }
+      .s-row .lead-tag {
+        font-family: "Fragment Mono", monospace;
+        font-size: 9px;
+        background: #3f7d8c;
+        color: #fff;
+        border-radius: 5px;
+        padding: 2px 6px;
+        margin-left: auto;
+      }
+      .s-row .tx b {
+        display: block;
+        font-weight: 650;
+      }
+      .s-row .tx span {
+        font-size: 11.5px;
+        color: #7c8893;
+      }
+      .dir-scaffold {
+        --shell-accent: #3f7d8c;
+      }
+
+      footer.end {
+        padding: 56px 0 80px;
+        text-align: center;
+      }
+      footer.end .big {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 26px;
+        margin-bottom: 10px;
+      }
+      footer.end p {
+        color: var(--shell-ink-soft);
+        font-size: 14.5px;
+        max-width: 54ch;
+        margin: 0 auto;
+      }
+      .src-note {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--shell-ink-soft);
+        margin-top: 22px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap">
+        <span class="eyebrow">LifeMap · design directions v2</span>
+        <h1 class="title">
+          Same screen.<br />Four bets on a <em>calmer mind.</em>
+        </h1>
+        <p class="lede">
+          LifeMap exists to lighten the mental load of family-admin for parents
+          and ADHD brains. So these four directions all render the
+          <b>exact same moment</b> — your next three things — and each one is a
+          different wager on how to make that moment land. Every choice traces
+          to a researched principle, not a mood. The reasoning lives in
+          <a href="./lifemap-design-rationale.md">lifemap-design-rationale.md</a
+          >.
+        </p>
+        <div class="masthead-meta">
+          <span class="pill">Haven is shipped — it competes here on merit</span>
+          <span class="pill">14 cited sources · 6 principles</span>
+          <span class="pill">Pick one → it styles the whole app</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <div class="legend">
+        <h2>The six principles</h2>
+        <p>
+          Drawn from cognitive load theory, ADHD/executive-function research,
+          calm technology, and WCAG cognitive-accessibility guidance. Each
+          direction below leans on a different subset.
+        </p>
+        <div class="pgrid">
+          <div class="pcard">
+            <div class="pid">P1</div>
+            <div class="pname">One clear next action</div>
+            <div class="pdesc">
+              Reduce to a single doable step; fewer options = faster, less
+              stuck.
+            </div>
+          </div>
+          <div class="pcard">
+            <div class="pid">P2</div>
+            <div class="pname">Minimize choices &amp; chunk</div>
+            <div class="pdesc">
+              Working memory is tiny (~3–4 live chunks). Group, cap, default.
+            </div>
+          </div>
+          <div class="pcard">
+            <div class="pid">P3</div>
+            <div class="pname">Low visual noise</div>
+            <div class="pdesc">
+              Clutter is extraneous load. Whitespace; color only where it
+              counts.
+            </div>
+          </div>
+          <div class="pcard">
+            <div class="pid">P4</div>
+            <div class="pname">Forgiving tone</div>
+            <div class="pdesc">
+              Reversible, non-judgmental, safe to leave and come back to.
+            </div>
+          </div>
+          <div class="pcard">
+            <div class="pid">P5</div>
+            <div class="pname">Show now, hide later</div>
+            <div class="pdesc">
+              Progressive disclosure; the backlog doesn't trigger overwhelm.
+            </div>
+          </div>
+          <div class="pcard">
+            <div class="pid">P6</div>
+            <div class="pname">Externalize memory</div>
+            <div class="pdesc">
+              The app holds state &amp; timing so the brain doesn't have to.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DIRECTION 1 — HAVEN ============ -->
+    <section class="dir dir-haven">
+      <div class="wrap">
+        <div class="dir-head">
+          <span class="dir-num">01</span>
+          <span class="dir-name">Haven</span>
+          <span class="dir-tag">warm · calm-editorial · shipped</span>
+        </div>
+        <p class="dir-bet">
+          The bet: <b>emotional safety first.</b> Warm paper, a soft serif
+          voice, and one coral action that glows. It reads like a kind note, not
+          a task manager — betting that <b>lowering the stakes</b> is what gets
+          an overwhelmed parent to engage at all.
+        </p>
+        <div class="split">
+          <div class="device">
+            <div class="screen">
+              <div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>
+              <div class="body">
+                <div class="h-atmos"></div>
+                <span class="h-eyebrow">Tuesday · June 16</span>
+                <p class="h-brief">
+                  Today looks calm. <em>One</em> thing is time-sensitive — the
+                  rest can breathe.
+                </p>
+                <p class="h-label">Your next three</p>
+                <div class="h-action lead">
+                  <div class="t">Sign Emma's field-trip slip</div>
+                  <div class="m">Due Thursday · I drafted the reply</div>
+                </div>
+                <div class="h-action">
+                  <div class="t">Reply to Milo's vet on the dental quote</div>
+                  <div class="m">No rush — sometime this week</div>
+                </div>
+                <div class="h-action">
+                  <div class="t">Add the passport renewal photo</div>
+                  <div class="m">Waiting on you</div>
+                </div>
+                <div class="h-foot">
+                  <div class="h-mini">
+                    <div class="k">Due next</div>
+                    <div class="v">Thu · slip</div>
+                  </div>
+                  <div class="h-mini">
+                    <div class="k">Waiting on</div>
+                    <div class="v">Westview School</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="why">
+            <h3>Why it works for the ADHD / parent brain</h3>
+            <p class="sub">Leans hardest on calm and tone.</p>
+            <div class="chips">
+              <span class="chip">P1</span><span class="chip">P2</span>
+              <span class="chip on lead">P3</span
+              ><span class="chip on lead">P4</span> <span class="chip">P5</span
+              ><span class="chip on">P6</span>
+            </div>
+            <ul class="reasons">
+              <li>
+                <span class="ref">P4</span
+                ><span
+                  ><b>Reassuring, non-judgmental copy</b> ("the rest can
+                  breathe") lowers the anxiety that fuels task-paralysis, so the
+                  screen invites action instead of guilt.</span
+                >
+              </li>
+              <li>
+                <span class="ref">P3</span
+                ><span
+                  ><b>Color is rationed</b> — only the one time-sensitive action
+                  gets the coral gradient. Everything else is quiet paper, so
+                  attention lands where it matters.</span
+                >
+              </li>
+              <li>
+                <span class="ref">P6</span
+                ><span
+                  >The <b>"Due next / Waiting on" footer</b> makes timing and
+                  external blockers visible, so they don't have to be held in
+                  memory.</span
+                >
+              </li>
+            </ul>
+            <div class="scorebar">
+              <span class="lab">EMPHASIS</span>
+              <span class="dot m" title="P1"></span
+              ><span class="dot" title="P2"></span
+              ><span class="dot h" title="P3"></span
+              ><span class="dot h" title="P4"></span
+              ><span class="dot m" title="P5"></span
+              ><span class="dot h" title="P6"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIRECTION 2 — FOCUS-FIRST ============ -->
+    <section class="dir dir-focus">
+      <div class="wrap">
+        <div class="dir-head">
+          <span class="dir-num">02</span>
+          <span class="dir-name">Focus-first</span>
+          <span class="dir-tag">one thing at a time</span>
+        </div>
+        <p class="dir-bet">
+          The bet: <b>the backlog is the enemy.</b> Show <b>one</b> action, huge
+          and alone, on a dark stage. The other two are a dim whisper at the
+          bottom you can ignore. Betting that the fastest way to start is to
+          remove everything you're not doing right now.
+        </p>
+        <div class="split">
+          <div class="device">
+            <div class="screen">
+              <div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>
+              <div class="body">
+                <div class="f-top">
+                  Tuesday · <span class="f-of">1 of 3</span>
+                </div>
+                <div class="f-hero">
+                  <span class="f-kicker">Do this now</span>
+                  <div class="f-headline">
+                    Sign Emma's field-trip permission slip.
+                  </div>
+                  <div class="f-meta">
+                    Due Thursday 6/18 · Westview School is waiting · reply
+                    already drafted.
+                  </div>
+                  <button class="f-cta">Open the draft →</button>
+                  <button class="f-defer">Not now — show me later</button>
+                </div>
+                <div class="f-rest">
+                  <div class="rk">Then, when you're ready</div>
+                  <div class="f-ghost">
+                    <span>Reply to Milo's vet</span><span>2</span>
+                  </div>
+                  <div class="f-ghost">
+                    <span>Passport renewal photo</span><span>3</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="why">
+            <h3>Why it works for the ADHD / parent brain</h3>
+            <p class="sub">Leans hardest on a single action and disclosure.</p>
+            <div class="chips">
+              <span class="chip on lead">P1</span
+              ><span class="chip on">P2</span> <span class="chip">P3</span
+              ><span class="chip">P4</span> <span class="chip on lead">P5</span
+              ><span class="chip on">P6</span>
+            </div>
+            <ul class="reasons">
+              <li>
+                <span class="ref">P1</span
+                ><span
+                  >The screen answers exactly one question —
+                  <b>"what do I do right now?"</b> — with one concrete,
+                  pre-decided step. Nothing to triage, so there's nothing to
+                  stall on.</span
+                >
+              </li>
+              <li>
+                <span class="ref">P5</span
+                ><span
+                  >The other two tasks are
+                  <b>literally pushed out of focus</b> (dim, bottom, smaller).
+                  The mountain is hidden, so it can't trigger the overwhelm that
+                  stops people cold.</span
+                >
+              </li>
+              <li>
+                <span class="ref">P2</span
+                ><span
+                  ><b>One choice, one button.</b> Decision time collapses when
+                  the option count drops to one recommended action.</span
+                >
+              </li>
+            </ul>
+            <div class="scorebar">
+              <span class="lab">EMPHASIS</span>
+              <span class="dot h" title="P1"></span
+              ><span class="dot m" title="P2"></span
+              ><span class="dot" title="P3"></span
+              ><span class="dot m" title="P4"></span
+              ><span class="dot h" title="P5"></span
+              ><span class="dot m" title="P6"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIRECTION 3 — LOW-STIMULUS ============ -->
+    <section class="dir dir-quiet">
+      <div class="wrap">
+        <div class="dir-head">
+          <span class="dir-num">03</span>
+          <span class="dir-name">Low-stimulus</span>
+          <span class="dir-tag">sensory-load floor</span>
+        </div>
+        <p class="dir-bet">
+          The bet: <b>do less to the eye.</b> Near-monochrome, no gradients, no
+          shadows, almost no color — one tiny sage dot is the loudest thing on
+          screen. Maximal whitespace. Betting that for a sensory-overloaded
+          brain, the kindest design is the <b>quietest</b> one.
+        </p>
+        <div class="split">
+          <div class="device">
+            <div class="screen">
+              <div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>
+              <div class="body">
+                <div class="q-date">Tuesday, June 16</div>
+                <p class="q-brief">
+                  One thing is time-sensitive today. The rest can wait.
+                </p>
+                <div class="q-list">
+                  <div class="q-item first">
+                    <span class="q-dot"></span>Sign Emma's field-trip slip<span
+                      class="when"
+                      >Thu</span
+                    >
+                  </div>
+                  <div class="q-item">
+                    <span class="qn">2</span>Reply to Milo's vet<span
+                      class="when"
+                      >this wk</span
+                    >
+                  </div>
+                  <div class="q-item">
+                    <span class="qn">3</span>Passport renewal photo<span
+                      class="when"
+                      >—</span
+                    >
+                  </div>
+                </div>
+                <div class="q-foot">
+                  Waiting on <b>Westview School</b> — they need the signed
+                  slip.<br />Nothing else needs you today.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="why">
+            <h3>Why it works for the ADHD / parent brain</h3>
+            <p class="sub">Leans hardest on noise reduction and chunking.</p>
+            <div class="chips">
+              <span class="chip on">P1</span><span class="chip on">P2</span>
+              <span class="chip on lead">P3</span
+              ><span class="chip on">P4</span> <span class="chip">P5</span
+              ><span class="chip">P6</span>
+            </div>
+            <ul class="reasons">
+              <li>
+                <span class="ref">P3</span
+                ><span
+                  >Every removed flourish gives back processing power.
+                  <b>No gradients, no cards, no shadow</b> — extraneous load
+                  drops to near zero, which calm-tech research treats as the
+                  goal, not a compromise.</span
+                >
+              </li>
+              <li>
+                <span class="ref">P2</span
+                ><span
+                  >The list is <b>three items, period</b>, with the
+                  time-sensitive one weighted heavier. Working memory isn't
+                  asked to hold a queue.</span
+                >
+              </li>
+              <li>
+                <span class="ref">P1</span
+                ><span
+                  >The single <b>sage dot</b> is the only saturated pixel — it
+                  silently marks the one thing that matters today, doing the
+                  focal work that color usually shouts for.</span
+                >
+              </li>
+            </ul>
+            <div class="scorebar">
+              <span class="lab">EMPHASIS</span>
+              <span class="dot m" title="P1"></span
+              ><span class="dot h" title="P2"></span
+              ><span class="dot h" title="P3"></span
+              ><span class="dot m" title="P4"></span
+              ><span class="dot" title="P5"></span
+              ><span class="dot m" title="P6"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIRECTION 4 — SCAFFOLDED ============ -->
+    <section class="dir dir-scaffold">
+      <div class="wrap">
+        <div class="dir-head">
+          <span class="dir-num">04</span>
+          <span class="dir-name">Scaffolded</span>
+          <span class="dir-tag">externalize working memory</span>
+        </div>
+        <p class="dir-bet">
+          The bet: <b>be the external brain.</b> Explicit chunks, real
+          checkboxes, a progress bar, and status on everything. It looks more
+          "tool" than the others on purpose — betting that visible structure and
+          crossable boxes are what actually hold state for a brain that won't.
+        </p>
+        <div class="split">
+          <div class="device">
+            <div class="screen">
+              <div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>
+              <div class="body">
+                <div class="s-prog">
+                  <div class="bar"><i></i></div>
+                  <span class="lab">1 / 3 done</span>
+                </div>
+                <p class="s-brief">
+                  Tuesday, June 16 · I'm holding everything below. Cross things
+                  off — I'll remember the rest.
+                </p>
+                <div class="s-chunk">
+                  <div class="ch">
+                    <span>Time-sensitive</span><span>1 item</span>
+                  </div>
+                  <div class="s-row">
+                    <div class="s-box"></div>
+                    <div class="tx">
+                      <b>Sign Emma's field-trip slip</b
+                      ><span>Due Thu 6/18 · draft ready</span>
+                    </div>
+                    <span class="lead-tag">DO 1st</span>
+                  </div>
+                </div>
+                <div class="s-chunk">
+                  <div class="ch">
+                    <span>This week</span><span>2 items</span>
+                  </div>
+                  <div class="s-row">
+                    <div class="s-box"></div>
+                    <div class="tx">
+                      <b>Reply to Milo's vet</b
+                      ><span>Dental quote — your call</span>
+                    </div>
+                  </div>
+                  <div class="s-row">
+                    <div class="s-box"></div>
+                    <div class="tx">
+                      <b>Passport renewal photo</b
+                      ><span>Upload when handy</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="s-chunk">
+                  <div class="ch">
+                    <span>Already handled</span><span>waiting</span>
+                  </div>
+                  <div class="s-row done">
+                    <div class="s-box"></div>
+                    <div class="tx">
+                      <b>Asked Westview for the form</b
+                      ><span>They're sending it back</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="why">
+            <h3>Why it works for the ADHD / parent brain</h3>
+            <p class="sub">
+              Leans hardest on chunking and externalized memory.
+            </p>
+            <div class="chips">
+              <span class="chip on">P1</span
+              ><span class="chip on lead">P2</span> <span class="chip">P3</span
+              ><span class="chip on">P4</span> <span class="chip on">P5</span
+              ><span class="chip on lead">P6</span>
+            </div>
+            <ul class="reasons">
+              <li>
+                <span class="ref">P6</span
+                ><span
+                  >The explicit copy — <b>"I'm holding everything below"</b> —
+                  plus persistent checkboxes and a "handled" chunk make the app
+                  a trusted external system, the single most effective
+                  executive-function support.</span
+                >
+              </li>
+              <li>
+                <span class="ref">P2</span
+                ><span
+                  >Items are <b>grouped into labeled chunks</b> (time-sensitive
+                  / this week / handled) with counts, so a flat overwhelming
+                  list becomes three small, scannable groups.</span
+                >
+              </li>
+              <li>
+                <span class="ref">P4</span
+                ><span
+                  >The <b>progress bar and crossed-off row</b> give visible
+                  credit for what's done — momentum and reassurance instead of
+                  an ever-growing pile.</span
+                >
+              </li>
+            </ul>
+            <div class="scorebar">
+              <span class="lab">EMPHASIS</span>
+              <span class="dot m" title="P1"></span
+              ><span class="dot h" title="P2"></span
+              ><span class="dot" title="P3"></span
+              ><span class="dot m" title="P4"></span
+              ><span class="dot m" title="P5"></span
+              ><span class="dot h" title="P6"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="end">
+      <div class="wrap">
+        <div class="big">So — which bet fits your user?</div>
+        <p>
+          They're not just four looks; they're four theories of what an
+          overwhelmed parent needs most. Haven bets on warmth, Focus-first on
+          subtraction, Low-stimulus on quiet, Scaffolded on structure. Pick one
+          (or a combination) and it becomes the language for Today, Calendar,
+          Capture, and the rest.
+        </p>
+        <div class="src-note">
+          Reasoning &amp; citations: lifemap-design-rationale.md · 14 sources ·
+          P1–P6
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

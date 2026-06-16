@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LifeMap — Low-stimulus motion, right-sized</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesque:wght@300..700&family=Fragment+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f6f6f4;
+        --ink: #33332f;
+        --ink-soft: #6a6a63;
+        --ink-quiet: #a0a09a;
+        --line: #e6e6e2;
+        --sage: #6f9079;
+        --sage-soft: #7a9b86;
+        --ui: "Hanken Grotesque", system-ui, sans-serif;
+        --mono: "Fragment Mono", monospace;
+        --out: cubic-bezier(0.22, 0.61, 0.36, 1); /* ease-out */
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: var(--ui);
+        color: var(--ink);
+        background: #eceae6;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 22px;
+        padding: 34px 18px;
+      }
+
+      /* ---- control bar ---- */
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+        max-width: 430px;
+      }
+      .seg {
+        display: inline-flex;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 3px;
+      }
+      .seg button {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        border: none;
+        background: none;
+        color: var(--ink-quiet);
+        padding: 8px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: 0.25s var(--out);
+      }
+      .seg button.on {
+        background: var(--sage);
+        color: #fff;
+      }
+      .btn {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 9px 15px;
+        cursor: pointer;
+        color: var(--ink-soft);
+        transition: 0.25s var(--out);
+      }
+      .btn:hover {
+        border-color: var(--sage-soft);
+        color: var(--sage);
+      }
+
+      /* ---- stage + ambient water (only under .ambient) ---- */
+      .stage {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .water {
+        position: absolute;
+        inset: -18% -30%;
+        z-index: 0;
+        filter: blur(46px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 1.2s var(--out);
+      }
+      body.ambient .water {
+        opacity: 0.6;
+      }
+      .water span {
+        position: absolute;
+        border-radius: 50%;
+        mix-blend-mode: multiply;
+      }
+      .water .a {
+        width: 46%;
+        height: 46%;
+        left: 6%;
+        top: 8%;
+        background: radial-gradient(circle, #9fc0ab, transparent 68%);
+      }
+      .water .b {
+        width: 52%;
+        height: 52%;
+        right: 2%;
+        top: 20%;
+        background: radial-gradient(circle, #bcd0c4, transparent 70%);
+      }
+      .water .c {
+        width: 40%;
+        height: 40%;
+        left: 30%;
+        bottom: 4%;
+        background: radial-gradient(circle, #d6cdbe, transparent 70%);
+      }
+      body.ambient .water .a {
+        animation: drift1 34s var(--out) infinite;
+      }
+      body.ambient .water .b {
+        animation: drift2 41s var(--out) infinite;
+      }
+      body.ambient .water .c {
+        animation: drift3 47s var(--out) infinite;
+      }
+      @keyframes drift1 {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        33% {
+          transform: translate(8%, 5%) scale(1.08);
+        }
+        66% {
+          transform: translate(-5%, 8%) scale(0.96);
+        }
+      }
+      @keyframes drift2 {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        50% {
+          transform: translate(-7%, -6%) scale(1.1);
+        }
+      }
+      @keyframes drift3 {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        40% {
+          transform: translate(6%, -5%) scale(1.05);
+        }
+        80% {
+          transform: translate(-6%, 3%) scale(0.98);
+        }
+      }
+
+      /* device */
+      .device {
+        position: relative;
+        z-index: 1;
+        width: 352px;
+        max-width: 92vw;
+        border-radius: 38px;
+        padding: 12px;
+        background: #fff;
+        box-shadow:
+          0 40px 80px -36px rgba(60, 70, 60, 0.42),
+          0 6px 20px -10px rgba(0, 0, 0, 0.08);
+      }
+      .screen {
+        position: relative;
+        border-radius: 28px;
+        overflow: hidden;
+        height: 660px;
+        background: var(--paper);
+        display: flex;
+        flex-direction: column;
+      }
+      .statusbar {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px 24px 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink);
+        opacity: 0.4;
+      }
+      .scr-body {
+        flex: 1;
+        padding: 14px 26px 26px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* one-time settle on load (motion: content enter) */
+      .rise {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      body.loaded .rise {
+        opacity: 1;
+        transform: none;
+        transition:
+          opacity 0.42s var(--out),
+          transform 0.42s var(--out);
+      }
+      body.loaded .d1 {
+        transition-delay: 0.04s;
+      }
+      body.loaded .d2 {
+        transition-delay: 0.16s;
+      }
+      body.loaded .d3 {
+        transition-delay: 0.3s;
+      }
+      body.loaded .d4 {
+        transition-delay: 0.42s;
+      }
+      body.loaded .d5 {
+        transition-delay: 0.54s;
+      }
+      body.loaded .d6 {
+        transition-delay: 0.72s;
+      }
+
+      .date {
+        font-size: 12px;
+        color: var(--ink-quiet);
+        font-weight: 500;
+        letter-spacing: 0.02em;
+      }
+      .brief {
+        font-size: 19px;
+        font-weight: 400;
+        line-height: 1.45;
+        color: #46463f;
+        margin: 12px 0 36px;
+        max-width: 25ch;
+      }
+      .list {
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* task row + functional motion */
+      .item {
+        position: relative;
+        padding: 17px 8px;
+        margin: 0 -8px;
+        border-bottom: 1px solid var(--line);
+        font-size: 15px;
+        font-weight: 450;
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        border-radius: 12px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        transition:
+          transform 0.1s var(--out),
+          background 0.14s var(--out);
+      }
+      .item:hover {
+        background: rgba(122, 155, 134, 0.06);
+      }
+      .item.pressing {
+        transform: scale(0.98);
+      }
+      .item.first {
+        font-weight: 600;
+      }
+      .item .qn {
+        font-size: 12px;
+        color: #b5b5af;
+        font-variant-numeric: tabular-nums;
+        width: 14px;
+        text-align: center;
+      }
+      .item .when {
+        margin-left: auto;
+        font-size: 11.5px;
+        color: var(--ink-quiet);
+        font-weight: 500;
+        transition: opacity 0.14s var(--out);
+      }
+      .item .txt {
+        transition: color 0.16s var(--out);
+      }
+
+      /* sage accent dot — static at rest (right-sized). breathes ONLY under .ambient */
+      .dot {
+        position: relative;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--sage);
+        flex-shrink: 0;
+      }
+      body.ambient .dot {
+        animation: dotglow 5.2s var(--out) infinite;
+      }
+      @keyframes dotglow {
+        0%,
+        100% {
+          opacity: 0.78;
+        }
+        45% {
+          opacity: 1;
+        }
+      }
+
+      /* checkbox that fills on done (replaces the dot/number slot when checked) */
+      .check {
+        width: 8px;
+        height: 8px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        border: 0;
+        background: var(--sage);
+        position: relative;
+        transition: transform 0.16s var(--out);
+      }
+      .qn-wrap {
+        width: 14px;
+        display: flex;
+        justify-content: center;
+      }
+
+      /* done state */
+      .item.done {
+        cursor: default;
+      }
+      .item.done .txt {
+        color: var(--ink-quiet);
+        text-decoration: line-through;
+      }
+      .item.done .when {
+        opacity: 0;
+      }
+      .item.done .mark {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .mark {
+        position: absolute;
+        right: 8px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--sage);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transform: scale(0.6);
+        transition:
+          opacity 0.16s var(--out),
+          transform 0.16s var(--out);
+      }
+      .mark svg {
+        width: 10px;
+        height: 10px;
+      }
+
+      .foot {
+        margin-top: auto;
+        font-size: 12.5px;
+        color: var(--ink-quiet);
+        line-height: 1.65;
+        padding-top: 22px;
+      }
+      .foot b {
+        color: var(--ink-soft);
+        font-weight: 600;
+      }
+
+      .caption {
+        max-width: 430px;
+        text-align: center;
+      }
+      .caption .k {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--sage);
+        margin-bottom: 7px;
+      }
+      .caption p {
+        font-size: 13px;
+        color: var(--ink-soft);
+        line-height: 1.62;
+      }
+      .hint {
+        font-family: var(--mono);
+        font-size: 10.5px;
+        color: var(--ink-quiet);
+        margin-top: 9px;
+        letter-spacing: 0.03em;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+        }
+        .rise {
+          opacity: 1 !important;
+          transform: none !important;
+          transition: none !important;
+        }
+        .item,
+        .item .when,
+        .item .txt,
+        .mark {
+          transition: opacity 0.12s linear !important;
+        }
+        body.ambient .water {
+          opacity: 0.4;
+        }
+      }
+    </style>
+  </head>
+  <body class="rightsized">
+    <div class="controls">
+      <div class="seg" id="mode">
+        <button data-mode="rightsized" class="on">Right-sized ✓</button>
+        <button data-mode="ambient">Ambient (1st pass)</button>
+      </div>
+      <button class="btn" id="replay">↻ replay open</button>
+      <button class="btn" id="reset">reset tasks</button>
+    </div>
+
+    <div class="stage">
+      <div class="water" aria-hidden="true">
+        <span class="a"></span><span class="b"></span><span class="c"></span>
+      </div>
+      <div class="device">
+        <div class="screen">
+          <div class="statusbar"><span>9:41</span><span>●●● ▮</span></div>
+          <div class="scr-body">
+            <div class="date rise d1">Tuesday, June 16</div>
+            <p class="brief rise d2">
+              One thing is time-sensitive today. The rest can wait.
+            </p>
+            <div class="list" id="list">
+              <div class="item first rise d3">
+                <span class="dot"></span
+                ><span class="txt">Sign Emma's field-trip slip</span
+                ><span class="when">Thu</span>
+                <span class="mark"
+                  ><svg viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2.5 6.2 5 8.5 9.5 3.5"
+                      stroke="#fff"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    /></svg
+                ></span>
+              </div>
+              <div class="item rise d4">
+                <span class="qn-wrap"><span class="qn">2</span></span
+                ><span class="txt">Reply to Milo's vet</span
+                ><span class="when">this wk</span>
+                <span class="mark"
+                  ><svg viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2.5 6.2 5 8.5 9.5 3.5"
+                      stroke="#fff"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    /></svg
+                ></span>
+              </div>
+              <div class="item rise d5">
+                <span class="qn-wrap"><span class="qn">3</span></span
+                ><span class="txt">Passport renewal photo</span
+                ><span class="when">—</span>
+                <span class="mark"
+                  ><svg viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2.5 6.2 5 8.5 9.5 3.5"
+                      stroke="#fff"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    /></svg
+                ></span>
+              </div>
+            </div>
+            <div class="foot rise d6">
+              Waiting on <b>Westview School</b> — they need the signed slip.<br />Nothing
+              else needs you today.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="caption">
+      <div class="k" id="cap-k">
+        Right-sized · motion only when something changes
+      </div>
+      <p id="cap-p">
+        Still at rest. The screen settles in once on open, taps give a soft
+        press, and finishing a task fills + dims it (~140ms). No ambient loop —
+        nothing moves unless you do.
+      </p>
+      <div class="hint">
+        tap a task to mark it done · toggle modes to feel the difference
+      </div>
+    </div>
+
+    <script>
+      const body = document.body;
+      // one-time settle on load
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => body.classList.add("loaded")),
+      );
+
+      // mode toggle
+      const cap = {
+        rightsized: [
+          "Right-sized · motion only when something changes",
+          "Still at rest. The screen settles in once on open, taps give a soft press, and finishing a task fills + dims it (~140ms). No ambient loop — nothing moves unless you do.",
+        ],
+        ambient: [
+          "Ambient (1st pass) · slow water + breathing dot",
+          "The original take: a slow-water field drifts behind the paper and the sage dot breathes (~5.2s). Pretty — but two things move at once and that pulse sits near the 0.2Hz vestibular line. Lovely for a landing page, a bit much for the daily tool.",
+        ],
+      };
+      document.querySelectorAll("#mode button").forEach((b) => {
+        b.onclick = () => {
+          const m = b.dataset.mode;
+          document
+            .querySelectorAll("#mode button")
+            .forEach((x) => x.classList.toggle("on", x === b));
+          body.classList.toggle("ambient", m === "ambient");
+          document.getElementById("cap-k").textContent = cap[m][0];
+          document.getElementById("cap-p").textContent = cap[m][1];
+        };
+      });
+
+      // replay the open settle
+      document.getElementById("replay").onclick = () => {
+        body.classList.remove("loaded");
+        void document.body.offsetWidth;
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => body.classList.add("loaded")),
+        );
+      };
+
+      // task interactions: press feedback + mark done
+      function wire(item) {
+        let pressed = false;
+        item.addEventListener("pointerdown", () => {
+          if (!item.classList.contains("done")) {
+            item.classList.add("pressing");
+            pressed = true;
+          }
+        });
+        const up = () => {
+          item.classList.remove("pressing");
+        };
+        item.addEventListener("pointerup", up);
+        item.addEventListener("pointerleave", up);
+        item.addEventListener("click", () => {
+          if (pressed || true) item.classList.toggle("done");
+          pressed = false;
+        });
+      }
+      document.querySelectorAll(".item").forEach(wire);
+      document.getElementById("reset").onclick = () =>
+        document
+          .querySelectorAll(".item")
+          .forEach((i) => i.classList.remove("done"));
+    </script>
+  </body>
+</html>
