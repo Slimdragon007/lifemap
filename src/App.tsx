@@ -45,6 +45,8 @@ import LaunchPlanView from "./LaunchPlanView";
 import GuidedSetupView from "./GuidedSetupView";
 import PrivacyView from "./PrivacyView";
 import { useSession } from "./useSession";
+import { demoMode } from "./demoMode";
+import { viewerIdentity } from "./viewer";
 import {
   getAccessToken,
   getSupabase,
@@ -283,6 +285,7 @@ function App() {
   const [captureRoute, setCaptureRoute] = useState<CaptureRoute>();
   const [remoteLoadedFor, setRemoteLoadedFor] = useState<string>();
   const { session, loading: sessionLoading } = useSession();
+  const identity = useMemo(() => viewerIdentity(session, demoMode), [session]);
   const storedState = useMemo<StoredDemoState>(
     () => ({
       isLoggedIn,
@@ -810,6 +813,7 @@ function App() {
             approvalCount={selectedApprovals.length}
             brief={dailyBrief}
             error={briefError}
+            identity={identity}
             map={map}
             priorityActionStates={priorityActionStates}
             setupBuckets={activeSetupBuckets}

@@ -17,6 +17,7 @@ import {
 import type { BriefPriority, DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
 import type { RecommendedBucket, SetupProfile } from "./setupBuckets";
+import type { ViewerIdentity } from "./viewer";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 type PriorityActionState = "completed" | "snoozed";
@@ -24,6 +25,7 @@ type PriorityActionState = "completed" | "snoozed";
 type TodayViewProps = {
   brief: DailyBrief;
   map: LifeMapAnalysis;
+  identity: ViewerIdentity;
   approvalCount: number;
   status: BriefStatus;
   error?: string;
@@ -44,6 +46,7 @@ type TodayViewProps = {
 function TodayView({
   brief,
   map,
+  identity,
   approvalCount,
   status,
   error,
@@ -113,7 +116,10 @@ function TodayView({
         ];
 
   return (
-    <section className="workspace today-workspace atlas-today" aria-labelledby="today-title">
+    <section
+      className="workspace today-workspace atlas-today"
+      aria-labelledby="today-title"
+    >
       <header className="atlas-header">
         <div className="atlas-brand-line">
           <span className="atlas-wordmark">LifeMap</span>
@@ -140,8 +146,8 @@ function TodayView({
               <Bell size={15} />
               {approvalCount > 0 ? <span aria-hidden="true" /> : null}
             </button>
-            <span className="atlas-avatar" aria-label="Alex Kim">
-              AK
+            <span className="atlas-avatar" aria-label={identity.name}>
+              {identity.initials}
             </span>
           </div>
         </div>
@@ -162,7 +168,10 @@ function TodayView({
       </header>
 
       <div className="atlas-stack">
-        <section className="atlas-ai-card panel" aria-labelledby="lifemap-ai-title">
+        <section
+          className="atlas-ai-card panel"
+          aria-labelledby="lifemap-ai-title"
+        >
           <div className="atlas-ai-card-copy">
             <span className="atlas-capture-label">LifeMap AI</span>
             <h2 id="lifemap-ai-title">Paste anything messy.</h2>
@@ -193,7 +202,10 @@ function TodayView({
         </section>
 
         {setupBuckets.length === 0 ? (
-          <section className="atlas-setup-prompt panel" aria-labelledby="today-setup-title">
+          <section
+            className="atlas-setup-prompt panel"
+            aria-labelledby="today-setup-title"
+          >
             <span className="atlas-setup-prompt-icon">
               <UsersRound size={18} />
             </span>
@@ -205,7 +217,11 @@ function TodayView({
                 home loops once. LifeMap will shape Today around those buckets.
               </p>
             </div>
-            <button className="atlas-link-button" type="button" onClick={onOpenSetup}>
+            <button
+              className="atlas-link-button"
+              type="button"
+              onClick={onOpenSetup}
+            >
               Start guided setup
               <ChevronRight size={14} />
             </button>
@@ -232,15 +248,26 @@ function TodayView({
                 : "Everyone is on track."}
             </p>
           </div>
-          <button className="atlas-link-button" type="button" onClick={onOpenBrief}>
+          <button
+            className="atlas-link-button"
+            type="button"
+            onClick={onOpenBrief}
+          >
             View full brief
             <ChevronRight size={14} />
           </button>
           <p className="grounding-note">{brief.groundingNote}</p>
-          <BriefNotice status={status} error={error} onOpenBrainDump={onOpenBrainDump} />
+          <BriefNotice
+            status={status}
+            error={error}
+            onOpenBrainDump={onOpenBrainDump}
+          />
         </section>
 
-        <section className="atlas-daily-plan panel" aria-labelledby="daily-plan-title">
+        <section
+          className="atlas-daily-plan panel"
+          aria-labelledby="daily-plan-title"
+        >
           <div className="atlas-daily-plan-copy">
             <span>Daily path</span>
             <h2 id="daily-plan-title">Next three moves</h2>
@@ -290,7 +317,11 @@ function TodayView({
           <h2 id="priorities-title">Top Priorities</h2>
           <div className="atlas-priority-list">
             {topPriorities.map((priority, index) => {
-              const visual = getPriorityVisual(priority.label, priority.reason, index);
+              const visual = getPriorityVisual(
+                priority.label,
+                priority.reason,
+                index,
+              );
               const Icon = visual.icon;
               const actionState = priorityActionStates[priority.id];
               const statusLabel =
@@ -334,7 +365,10 @@ function TodayView({
           </div>
         </section>
 
-        <section className="atlas-section atlas-lifemap-section" aria-labelledby="lifemap-title">
+        <section
+          className="atlas-section atlas-lifemap-section"
+          aria-labelledby="lifemap-title"
+        >
           <h2 id="lifemap-title">Your LifeMap</h2>
           <div className="atlas-area-grid">
             {lifeAreas.map(({ id, label, meta, icon: Icon, onClick }) => (
@@ -352,7 +386,10 @@ function TodayView({
           </div>
         </section>
 
-        <section className="atlas-quiet-panel panel" aria-labelledby="loops-title">
+        <section
+          className="atlas-quiet-panel panel"
+          aria-labelledby="loops-title"
+        >
           <div className="panel-heading">
             <div>
               <h2 id="loops-title">Open loops</h2>
@@ -374,7 +411,10 @@ function TodayView({
           )}
         </section>
 
-        <section className="atlas-quiet-panel panel command-panel" aria-label="LifeMap loop">
+        <section
+          className="atlas-quiet-panel panel command-panel"
+          aria-label="LifeMap loop"
+        >
           <div className="loop-steps">
             <button type="button" onClick={() => onOpenBrainDump()}>
               <Inbox size={18} />
@@ -394,7 +434,10 @@ function TodayView({
           </div>
         </section>
 
-        <section className="atlas-quiet-panel panel message-panel" aria-labelledby="messages-title">
+        <section
+          className="atlas-quiet-panel panel message-panel"
+          aria-labelledby="messages-title"
+        >
           <div className="panel-heading">
             <div>
               <h2 id="messages-title">Suggested messages</h2>
@@ -419,7 +462,10 @@ function TodayView({
           )}
         </section>
 
-        <section className="atlas-quiet-panel panel metrics-panel" aria-label="Current map stats">
+        <section
+          className="atlas-quiet-panel panel metrics-panel"
+          aria-label="Current map stats"
+        >
           <div>
             <strong>{map.dueItems.length}</strong>
             <span>due</span>
@@ -527,7 +573,11 @@ function formatTileCount(count: number, label: string) {
 function getPriorityVisual(label: string, reason: string, index: number) {
   const text = `${label} ${reason}`.toLowerCase();
 
-  if (text.includes("passport") || text.includes("travel") || text.includes("flight")) {
+  if (
+    text.includes("passport") ||
+    text.includes("travel") ||
+    text.includes("flight")
+  ) {
     return {
       category: "Travel",
       icon: Plane,
@@ -553,7 +603,11 @@ function getPriorityVisual(label: string, reason: string, index: number) {
     };
   }
 
-  if (text.includes("home") || text.includes("bill") || text.includes("insurance")) {
+  if (
+    text.includes("home") ||
+    text.includes("bill") ||
+    text.includes("insurance")
+  ) {
     return {
       category: "Home",
       icon: Home,
@@ -590,7 +644,9 @@ function BriefNotice({
   if (status === "fallback") {
     return (
       <div className="analyze-notice fallback" role="status" aria-live="polite">
-        <span>LifeMap is using the current map while AI refresh is unavailable.</span>
+        <span>
+          LifeMap is using the current map while AI refresh is unavailable.
+        </span>
         <span>You can still review priorities or capture a new update.</span>
         <button type="button" onClick={() => onOpenBrainDump()}>
           Capture a new update
