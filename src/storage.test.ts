@@ -3,9 +3,15 @@ import {
   authoritativeRemoteState,
   clearStoredDemoState,
   emptyPersistedState,
+  initialAppState,
   loadStoredDemoState,
   saveStoredDemoState,
 } from "./storage";
+import {
+  presentationAnalysis,
+  presentationBrief,
+  presentationIntake,
+} from "./demoSeed";
 import type { DailyBrief } from "./dailyBrief";
 
 const dailyBrief: DailyBrief = {
@@ -150,5 +156,37 @@ describe("authoritative remote state", () => {
     expect(result.analysis).toEqual(emptyPersistedState().analysis);
     expect(result.dailyBrief).toEqual(emptyPersistedState().dailyBrief);
     expect(result.setupBucketIds).toEqual([]);
+  });
+});
+
+describe("initialAppState", () => {
+  test("real mode returns the empty persisted state and ignores stored demo data", () => {
+    const result = initialAppState({
+      demoMode: false,
+      stored: { intake: "leftover demo notes", isLoggedIn: true },
+    });
+
+    expect(result.intake).toBe("");
+    expect(result.analysis).toEqual(emptyPersistedState().analysis);
+    expect(result.dailyBrief).toEqual(emptyPersistedState().dailyBrief);
+    expect(result.isLoggedIn).toBeUndefined();
+  });
+
+  test("demo mode with no stored state seeds the presentation demo", () => {
+    const result = initialAppState({ demoMode: true, stored: {} });
+
+    expect(result.intake).toBe(presentationIntake);
+    expect(result.analysis).toEqual(presentationAnalysis);
+    expect(result.dailyBrief).toEqual(presentationBrief);
+  });
+
+  test("demo mode lets stored values override the demo seeds", () => {
+    const result = initialAppState({
+      demoMode: true,
+      stored: { intake: "my own notes" },
+    });
+
+    expect(result.intake).toBe("my own notes");
+    expect(result.analysis).toEqual(presentationAnalysis);
   });
 });

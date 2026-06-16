@@ -1,4 +1,9 @@
 import { normalizeDailyBrief, type DailyBrief } from "./dailyBrief";
+import {
+  presentationAnalysis,
+  presentationBrief,
+  presentationIntake,
+} from "./demoSeed";
 import { normalizeAnalysis, type LifeMapAnalysis } from "./lifemap";
 import {
   defaultSetupProfile,
@@ -132,7 +137,7 @@ function parseStringRecord(value: unknown): Record<string, string> | undefined {
   return entries.length > 0 ? Object.fromEntries(entries) : undefined;
 }
 
-function emptyAnalysis(): LifeMapAnalysis {
+export function emptyAnalysis(): LifeMapAnalysis {
   return {
     dueItems: [],
     missingInfo: [],
@@ -144,7 +149,7 @@ function emptyAnalysis(): LifeMapAnalysis {
   };
 }
 
-function emptyDailyBrief(): DailyBrief {
+export function emptyDailyBrief(): DailyBrief {
   return {
     todaySummary: "",
     topPriorities: [],
@@ -177,4 +182,38 @@ export function authoritativeRemoteState(
   remote: StoredDemoState,
 ): StoredDemoState {
   return { ...emptyPersistedState(), ...remote };
+}
+
+export type InitialAppState = StoredDemoState & {
+  intake: string;
+  analysis: LifeMapAnalysis;
+  dailyBrief: DailyBrief;
+};
+
+// The seed for the very first render. Real accounts start empty (no demo
+// flash, leftover demo localStorage ignored). Demo builds start from the
+// presentation seeds, with any stored values taking precedence.
+export function initialAppState({
+  demoMode,
+  stored,
+}: {
+  demoMode: boolean;
+  stored: StoredDemoState;
+}): InitialAppState {
+  const base: StoredDemoState = demoMode
+    ? {
+        ...emptyPersistedState(),
+        intake: presentationIntake,
+        analysis: presentationAnalysis,
+        dailyBrief: presentationBrief,
+        ...stored,
+      }
+    : emptyPersistedState();
+
+  return {
+    ...base,
+    intake: base.intake ?? "",
+    analysis: base.analysis ?? emptyAnalysis(),
+    dailyBrief: base.dailyBrief ?? emptyDailyBrief(),
+  };
 }
