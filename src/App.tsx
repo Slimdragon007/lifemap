@@ -1123,23 +1123,17 @@ function App() {
           </>
         ) : view === "review" ? (
           <section
-            className="workspace approval-workspace"
+            className="workspace approval-workspace notebook"
             aria-labelledby="review-title"
           >
-            <header className="topbar">
-              <div>
-                <span className="workspace-kicker">
-                  <Bell size={14} />
-                  Approval center
-                </span>
-                <h1 id="review-title">Review</h1>
-                <p>
-                  Review drafts and reminders before anything leaves LifeMap.
-                </p>
-                <span className="storage-note">
-                  Nothing sends automatically.
-                </span>
-              </div>
+            <header className="notebook-head">
+              <h1 id="review-title" className="notebook-title">
+                Review
+              </h1>
+              <p className="notebook-sub">
+                Drafts and reminders wait here. Nothing sends without your
+                approval.
+              </p>
             </header>
             <ApprovalQueue
               disabledApprovals={disabledApprovals}
@@ -1154,33 +1148,30 @@ function App() {
               onToggle={toggleApproval}
               onSendDraft={handleSendDraft}
             />
-            <section
-              className="panel message-panel"
-              aria-labelledby="messages-title"
-            >
-              <div className="panel-heading">
-                <div>
-                  <h2 id="messages-title">Suggested messages</h2>
-                  <span>Nothing sends without approval</span>
-                </div>
-                <MessageSquare size={18} />
-              </div>
+            <h2 className="notebook-section-title" id="messages-title">
+              Suggested messages
+            </h2>
+            <div className="notebook-list" aria-labelledby="messages-title">
               {dailyBrief.suggestedMessages.length > 0 ? (
-                <div className="message-stack">
-                  {dailyBrief.suggestedMessages.map((message) => (
-                    <article className="message-preview" key={message.id}>
-                      <span>To {message.recipient}</span>
-                      <strong>{message.subject}</strong>
-                      <p>{message.body}</p>
-                    </article>
-                  ))}
-                </div>
+                dailyBrief.suggestedMessages.map((message) => (
+                  <div className="notebook-row" key={message.id}>
+                    <span className="notebook-when">
+                      {message.recipient.split(" ")[0]}
+                    </span>
+                    <span className="notebook-row-main">
+                      <span className="notebook-row-title">
+                        {message.subject}
+                      </span>
+                      <span className="notebook-row-sub">{message.body}</span>
+                    </span>
+                  </div>
+                ))
               ) : (
-                <p className="empty-note">
+                <p className="notebook-empty">
                   Drafts from the family map will appear here for approval.
                 </p>
               )}
-            </section>
+            </div>
           </section>
         ) : view === "launchPlan" ? (
           <LaunchPlanView onBack={() => setView("more")} />

@@ -1,10 +1,3 @@
-import {
-  CalendarDays,
-  CheckCircle2,
-  Clock3,
-  Filter,
-  Sparkles,
-} from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   buildCalendarEventsFromAnalysis,
@@ -86,147 +79,96 @@ function CalendarView({
   }
 
   return (
-    <section
-      className="workspace calendar-workspace"
-      aria-labelledby="calendar-title"
-    >
-      <header className="topbar">
-        <div>
-          <span className="workspace-kicker">
-            <CalendarDays size={14} />
-            Family time map
-          </span>
-          <h1 id="calendar-title">Calendar</h1>
-          <p>School, health, pets, meals, travel, and admin in one view.</p>
-          <GoogleConnection />
-        </div>
-        <div className="status-strip" aria-label="Calendar summary">
-          <span className="status-pill urgent">
-            {visibleEvents.length} visible
-          </span>
-          <span className="status-pill calm">
-            {recurringCareItems.length} recurring
-          </span>
-
-          <span className="status-pill warning">
-            {visibleAnalysisEvents.length} from AI
-          </span>
-        </div>
+    <section className="workspace notebook" aria-labelledby="calendar-title">
+      <header className="notebook-head">
+        <h1 id="calendar-title" className="notebook-title">
+          Calendar
+        </h1>
+        <p className="notebook-sub">
+          School, health, pets, meals, travel, and admin — one calm list.
+        </p>
+        <GoogleConnection />
       </header>
 
-      <div className="calendar-grid">
-        <section className="panel calendar-main" aria-labelledby="week-title">
-          <div className="panel-heading">
-            <div>
-              <h2 id="week-title">This family week</h2>
-              <span>Layered schedule</span>
+      {pendingAnalysisEvents.length > 0 ? (
+        <div className="notebook-callout" aria-label="Calendar suggestions">
+          <span>
+            LifeMap found {pendingAnalysisEvents.length} calendar{" "}
+            {pendingAnalysisEvents.length === 1 ? "item" : "items"} to review.
+          </span>
+          <button
+            className="notebook-link"
+            type="button"
+            onClick={() =>
+              onSaveSuggestions(pendingAnalysisEvents.map((event) => event.id))
+            }
+          >
+            Save all
+          </button>
+        </div>
+      ) : null}
+
+      <div className="notebook-filters" aria-label="Calendar layers">
+        {calendarLayers.map((layer) => (
+          <button
+            aria-pressed={activeLayers.has(layer.id)}
+            className={
+              activeLayers.has(layer.id)
+                ? "notebook-filter active"
+                : "notebook-filter"
+            }
+            key={layer.id}
+            type="button"
+            onClick={() => toggleLayer(layer.id)}
+          >
+            {layer.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="notebook-list">
+        {visibleEvents.length > 0 ? (
+          visibleEvents.map((event) => (
+            <EventRow
+              event={event}
+              isSaved={savedSuggestionIds.has(event.id)}
+              onDismissSuggestion={onDismissSuggestion}
+              onSaveSuggestion={onSaveSuggestion}
+              key={event.id}
+            />
+          ))
+        ) : (
+          <p className="notebook-empty">
+            No events yet. Captured dates will appear here.
+          </p>
+        )}
+      </div>
+
+      <h2 className="notebook-section-title">Recurring loops</h2>
+      <div className="notebook-list">
+        {recurringCareItems.length > 0 ? (
+          recurringCareItems.map((item) => (
+            <div className="notebook-row" key={item.id}>
+              <span className="notebook-when">
+                {formatShortDate(item.nextDue)}
+              </span>
+              <span className="notebook-row-main">
+                <span className="notebook-row-title">{item.title}</span>
+                <span className="notebook-row-sub">
+                  {item.cadence} · {item.owner}
+                </span>
+              </span>
             </div>
-            <Sparkles size={18} />
-          </div>
-
-          {pendingAnalysisEvents.length > 0 ? (
-            <section
-              className="suggestion-review-bar"
-              aria-label="Calendar suggestions"
-            >
-              <div>
-                <strong>
-                  LifeMap found {pendingAnalysisEvents.length} calendar{" "}
-                  {pendingAnalysisEvents.length === 1 ? "item" : "items"}.
-                </strong>
-                <span>Review before these become saved family records.</span>
-              </div>
-              <button
-                className="secondary-button compact-button"
-                type="button"
-                onClick={() =>
-                  onSaveSuggestions(
-                    pendingAnalysisEvents.map((event) => event.id),
-                  )
-                }
-              >
-                Save all
-              </button>
-            </section>
-          ) : null}
-
-          <div className="layer-toolbar" aria-label="Calendar layers">
-            <span>
-              <Filter size={14} />
-              Layers
-            </span>
-            {calendarLayers.map((layer) => (
-              <button
-                aria-pressed={activeLayers.has(layer.id)}
-                className={
-                  activeLayers.has(layer.id)
-                    ? `layer-chip active layer-${layer.id}`
-                    : `layer-chip layer-${layer.id}`
-                }
-                key={layer.id}
-                type="button"
-                onClick={() => toggleLayer(layer.id)}
-              >
-                {layer.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="event-timeline">
-            {visibleEvents.length > 0 ? (
-              visibleEvents.map((event) => (
-                <EventCard
-                  event={event}
-                  isSaved={savedSuggestionIds.has(event.id)}
-                  onDismissSuggestion={onDismissSuggestion}
-                  onSaveSuggestion={onSaveSuggestion}
-                  key={event.id}
-                />
-              ))
-            ) : (
-              <p className="empty-note">
-                No events yet. Captured dates will appear here.
-              </p>
-            )}
-          </div>
-        </section>
-
-        <aside
-          className="panel recurring-panel"
-          aria-labelledby="recurring-title"
-        >
-          <div className="panel-heading">
-            <div>
-              <h2 id="recurring-title">Recurring loops</h2>
-              <span>Maintenance parents should not have to remember</span>
-            </div>
-            <CalendarDays size={18} />
-          </div>
-          <div className="recurring-list">
-            {recurringCareItems.length > 0 ? (
-              recurringCareItems.map((item) => (
-                <article className="recurring-card" key={item.id}>
-                  <span className={`care-dot care-${item.category}`} />
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p>
-                      {item.cadence} · {item.owner}
-                    </p>
-                    <small>Next due {formatShortDate(item.nextDue)}</small>
-                  </div>
-                </article>
-              ))
-            ) : (
-              <p className="empty-note">No recurring loops yet.</p>
-            )}
-          </div>
-        </aside>
+          ))
+        ) : (
+          <p className="notebook-empty">No recurring loops yet.</p>
+        )}
       </div>
     </section>
   );
 }
 
-function EventCard({
+function EventRow({
   event,
   isSaved,
   onSaveSuggestion,
@@ -238,60 +180,42 @@ function EventCard({
   onDismissSuggestion: (id: string) => void;
 }) {
   const isGenerated = event.id.startsWith("ai-event-");
+  const pending = isGenerated && !isSaved;
 
   return (
-    <article
-      className={
-        isGenerated
-          ? `event-card generated-event layer-${event.layer}`
-          : `event-card layer-${event.layer}`
-      }
-    >
-      <div className="event-date">
-        <span>{formatMonth(event.date)}</span>
-        <strong>{formatDay(event.date)}</strong>
-      </div>
-      <div>
-        <div className="event-card-top">
-          <h3>{event.title}</h3>
-          <span>{event.owner}</span>
-        </div>
-        {isGenerated ? (
-          <span className="generated-label">
-            {isSaved ? "Saved to LifeMap" : "Needs review"}
-          </span>
-        ) : null}
-        <p>
-          <Clock3 size={14} />
-          {event.time}
-        </p>
-        <small>Source: {event.source}</small>
+    <div className={pending ? "notebook-row pending" : "notebook-row"}>
+      <span className="notebook-when">{formatWhen(event.date)}</span>
+      <span className="notebook-row-main">
+        <span className="notebook-row-title">{event.title}</span>
+        <span className="notebook-row-sub">
+          {event.time} · {event.owner} · {event.source}
+        </span>
         {event.needsPrep ? (
-          <div className="prep-note">
-            <CheckCircle2 size={14} />
-            {event.needsPrep}
-          </div>
+          <span className="notebook-row-note">{event.needsPrep}</span>
         ) : null}
-        {isGenerated && !isSaved ? (
-          <div className="suggestion-actions">
-            <button
-              className="secondary-button compact-button"
-              type="button"
-              onClick={() => onSaveSuggestion(event.id)}
-            >
-              Save
-            </button>
-            <button
-              className="ghost-button compact-button"
-              type="button"
-              onClick={() => onDismissSuggestion(event.id)}
-            >
-              Dismiss
-            </button>
-          </div>
-        ) : null}
-      </div>
-    </article>
+      </span>
+      {pending ? (
+        <span className="notebook-row-actions">
+          <span className="notebook-tag">Needs review</span>
+          <button
+            className="notebook-link"
+            type="button"
+            onClick={() => onSaveSuggestion(event.id)}
+          >
+            Save
+          </button>
+          <button
+            className="notebook-link quiet"
+            type="button"
+            onClick={() => onDismissSuggestion(event.id)}
+          >
+            Dismiss
+          </button>
+        </span>
+      ) : isGenerated && isSaved ? (
+        <span className="notebook-tag">Saved to LifeMap</span>
+      ) : null}
+    </div>
   );
 }
 
@@ -308,24 +232,14 @@ function displayDate(date: string): Date | undefined {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
 
-function formatMonth(date: string): string {
+function formatWhen(date: string): string {
   const parsed = displayDate(date);
   if (!parsed) {
-    return "Needs";
+    return "No date";
   }
 
   return parsed.toLocaleDateString("en-US", {
     month: "short",
-  });
-}
-
-function formatDay(date: string): string {
-  const parsed = displayDate(date);
-  if (!parsed) {
-    return "date";
-  }
-
-  return parsed.toLocaleDateString("en-US", {
     day: "numeric",
   });
 }

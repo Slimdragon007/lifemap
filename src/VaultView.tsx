@@ -1,18 +1,4 @@
-import {
-  Archive,
-  CalendarDays,
-  CheckCircle2,
-  ChevronDown,
-  Eye,
-  FileText,
-  HeartPulse,
-  IdCard,
-  LockKeyhole,
-  PawPrint,
-  ShieldCheck,
-  Stethoscope,
-  UsersRound,
-} from "lucide-react";
+import { CheckCircle2, ChevronDown, Eye, LockKeyhole } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   buildVaultItemsFromAnalysis,
@@ -97,10 +83,6 @@ function VaultView({
         : allItems.filter((item) => item.category === activeCategory),
     [activeCategory, allItems],
   );
-  const urgentItems = allItems.filter(
-    (item) => item.status === "Needs update" || item.status === "Expires soon",
-  );
-
   function toggleProfile(id: string) {
     setExpandedProfileIds((current) => {
       const next = new Set(current);
@@ -145,256 +127,186 @@ function VaultView({
   }
 
   return (
-    <section
-      className="workspace vault-workspace"
-      aria-labelledby="vault-title"
-    >
-      <header className="topbar">
-        <div>
-          <span className="workspace-kicker">
-            <Archive size={14} />
-            Household source of truth
-          </span>
-          <h1 id="vault-title">Vault</h1>
-          <p>
-            Insurance cards, IDs, passports, vaccines, school, pets, and travel
-            records.
-          </p>
-          <span className="storage-note">
-            Sensitive details stay tucked away until you open a record.
-          </span>
-        </div>
-        <div className="status-strip" aria-label="Vault summary">
-          <span className="status-pill calm">{allItems.length} records</span>
-          <span className="status-pill warning">
-            {urgentItems.length} quick looks
-          </span>
-          <span className="status-pill calm">
-            {visibleAnalysisItems.length} from AI
-          </span>
-        </div>
+    <section className="workspace notebook" aria-labelledby="vault-title">
+      <header className="notebook-head">
+        <h1 id="vault-title" className="notebook-title">
+          Vault
+        </h1>
+        <p className="notebook-sub">
+          IDs, insurance, health, school, pets, and travel records. Sensitive
+          details stay hidden until you open a record.
+        </p>
       </header>
 
-      <div className="vault-grid">
-        <section
-          className="panel profile-panel"
-          aria-labelledby="profiles-title"
-        >
-          <div className="panel-heading">
-            <div>
-              <h2 id="profiles-title">Family profiles</h2>
-              <span>People, pets, school, medical, and emergency basics</span>
-            </div>
-            <UsersRound size={18} />
-          </div>
-
-          <div className="profile-list">
-            {familyMembers.length > 0 ? (
-              familyMembers.map((member) => (
-                <article
-                  className={
-                    expandedProfileIds.has(member.id)
-                      ? "profile-card profile-card-expanded"
-                      : "profile-card"
-                  }
-                  key={member.id}
+      <h2 className="notebook-section-title">Family profiles</h2>
+      <div className="notebook-list">
+        {familyMembers.length > 0 ? (
+          familyMembers.map((member) => {
+            const expanded = expandedProfileIds.has(member.id);
+            return (
+              <div className="notebook-disclosure" key={member.id}>
+                <button
+                  aria-expanded={expanded}
+                  className="notebook-row"
+                  type="button"
+                  onClick={() => toggleProfile(member.id)}
                 >
-                  <button
-                    aria-expanded={expandedProfileIds.has(member.id)}
-                    className="profile-card-toggle"
-                    type="button"
-                    onClick={() => toggleProfile(member.id)}
-                  >
-                    <span
-                      className={`profile-avatar profile-${member.profileType}`}
-                    >
-                      {member.initials}
-                    </span>
-                    <span>
-                      <span className="profile-card-top">
-                        <h3>{member.name}</h3>
-                        <span>{member.role}</span>
-                      </span>
-                      <small>
-                        {expandedProfileIds.has(member.id)
-                          ? "Details are visible"
-                          : "Tap to reveal private details"}
-                      </small>
-                    </span>
-                    <ChevronDown size={17} />
-                  </button>
-                  {expandedProfileIds.has(member.id) ? (
-                    <div className="profile-hidden-details">
-                      <dl className="profile-details">
-                        {member.details.map((detail) => (
-                          <div key={`${member.id}-${detail.label}`}>
-                            <dt>{detail.label}</dt>
-                            <dd>{detail.value}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                      <ul className="care-note-list">
-                        {member.careNotes.map((note) => (
-                          <li key={note}>{note}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </article>
-              ))
-            ) : (
-              <p className="empty-note">
-                No family profiles yet. Capture family details to build them.
-              </p>
-            )}
-          </div>
-        </section>
-
-        <section className="panel vault-panel" aria-labelledby="records-title">
-          <div className="panel-heading">
-            <div>
-              <h2 id="records-title">Documents & records</h2>
-              <span>{visibleItems.length} visible</span>
-            </div>
-            <FileText size={18} />
-          </div>
-
-          {pendingAnalysisItems.length > 0 ? (
-            <section
-              className="suggestion-review-bar"
-              aria-label="Vault suggestions"
-            >
-              <div>
-                <strong>
-                  LifeMap found {pendingAnalysisItems.length} vault{" "}
-                  {pendingAnalysisItems.length === 1 ? "record" : "records"}.
-                </strong>
-                <span>
-                  Save only records you want in the household source of truth.
-                </span>
-              </div>
-              <button
-                className="secondary-button compact-button"
-                type="button"
-                onClick={saveAllSuggestions}
-              >
-                Save all
-              </button>
-            </section>
-          ) : null}
-
-          {feedback ? (
-            <section className="vault-feedback-card" role="status">
-              <CheckCircle2 size={18} />
-              <div>
-                <strong>{feedback.title}</strong>
-                <span>{feedback.body}</span>
-              </div>
-            </section>
-          ) : null}
-
-          <div className="vault-filter-row" aria-label="Vault categories">
-            {vaultFilters.map((filter) => (
-              <button
-                aria-pressed={activeCategory === filter.id}
-                className={
-                  activeCategory === filter.id
-                    ? "vault-filter active"
-                    : "vault-filter"
-                }
-                key={filter.id}
-                type="button"
-                onClick={() => setActiveCategory(filter.id)}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="vault-record-list">
-            {visibleItems.length > 0 ? (
-              visibleItems.map((item) => (
-                <VaultCard
-                  isSaved={savedSuggestionIds.has(item.id)}
-                  item={item}
-                  key={item.id}
-                  onDismissSuggestion={() => dismissSuggestion(item)}
-                  onOpenDetails={() => openVaultItem(item)}
-                  onSaveSuggestion={() => saveSuggestion(item)}
-                />
-              ))
-            ) : (
-              <p className="empty-note">
-                No records yet. Captured documents will appear here.
-              </p>
-            )}
-          </div>
-        </section>
-
-        <aside
-          className="panel emergency-panel"
-          aria-labelledby="emergency-title"
-        >
-          <div className="panel-heading">
-            <div>
-              <h2 id="emergency-title">Emergency view</h2>
-              <span>The short list a sitter, school, or clinic would need</span>
-            </div>
-            <ShieldCheck size={18} />
-          </div>
-          {familyMembers.length > 0 ? (
-            <div className="emergency-list">
-              <article>
-                <IdCard size={17} />
-                <div>
-                  <strong>Primary contact</strong>
-                  <span>{identity.name}</span>
-                </div>
-              </article>
-              <article>
-                <Stethoscope size={17} />
-                <div>
-                  <strong>Casey health note</strong>
-                  <span>Peanut allergy · Cetirizine as needed</span>
-                </div>
-              </article>
-              <article>
-                <PawPrint size={17} />
-                <div>
-                  <strong>Milo vet</strong>
-                  <span>
-                    Desert Paws Veterinary · rabies booster due Jun 20
+                  <span className="notebook-initials" aria-hidden="true">
+                    {member.initials}
                   </span>
-                </div>
-              </article>
-            </div>
-          ) : (
-            <p className="empty-note">
-              Emergency basics appear once you add family profiles.
-            </p>
-          )}
-
-          <div className="map-section">
-            <h3>Care loops</h3>
-            {recurringCareItems.length > 0 ? (
-              <div className="recurring-list compact-recurring-list">
-                {recurringCareItems.slice(0, 3).map((item) => (
-                  <article className="recurring-card" key={item.id}>
-                    <span className={`care-dot care-${item.category}`} />
-                    <div>
-                      <h3>{item.title}</h3>
-                      <p>{item.cadence}</p>
-                      <small>Next due {formatShortDate(item.nextDue)}</small>
-                    </div>
-                  </article>
-                ))}
+                  <span className="notebook-row-main">
+                    <span className="notebook-row-title">{member.name}</span>
+                    <span className="notebook-row-sub">
+                      {member.role} ·{" "}
+                      {expanded ? "details visible" : "tap to reveal"}
+                    </span>
+                  </span>
+                  <ChevronDown className="notebook-chev" size={16} />
+                </button>
+                {expanded ? (
+                  <div className="notebook-detail">
+                    <dl>
+                      {member.details.map((detail) => (
+                        <div key={`${member.id}-${detail.label}`}>
+                          <dt>{detail.label}</dt>
+                          <dd>{detail.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    <ul>
+                      {member.careNotes.map((note) => (
+                        <li key={note}>{note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
-            ) : (
-              <p className="empty-note">No recurring care loops yet.</p>
-            )}
-          </div>
-        </aside>
+            );
+          })
+        ) : (
+          <p className="notebook-empty">
+            No family profiles yet. Capture family details to build them.
+          </p>
+        )}
       </div>
+
+      <h2 className="notebook-section-title">Documents &amp; records</h2>
+
+      {pendingAnalysisItems.length > 0 ? (
+        <div className="notebook-callout" aria-label="Vault suggestions">
+          <span>
+            LifeMap found {pendingAnalysisItems.length} vault{" "}
+            {pendingAnalysisItems.length === 1 ? "record" : "records"} to
+            review.
+          </span>
+          <button
+            className="notebook-link"
+            type="button"
+            onClick={saveAllSuggestions}
+          >
+            Save all
+          </button>
+        </div>
+      ) : null}
+
+      {feedback ? (
+        <p className="notebook-note" role="status">
+          <strong>{feedback.title}</strong>
+          {feedback.body}
+        </p>
+      ) : null}
+
+      <div className="notebook-filters" aria-label="Vault categories">
+        {vaultFilters.map((filter) => (
+          <button
+            aria-pressed={activeCategory === filter.id}
+            className={
+              activeCategory === filter.id
+                ? "notebook-filter active"
+                : "notebook-filter"
+            }
+            key={filter.id}
+            type="button"
+            onClick={() => setActiveCategory(filter.id)}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="notebook-list">
+        {visibleItems.length > 0 ? (
+          visibleItems.map((item) => (
+            <VaultRow
+              isSaved={savedSuggestionIds.has(item.id)}
+              item={item}
+              key={item.id}
+              onDismissSuggestion={() => dismissSuggestion(item)}
+              onOpenDetails={() => openVaultItem(item)}
+              onSaveSuggestion={() => saveSuggestion(item)}
+            />
+          ))
+        ) : (
+          <p className="notebook-empty">
+            No records yet. Captured documents will appear here.
+          </p>
+        )}
+      </div>
+
+      <h2 className="notebook-section-title">Emergency view</h2>
+      {familyMembers.length > 0 ? (
+        <div className="notebook-list">
+          <div className="notebook-row">
+            <span className="notebook-when">Contact</span>
+            <span className="notebook-row-main">
+              <span className="notebook-row-title">Primary contact</span>
+              <span className="notebook-row-sub">{identity.name}</span>
+            </span>
+          </div>
+          <div className="notebook-row">
+            <span className="notebook-when">Health</span>
+            <span className="notebook-row-main">
+              <span className="notebook-row-title">Casey health note</span>
+              <span className="notebook-row-sub">
+                Peanut allergy · Cetirizine as needed
+              </span>
+            </span>
+          </div>
+          <div className="notebook-row">
+            <span className="notebook-when">Pet</span>
+            <span className="notebook-row-main">
+              <span className="notebook-row-title">Milo vet</span>
+              <span className="notebook-row-sub">
+                Desert Paws Veterinary · rabies booster due Jun 20
+              </span>
+            </span>
+          </div>
+        </div>
+      ) : (
+        <p className="notebook-empty">
+          Emergency basics appear once you add family profiles.
+        </p>
+      )}
+
+      <h2 className="notebook-section-title">Care loops</h2>
+      {recurringCareItems.length > 0 ? (
+        <div className="notebook-list">
+          {recurringCareItems.slice(0, 3).map((item) => (
+            <div className="notebook-row" key={item.id}>
+              <span className="notebook-when">
+                {formatShortDate(item.nextDue)}
+              </span>
+              <span className="notebook-row-main">
+                <span className="notebook-row-title">{item.title}</span>
+                <span className="notebook-row-sub">{item.cadence}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="notebook-empty">No recurring care loops yet.</p>
+      )}
+
       {selectedVaultItem ? (
         <VaultDetailDialog
           isSensitiveVisible={isSensitiveVisible}
@@ -407,7 +319,7 @@ function VaultView({
   );
 }
 
-function VaultCard({
+function VaultRow({
   item,
   isSaved,
   onSaveSuggestion,
@@ -421,68 +333,57 @@ function VaultCard({
   onOpenDetails: () => void;
 }) {
   const isGenerated = item.id.startsWith("ai-vault-");
+  const pending = isGenerated && !isSaved;
+  const sub = `${item.owner} · ${item.category}${
+    item.renewalDate ? ` · review by ${formatShortDate(item.renewalDate)}` : ""
+  }`;
 
-  return (
-    <article
-      className={
-        isGenerated
-          ? `vault-card generated-vault-card vault-${item.status.toLowerCase().replace(/\s/g, "-")}`
-          : `vault-card vault-${item.status.toLowerCase().replace(/\s/g, "-")}`
-      }
-    >
-      <div className="vault-card-top">
-        <span className={`vault-icon vault-icon-${item.category}`}>
-          {categoryIcon(item.category)}
-        </span>
-        <div>
-          <h3>{item.title}</h3>
-          <p>{item.owner}</p>
-        </div>
-        <span className="vault-status">{item.status}</span>
-      </div>
-      {isGenerated ? (
-        <span className="generated-label">
-          {isSaved ? "Saved to LifeMap" : "Needs review"}
-        </span>
-      ) : null}
-      <p>
-        {isGenerated && !isSaved
-          ? "AI suggestion ready for review."
-          : "Private details hidden until opened."}
-      </p>
-      {item.renewalDate ? (
-        <small>
-          <CalendarDays size={13} />
-          Review by {formatShortDate(item.renewalDate)}
-        </small>
-      ) : null}
-      {isGenerated && !isSaved ? (
-        <div className="suggestion-actions">
+  if (pending) {
+    return (
+      <div className="notebook-row pending">
+        <button
+          aria-label={`Open details for ${item.title}`}
+          className="notebook-row-main notebook-row-open"
+          type="button"
+          onClick={onOpenDetails}
+        >
+          <span className="notebook-row-title">{item.title}</span>
+          <span className="notebook-row-sub">{sub}</span>
+        </button>
+        <span className="notebook-row-actions">
+          <span className="notebook-tag">Needs review</span>
           <button
-            className="secondary-button compact-button"
+            className="notebook-link"
             type="button"
             onClick={onSaveSuggestion}
           >
             Save
           </button>
           <button
-            className="ghost-button compact-button"
+            className="notebook-link quiet"
             type="button"
             onClick={onDismissSuggestion}
           >
             Dismiss
           </button>
-        </div>
-      ) : null}
-      <button
-        aria-label={`Open details for ${item.title}`}
-        className="ghost-button compact-button vault-detail-button"
-        type="button"
-        onClick={onOpenDetails}
-      >
-        Open details
-      </button>
-    </article>
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      aria-label={`Open details for ${item.title}`}
+      className="notebook-row"
+      type="button"
+      onClick={onOpenDetails}
+    >
+      <span className="notebook-row-main">
+        <span className="notebook-row-title">{item.title}</span>
+        <span className="notebook-row-sub">{sub}</span>
+      </span>
+      <span className="notebook-tag">{item.status}</span>
+    </button>
   );
 }
 
@@ -567,23 +468,6 @@ function VaultDetailDialog({
       </section>
     </div>
   );
-}
-
-function categoryIcon(category: VaultCategory) {
-  switch (category) {
-    case "identity":
-      return <IdCard size={17} />;
-    case "insurance":
-      return <ShieldCheck size={17} />;
-    case "health":
-      return <HeartPulse size={17} />;
-    case "school":
-      return <Archive size={17} />;
-    case "pet":
-      return <PawPrint size={17} />;
-    case "travel":
-      return <FileText size={17} />;
-  }
 }
 
 function formatShortDate(date: string): string {

@@ -759,15 +759,12 @@ describe("LifeMap MVP app", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Field trip permission slip")).toBeInTheDocument();
     expect(screen.getByText("Missing: Parent signature")).toBeInTheDocument();
-    expect(screen.getByText("1 from AI")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Vault" }));
 
     expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
     expect(screen.getByText("Parent signature")).toBeInTheDocument();
-    expect(
-      screen.getByText("AI suggestion ready for review."),
-    ).toBeInTheDocument();
+    expect(screen.getAllByText("Needs review").length).toBeGreaterThan(0);
     await user.click(
       screen.getByRole("button", { name: "Open details for Parent signature" }),
     );
@@ -783,7 +780,7 @@ describe("LifeMap MVP app", () => {
     await user.click(
       within(detailDialog).getByRole("button", { name: "Close" }),
     );
-    expect(screen.getByText("6 records")).toBeInTheDocument();
+    expect(screen.getByText("Documents & records")).toBeInTheDocument();
   });
 
   test("confirms when a vault suggestion is saved", async () => {
@@ -844,14 +841,14 @@ describe("LifeMap MVP app", () => {
       "Suggestion dismissed.",
     );
     expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
-    expect(screen.getByText("5 records")).toBeInTheDocument();
+    expect(screen.getByText("Documents & records")).toBeInTheDocument();
 
     secondRender.unmount();
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Vault" }));
     expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
-    expect(screen.getByText("5 records")).toBeInTheDocument();
+    expect(screen.getByText("Documents & records")).toBeInTheDocument();
   });
 
   test("generates a Daily Brief through the local AI API", async () => {
