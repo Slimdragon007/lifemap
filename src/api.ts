@@ -35,7 +35,11 @@ export type BriefApiResult =
 const DEFAULT_ERROR =
   "LifeMap could not analyze this yet. Try again or edit the intake.";
 const PRODUCTION_API_ORIGIN = "https://lifemap-api.m-haslim.workers.dev";
-const PRODUCTION_PAGES_HOST = "lifemap-d33.pages.dev";
+const PRODUCTION_PAGES_HOSTS = [
+  "lifemap-d33.pages.dev",
+  "app.getlifemap.com",
+  "getlifemap.com",
+];
 
 export async function analyzeWithAi(
   rawIntake: string,
@@ -312,7 +316,7 @@ export function resolveApiOrigin(
 
   if (
     location.protocol === "https:" &&
-    location.hostname === PRODUCTION_PAGES_HOST
+    PRODUCTION_PAGES_HOSTS.includes(location.hostname)
   ) {
     return PRODUCTION_API_ORIGIN;
   }

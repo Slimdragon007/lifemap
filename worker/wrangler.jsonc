@@ -5,13 +5,13 @@
   "compatibility_date": "2026-06-13",
   "vars": {
     "OPENAI_MODEL": "gpt-5.5",
-    "ALLOWED_ORIGIN": "https://lifemap-d33.pages.dev,https://slimdragon007.github.io,http://localhost:5173,http://127.0.0.1:5173",
+    "ALLOWED_ORIGIN": "https://app.getlifemap.com,https://getlifemap.com,https://lifemap-d33.pages.dev,https://slimdragon007.github.io,http://localhost:5173,http://127.0.0.1:5173",
     "SUPABASE_URL": "https://tljijkoqfnimnkpzhozy.supabase.co",
     "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsamlqa29xZm5pbW5rcHpob3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0MDAxNjgsImV4cCI6MjA5Njk3NjE2OH0.uSR4xvb-l-WDhwgMlnQgUmzYAfoftudRo-Mu2H11BRo",
     "SEND_FROM": "notify@getlifemap.com",
     "GOOGLE_CLIENT_ID": "REPLACE_WITH_GOOGLE_OAUTH_CLIENT_ID",
     "GOOGLE_REDIRECT_URI": "https://lifemap-api.m-haslim.workers.dev/api/google/callback",
-    "APP_ORIGIN": "https://lifemap-d33.pages.dev",
+    "APP_ORIGIN": "https://app.getlifemap.com",
   },
   "send_email": [{ "name": "EMAIL" }],
   "kv_namespaces": [
