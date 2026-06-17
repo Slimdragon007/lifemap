@@ -20,7 +20,12 @@ const BAD_REQUEST_ERROR =
   "LifeMap could not reach the AI model. Check the OPENAI_MODEL setting and try again.";
 const UNAUTHENTICATED_ERROR = "Please sign in again to send.";
 const SEND_FAILURE_ERROR = "LifeMap could not send this email. Try again.";
+const RATE_LIMIT_ERROR =
+  "Too many requests. Please wait a moment and try again.";
 const DEFAULT_MODEL = "gpt-5.5";
+
+// AI routes are unauthenticated and proxy OpenAI, so they are the abuse surface.
+const RATE_LIMITED_PATHS = ["/api/analyze", "/api/classify", "/api/brief"];
 
 export default {
   async fetch(request, env) {
@@ -50,6 +55,17 @@ export default {
       )
     ) {
       return jsonResponse({ ok: false, error: "Not found." }, 404, corsHeaders);
+    }
+
+    if (RATE_LIMITED_PATHS.includes(url.pathname)) {
+      const allowed = await enforceRateLimit(request, env);
+      if (!allowed) {
+        return jsonResponse(
+          { ok: false, error: RATE_LIMIT_ERROR },
+          429,
+          corsHeaders,
+        );
+      }
     }
 
     try {
@@ -135,6 +151,24 @@ export async function generateBriefPayload(payload, env, fetchImpl = fetch) {
     normalizer: normalizeDailyBrief,
     requestBody: buildBriefRequest(analysis, env.OPENAI_MODEL || DEFAULT_MODEL),
   });
+}
+
+// Returns true if the request may proceed, false if it is over the limit.
+// Fails open when the binding is absent (older deploy / local dev without the
+// binding) so we never block real users on a missing config.
+export async function enforceRateLimit(request, env) {
+  const limiter = env?.AI_RATE_LIMITER;
+  if (!limiter || typeof limiter.limit !== "function") {
+    return true;
+  }
+  const key = request.headers.get("CF-Connecting-IP") || "unknown";
+  try {
+    const { success } = await limiter.limit({ key });
+    return success !== false;
+  } catch {
+    // A limiter outage should not take down the endpoint.
+    return true;
+  }
 }
 
 async function verifySupabaseUser(authHeader, env, fetchImpl) {

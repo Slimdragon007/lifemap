@@ -2,8 +2,59 @@ import { describe, expect, test, vi } from "vitest";
 import {
   analyzePayload,
   classifyPayload,
+  enforceRateLimit,
   generateBriefPayload,
 } from "./lifemap-api.mjs";
+
+function requestWithIp(ip) {
+  return new Request("https://lifemap-api.example/api/analyze", {
+    method: "POST",
+    headers: ip ? { "CF-Connecting-IP": ip } : {},
+  });
+}
+
+describe("enforceRateLimit", () => {
+  test("allows the request when the limiter reports success", async () => {
+    const limit = vi.fn().mockResolvedValue({ success: true });
+    const allowed = await enforceRateLimit(requestWithIp("203.0.113.7"), {
+      AI_RATE_LIMITER: { limit },
+    });
+
+    expect(allowed).toBe(true);
+    expect(limit).toHaveBeenCalledWith({ key: "203.0.113.7" });
+  });
+
+  test("blocks the request when the limiter reports failure", async () => {
+    const limit = vi.fn().mockResolvedValue({ success: false });
+    const allowed = await enforceRateLimit(requestWithIp("203.0.113.7"), {
+      AI_RATE_LIMITER: { limit },
+    });
+
+    expect(allowed).toBe(false);
+  });
+
+  test("keys on a stable fallback when the IP header is absent", async () => {
+    const limit = vi.fn().mockResolvedValue({ success: true });
+    await enforceRateLimit(requestWithIp(""), { AI_RATE_LIMITER: { limit } });
+
+    expect(limit).toHaveBeenCalledWith({ key: "unknown" });
+  });
+
+  test("fails open when no limiter binding is configured", async () => {
+    await expect(
+      enforceRateLimit(requestWithIp("203.0.113.7"), {}),
+    ).resolves.toBe(true);
+  });
+
+  test("fails open when the limiter throws", async () => {
+    const limit = vi.fn().mockRejectedValue(new Error("limiter down"));
+    await expect(
+      enforceRateLimit(requestWithIp("203.0.113.7"), {
+        AI_RATE_LIMITER: { limit },
+      }),
+    ).resolves.toBe(true);
+  });
+});
 
 const analysis = {
   dueItems: [

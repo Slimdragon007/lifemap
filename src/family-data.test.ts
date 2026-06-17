@@ -93,7 +93,7 @@ describe("family-data RLS-scoped persistence", () => {
   });
 
   test("omits a temp client id on insert so Postgres mints the uuid", async () => {
-    const upsert = vi.fn(() => ({
+    const upsert = vi.fn((..._args: unknown[]) => ({
       select: () => ({
         maybeSingle: async () => ({
           data: {
@@ -136,7 +136,7 @@ describe("family-data RLS-scoped persistence", () => {
   });
 
   test("keeps a real uuid id on update", async () => {
-    const upsert = vi.fn(() => ({
+    const upsert = vi.fn((..._args: unknown[]) => ({
       select: () => ({
         maybeSingle: async () => ({
           data: {

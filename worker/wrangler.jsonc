@@ -17,6 +17,16 @@
   "kv_namespaces": [
     { "binding": "GOOGLE_TOKENS", "id": "5a0a54b67b004ed89ac150c81f6df8bf" },
   ],
+  // Per-IP rate limit for the unauthenticated AI endpoints (/api/analyze,
+  // /api/classify, /api/brief) — they proxy OpenAI and are open to the internet.
+  // 20 requests / 60s / IP. period must be 10 or 60.
+  "ratelimits": [
+    {
+      "name": "AI_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 20, "period": 60 },
+    },
+  ],
   "secrets": {
     "required": ["OPENAI_API_KEY"],
   },
