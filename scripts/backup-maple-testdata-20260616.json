@@ -1,0 +1,144 @@
+{
+  "_note": "Backup of fabricated 'Maple Elementary' test data removed from m.haslim@gmail.com (user_id 5cfaea4a-5318-460d-ba9d-18e42bfa73d2) user_memory.preferences.lifemapState on 2026-06-16. All content was synthetic test input from a functional-verification run, not real family data. To restore: update user_memory set preferences = jsonb_set(preferences, '{lifemapState}', '<backup below>'::jsonb) where user_id = '5cfaea4a-5318-460d-ba9d-18e42bfa73d2';",
+  "lifemapState": {
+    "intake": "Hi families! Reminder: Maple Elementary field trip to the Science Museum is Friday June 26. Permission slip + $12 cash due to the front office by Wed June 24. Bus leaves 8:15am sharp, return ~3pm. Pack a peanut-free lunch. Also picture day order forms are due next Monday. Nurse needs Liam's updated immunization record on file before the trip. Questions: office@mapleelem.org",
+    "analysis": {
+      "dueItems": [
+        {
+          "id": "due-1",
+          "title": "Turn in Maple Elementary Science Museum field trip permission slip and $12 cash to the front office",
+          "dueDate": "2026-06-24",
+          "sourceQuote": "Permission slip + $12 cash due to the front office by Wed June 24."
+        },
+        {
+          "id": "due-2",
+          "title": "Submit picture day order forms",
+          "dueDate": "2026-06-22",
+          "sourceQuote": "Also picture day order forms are due next Monday."
+        },
+        {
+          "id": "due-3",
+          "title": "Provide Liam's updated immunization record to the school nurse before the field trip",
+          "dueDate": "2026-06-26",
+          "sourceQuote": "Nurse needs Liam's updated immunization record on file before the trip."
+        }
+      ],
+      "reminders": [
+        {
+          "id": "reminder-1",
+          "body": "Field trip is Friday June 26. Bus leaves at 8:15am sharp and returns around 3pm. Pack a peanut-free lunch.",
+          "title": "Maple Elementary Science Museum field trip",
+          "status": "Scheduled"
+        },
+        {
+          "id": "reminder-2",
+          "body": "Pack a peanut-free lunch for the Science Museum field trip on Friday June 26.",
+          "title": "Pack peanut-free lunch for field trip",
+          "status": "Scheduled"
+        }
+      ],
+      "waitingOn": [],
+      "missingInfo": [
+        {
+          "id": "missing-1",
+          "label": "Liam's updated immunization record",
+          "reason": "The nurse needs it on file before the Science Museum field trip.",
+          "sourceQuote": "Nurse needs Liam's updated immunization record on file before the trip."
+        }
+      ],
+      "nextActions": [
+        {
+          "id": "action-1",
+          "label": "Complete and send the field trip permission slip with $12 cash to the Maple Elementary front office.",
+          "owner": "Family"
+        },
+        {
+          "id": "action-2",
+          "label": "Get Liam's updated immunization record to the school nurse before the trip.",
+          "owner": "Family"
+        },
+        {
+          "id": "action-3",
+          "label": "Complete and submit picture day order forms by next Monday.",
+          "owner": "Family"
+        }
+      ],
+      "draftMessages": [],
+      "sourceEvidence": [
+        {
+          "id": "evidence-1",
+          "type": "email",
+          "label": "Field trip date and timing",
+          "quote": "Maple Elementary field trip to the Science Museum is Friday June 26. Permission slip + $12 cash due to the front office by Wed June 24. Bus leaves 8:15am sharp, return ~3pm. Pack a peanut-free lunch."
+        },
+        {
+          "id": "evidence-2",
+          "type": "email",
+          "label": "Picture day forms",
+          "quote": "Also picture day order forms are due next Monday."
+        },
+        {
+          "id": "evidence-3",
+          "type": "email",
+          "label": "Immunization record and contact",
+          "quote": "Nurse needs Liam's updated immunization record on file before the trip. Questions: office@mapleelem.org"
+        }
+      ]
+    },
+    "dailyBrief": {
+      "canWait": [
+        {
+          "id": "wait-due-2",
+          "label": "Submit picture day order forms",
+          "reason": "Keep it visible, but 2026-06-22 is not the first action."
+        },
+        {
+          "id": "wait-due-3",
+          "label": "Provide Liam's updated immunization record to the school nurse before the field trip",
+          "reason": "Keep it visible, but 2026-06-26 is not the first action."
+        }
+      ],
+      "conflicts": [],
+      "openLoops": [
+        {
+          "id": "loop-missing-1",
+          "label": "Liam's updated immunization record",
+          "blockedBy": "The nurse needs it on file before the Science Museum field trip."
+        }
+      ],
+      "todaySummary": "Turn in Maple Elementary Science Museum field trip permission slip and $12 cash to the front office is the clearest thing to move today.",
+      "groundingNote": "Grounded in Field trip date and timing, Picture day forms, Immunization record and contact.",
+      "topPriorities": [
+        {
+          "id": "priority-action-1",
+          "label": "Complete and send the field trip permission slip with $12 cash to the Maple Elementary front office.",
+          "reason": "Turn in Maple Elementary Science Museum field trip permission slip and $12 cash to the front office is due 2026-06-24."
+        },
+        {
+          "id": "priority-action-2",
+          "label": "Get Liam's updated immunization record to the school nurse before the trip.",
+          "reason": "Turn in Maple Elementary Science Museum field trip permission slip and $12 cash to the front office is due 2026-06-24."
+        },
+        {
+          "id": "priority-action-3",
+          "label": "Complete and submit picture day order forms by next Monday.",
+          "reason": "Turn in Maple Elementary Science Museum field trip permission slip and $12 cash to the front office is due 2026-06-24."
+        }
+      ],
+      "suggestedMessages": []
+    },
+    "isLoggedIn": false,
+    "setupProfile": {
+      "pets": 0,
+      "adults": 2,
+      "travels": false,
+      "children": 0,
+      "focusAreas": []
+    },
+    "setupBucketIds": [],
+    "approvalBodyEdits": {},
+    "savedSuggestionIds": [],
+    "disabledApprovalIds": [],
+    "dismissedSuggestionIds": []
+  }
+}

@@ -2068,7 +2068,7 @@ function ApprovalQueue({
   return (
     <Component
       aria-label="Approval queue"
-      className={variant === "rail" ? "approval-rail" : "panel approval-panel"}
+      className={variant === "rail" ? "approval-rail" : "approval-queue"}
     >
       <div className="rail-heading">
         <h2>Approval queue</h2>
@@ -2098,12 +2098,12 @@ function ApprovalQueue({
             ))}
           </div>
           <button
-            className="send-button"
+            className="notebook-cta"
             disabled={selectedCount === 0}
             type="button"
             onClick={onReview}
           >
-            <Send size={16} />
+            <Send size={15} />
             {reviewButtonLabel}
           </button>
         </>
@@ -2175,54 +2175,52 @@ function ApprovalCard({
   }
 
   return (
-    <article className={approved ? "approval-card approved" : "approval-card"}>
-      <div className="approval-card-top">
-        <span className="approval-icon">
-          <Icon size={17} />
+    <article
+      className={approved ? "notebook-approval" : "notebook-approval paused"}
+    >
+      <div className="notebook-approval-head">
+        <span className="notebook-approval-icon">
+          <Icon size={15} />
         </span>
-        <div className="approval-selection-control">
-          <span
-            className={
-              approved
-                ? "approval-selection-state included"
-                : "approval-selection-state skipped"
-            }
-          >
-            {approved ? "Will be reviewed next" : "Paused for now"}
-          </span>
-          <button
-            aria-checked={approved}
-            aria-label={
-              approved
-                ? `Skip ${item.title} for now`
-                : `Include ${item.title} in review`
-            }
-            className="switch"
-            role="switch"
-            type="button"
-            onClick={onToggle}
-          >
-            <span />
-          </button>
-        </div>
+        <span className="notebook-approval-titles">
+          <span className="notebook-row-title">{item.title}</span>
+          {item.recipient ? (
+            <span className="notebook-row-sub">To {item.recipient}</span>
+          ) : null}
+        </span>
+        <button
+          aria-checked={approved}
+          aria-label={
+            approved
+              ? `Skip ${item.title} for now`
+              : `Include ${item.title} in review`
+          }
+          className="notebook-switch"
+          role="switch"
+          type="button"
+          onClick={onToggle}
+        >
+          <span />
+        </button>
       </div>
-      <h3>{item.title}</h3>
-      {item.recipient ? <p className="recipient">To {item.recipient}</p> : null}
       {isEditing ? (
-        <div className="approval-edit">
-          <label className="draft-edit-label" htmlFor={`draft-body-${item.id}`}>
+        <div className="notebook-approval-edit">
+          <label
+            className="notebook-send-label"
+            htmlFor={`draft-body-${item.id}`}
+          >
             Body
           </label>
           <textarea
             aria-label={`Draft body for ${item.title}`}
-            className="draft-edit-textarea"
+            className="notebook-textarea"
             id={`draft-body-${item.id}`}
             value={draftBody}
             onChange={(event) => setDraftBody(event.target.value)}
           />
-          <div className="edit-actions">
+          <div className="notebook-approval-actions">
             <button
-              className="secondary-button compact-button"
+              className="notebook-link quiet"
               type="button"
               onClick={() => {
                 setDraftBody(item.body);
@@ -2233,7 +2231,7 @@ function ApprovalCard({
             </button>
             <button
               aria-label={`Save ${item.title}`}
-              className="primary-button compact-button"
+              className="notebook-link"
               type="button"
               onClick={saveDraftBody}
             >
@@ -2242,27 +2240,21 @@ function ApprovalCard({
           </div>
         </div>
       ) : (
-        <>
-          <p>{item.body}</p>
+        <p className="notebook-approval-body">{item.body}</p>
+      )}
+      <div className="notebook-approval-foot">
+        {isEditing ? null : (
           <button
             aria-label={`Edit ${item.title}`}
-            className="edit-button"
+            className="notebook-link"
             type="button"
             onClick={() => setIsEditing(true)}
           >
             Edit
           </button>
-        </>
-      )}
-      <span
-        className={
-          item.status === "Scheduled"
-            ? "queue-status scheduled"
-            : "queue-status"
-        }
-      >
-        {item.status}
-      </span>
+        )}
+        <span className="notebook-tag">{item.status}</span>
+      </div>
       {item.kind === "draft" ? (
         <SendDraftControl
           item={item}
@@ -2291,14 +2283,15 @@ function SendDraftControl({
   const valid = /.+@.+\..+/.test(to);
 
   if (sent) {
-    return <p className="sent-confirm">Sent ✓</p>;
+    return <p className="notebook-sent">Sent ✓</p>;
   }
 
   return (
-    <div className="send-draft">
-      <label>
+    <div className="notebook-send">
+      <label className="notebook-send-label">
         Recipient email
         <input
+          className="notebook-input"
           type="email"
           value={to}
           placeholder="name@example.com"
@@ -2306,25 +2299,33 @@ function SendDraftControl({
         />
       </label>
       <button
-        className="send-button"
+        className="notebook-btn"
         disabled={!valid || sending}
         type="button"
         onClick={() => setConfirming(true)}
       >
-        <Send size={16} />
+        <Send size={14} />
         {sending ? "Sending…" : "Send email"}
       </button>
       {confirming ? (
-        <div className="send-confirm" role="dialog" aria-label="Confirm send">
+        <div
+          className="notebook-send-confirm"
+          role="dialog"
+          aria-label="Confirm send"
+        >
           <p>
             Send to <strong>{to}</strong>? Replies come back to you.
           </p>
-          <div className="send-confirm-actions">
-            <button type="button" onClick={() => setConfirming(false)}>
+          <div className="notebook-approval-actions">
+            <button
+              className="notebook-link quiet"
+              type="button"
+              onClick={() => setConfirming(false)}
+            >
               Cancel
             </button>
             <button
-              className="send-button"
+              className="notebook-link"
               type="button"
               onClick={() => {
                 setConfirming(false);

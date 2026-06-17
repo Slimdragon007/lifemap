@@ -7946,6 +7946,236 @@ button.notebook-row:active {
   color: var(--ink, #2c2018);
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Review approval rows — notebook-native. Replaces the legacy .approval-card
+   chrome (icon tile, floating toggle, gradient panel, beige send slab) with a
+   flat hairline-divided row: title + recipient, an inline toggle pinned beside
+   the title, calm body text, and quiet text actions. One coral accent only.
+   ────────────────────────────────────────────────────────────────────────── */
+.approval-queue {
+  display: flex;
+  flex-direction: column;
+}
+
+.notebook-approval {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--line, #ecdfcd);
+}
+
+.notebook-approval.paused {
+  opacity: 0.55;
+}
+
+.notebook-approval-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.notebook-approval-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  margin-top: 1px;
+  color: var(--ink-quiet, #b39a82);
+}
+
+.notebook-approval-titles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* The toggle, pinned inline beside its title — never floats to the corner. */
+.notebook-switch {
+  flex: none;
+  position: relative;
+  width: 40px;
+  height: 23px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--line, #ecdfcd);
+  cursor: pointer;
+  transition: background var(--motion-state, 140ms) var(--ease, ease);
+}
+
+.notebook-switch > span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(44, 32, 24, 0.18);
+  transition: transform var(--motion-state, 140ms) var(--ease, ease);
+}
+
+.notebook-switch[aria-checked="true"] {
+  background: var(--accent, #cf7a52);
+}
+
+.notebook-switch[aria-checked="true"] > span {
+  transform: translateX(17px);
+}
+
+.notebook-approval-body {
+  margin: 0;
+  padding-left: 26px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft, #6f6356);
+}
+
+.notebook-approval-foot,
+.notebook-approval-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-left: 26px;
+}
+
+.notebook-approval-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 26px;
+}
+
+.notebook-textarea {
+  width: 100%;
+  min-height: 88px;
+  padding: 10px 12px;
+  border: 1px solid var(--line, #ecdfcd);
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink, #2c2018);
+  resize: vertical;
+}
+
+/* Send-draft control: quiet label, plain input, one calm bordered button. */
+.notebook-send {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 26px;
+}
+
+.notebook-send-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+  color: var(--ink-quiet, #b39a82);
+}
+
+.notebook-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line, #ecdfcd);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink, #2c2018);
+}
+
+.notebook-input:focus-visible {
+  outline: none;
+  border-color: var(--accent, #cf7a52);
+}
+
+.notebook-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: 1px solid var(--accent, #cf7a52);
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent, #cf7a52);
+  cursor: pointer;
+  transition: background var(--motion-state, 140ms) var(--ease, ease);
+}
+
+.notebook-btn:hover:not(:disabled) {
+  background: rgba(207, 122, 82, 0.08);
+}
+
+.notebook-btn:disabled {
+  border-color: var(--line, #ecdfcd);
+  color: var(--ink-quiet, #b39a82);
+  cursor: default;
+}
+
+.notebook-sent {
+  margin: 0;
+  padding-left: 26px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent, #cf7a52);
+}
+
+.notebook-send-confirm {
+  padding: 12px 14px;
+  border: 1px solid var(--line, #ecdfcd);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 13px;
+  color: var(--ink-soft, #6f6356);
+}
+
+.notebook-send-confirm p {
+  margin: 0 0 10px;
+}
+
+.notebook-send-confirm .notebook-approval-actions {
+  padding-left: 0;
+}
+
+/* The single primary CTA: "Review N selected" — one solid coral action. */
+.notebook-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 18px;
+  padding: 13px 20px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--accent, #cf7a52);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: transform var(--motion-press, 100ms) var(--ease, ease);
+}
+
+.notebook-cta:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.notebook-cta:disabled {
+  background: var(--line, #ecdfcd);
+  color: var(--ink-quiet, #b39a82);
+  cursor: default;
+}
+
 /* More tab: the structure is already a labeled row-list, so map the existing
    .more-* chrome onto the notebook look rather than rewriting the markup —
    quiet uppercase section labels, hairline-divided rows, unboxed monochrome

@@ -1105,9 +1105,6 @@ describe("LifeMap MVP app", () => {
       name: "Skip Field trip permission slip due for now",
     });
     expect(reminderToggle).toBeChecked();
-    expect(
-      within(queue).getAllByText("Will be reviewed next").length,
-    ).toBeGreaterThan(0);
 
     await user.click(reminderToggle);
 
@@ -1116,7 +1113,6 @@ describe("LifeMap MVP app", () => {
         name: "Include Field trip permission slip due in review",
       }),
     ).not.toBeChecked();
-    expect(within(queue).getByText("Paused for now")).toBeInTheDocument();
     expect(
       within(queue).getByRole("button", { name: "Review 2 selected" }),
     ).toBeEnabled();
@@ -1212,9 +1208,6 @@ describe("LifeMap MVP app", () => {
       name: "Skip Permission slip due for now",
     });
     expect(approvalToggle).toBeChecked();
-    expect(screen.getAllByText("Will be reviewed next").length).toBeGreaterThan(
-      0,
-    );
 
     await user.click(approvalToggle);
 
@@ -1223,7 +1216,6 @@ describe("LifeMap MVP app", () => {
         name: "Include Permission slip due in review",
       }),
     ).not.toBeChecked();
-    expect(screen.getByText("Paused for now")).toBeInTheDocument();
   });
 
   test("shows API errors and leaves the existing analysis visible", async () => {
