@@ -8176,6 +8176,62 @@ button.notebook-row:active {
   cursor: default;
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Capture — notebook-native. The big paste box first, one coral analyze CTA,
+   then quiet category rows. No modal sheet, no boxed tiles, no colored icons.
+   ────────────────────────────────────────────────────────────────────────── */
+.notebook-head-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.notebook-paste {
+  width: 100%;
+  min-height: 180px;
+  margin-top: 4px;
+  padding: 16px 18px;
+  border: 1px solid var(--line, #ecdfcd);
+  border-radius: 16px;
+  background: #fff;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink, #2c2018);
+  resize: vertical;
+}
+
+.notebook-paste:focus-visible {
+  outline: none;
+  border-color: var(--accent, #cf7a52);
+}
+
+.notebook-paste-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.notebook-paste-actions .notebook-link {
+  align-self: center;
+}
+
+.notebook-route-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 6px 4px 0;
+}
+
+/* The .notebook-section-title that labels the paste box reads as a quiet
+   caption under it rather than a loud header. */
+.capture-workspace .notebook-section-title {
+  margin-top: 18px;
+}
+
 /* More tab: the structure is already a labeled row-list, so map the existing
    .more-* chrome onto the notebook look rather than rewriting the markup —
    quiet uppercase section labels, hairline-divided rows, unboxed monochrome

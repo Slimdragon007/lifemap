@@ -1226,20 +1226,6 @@ function CaptureWorkspace({
   onRoute: () => void;
 }) {
   const hasIntake = intake.trim().length > 0;
-  const captureStep =
-    analyzeStatus === "success" || analyzeStatus === "fallback"
-      ? "Step 3 of 3"
-      : analyzeStatus === "loading"
-        ? "Step 2 of 3"
-        : "Step 1 of 3";
-  const captureState =
-    analyzeStatus === "success" || analyzeStatus === "fallback"
-      ? "Map ready to route"
-      : analyzeStatus === "loading"
-        ? "Analyzing with LifeMap AI"
-        : hasIntake
-          ? "Ready to analyze"
-          : "Needs context";
   const captureTypeOptions = captureTypeGuides.map((guide) => ({
     ...guide,
     sample: examples.find((example) => example.label === guide.sampleLabel),
@@ -1248,254 +1234,139 @@ function CaptureWorkspace({
   return (
     <section
       aria-labelledby="capture-sheet-title"
-      className="workspace capture-workspace"
+      className="workspace notebook capture-workspace"
     >
-      <div className="capture-sheet">
-        <div className="brain-dump-composer lifemap-ai-composer">
-          <header className="composer-header">
-            <div>
-              <span className="workspace-kicker">
-                <Sparkles size={14} />
-                LifeMap AI
-              </span>
-              <h1 id="capture-sheet-title">Ask LifeMap AI</h1>
-              <p>
-                Paste the messy email, screenshot notes, form, or travel list.
-                LifeMap turns it into due items, missing info, waiting-on, next
-                actions, reminders, and drafts.
-              </p>
-              <span className="storage-note">
-                Drafts stay approval-gated. Nothing sends automatically.
-              </span>
-            </div>
-            <div className="status-strip" aria-label="Current map summary">
-              <span className="status-pill urgent">
-                {map.dueItems.length} due
-              </span>
-              <span className="status-pill warning">
-                {map.missingInfo.length} missing
-              </span>
-              <span className="status-pill calm">
-                {map.nextActions.length} actions
-              </span>
-            </div>
-            <button
-              aria-label="Back to Today"
-              className="sheet-close"
-              type="button"
-              onClick={onClose}
-            >
-              Close
-            </button>
-          </header>
-
-          <section
-            className="capture-path"
-            aria-label="LifeMap AI capture path"
+      <header className="notebook-head">
+        <div className="notebook-head-row">
+          <h1 id="capture-sheet-title" className="notebook-title">
+            Ask LifeMap AI
+          </h1>
+          <button
+            aria-label="Back to Today"
+            className="notebook-link quiet"
+            type="button"
+            onClick={onClose}
           >
-            <div className="capture-path-status">
-              <span>{captureStep}</span>
-              <strong>{captureState}</strong>
-            </div>
-            <ol>
-              <li className="active">
-                <Inbox size={15} />
-                <span>1 Paste</span>
-              </li>
-              <li className={analyzeStatus === "loading" ? "active" : ""}>
-                <Sparkles size={15} />
-                <span>2 Analyze</span>
-              </li>
-              <li
-                className={
-                  analyzeStatus === "success" || analyzeStatus === "fallback"
-                    ? "active"
-                    : ""
-                }
-              >
-                <Map size={15} />
-                <span>3 Route</span>
-              </li>
-            </ol>
-          </section>
-
-          <section
-            aria-labelledby="capture-type-title"
-            className="capture-type-picker"
-          >
-            <div className="capture-type-heading">
-              <span>Quick start</span>
-              <h2 id="capture-type-title">Choose what this is</h2>
-              <p>
-                Start with the bucket, then paste or edit the messy details.
-              </p>
-            </div>
-            <div className="capture-type-grid">
-              {captureTypeOptions.map((option) => (
-                <button
-                  aria-label={`Use ${option.title.toLowerCase()} template`}
-                  className="capture-type-card"
-                  disabled={!option.sample}
-                  key={option.title}
-                  type="button"
-                  onClick={() => {
-                    if (option.sample) {
-                      onLoadExample(option.sample.rawIntake);
-                    }
-                  }}
-                >
-                  <span className="capture-type-icon">
-                    <FileText size={16} />
-                  </span>
-                  <strong>{option.title}</strong>
-                  <span>{option.description}</span>
-                  <em>{option.outcome}</em>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <div className="composer-grid">
-            <section
-              className="panel intake-panel"
-              aria-labelledby="ai-intake-title"
-            >
-              <div className="panel-heading">
-                <div>
-                  <h2 id="ai-intake-title">Paste anything</h2>
-                  <span>
-                    Email, notes, forms, travel plans — however messy.
-                  </span>
-                </div>
-                <Inbox size={18} />
-              </div>
-              <textarea
-                aria-label="Paste email, screenshot notes, forms, travel plans, or family admin"
-                value={intake}
-                wrap="soft"
-                onChange={(event) => onIntakeChange(event.target.value)}
-              />
-              <div className="intake-actions">
-                <button
-                  className="primary-button"
-                  type="button"
-                  disabled={analyzeStatus === "loading" || !hasIntake}
-                  onClick={onAnalyze}
-                >
-                  {analyzeStatus === "loading" ? (
-                    <>
-                      <span className="spinner" aria-hidden="true" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      Analyze intake
-                      <ChevronRight size={16} />
-                    </>
-                  )}
-                </button>
-                {analyzeStatus === "success" ? (
-                  <button
-                    className="secondary-button"
-                    type="button"
-                    onClick={onReview}
-                  >
-                    Review drafts
-                  </button>
-                ) : null}
-              </div>
-              <CaptureAnalyzeNotice
-                error={analyzeError}
-                map={map}
-                status={analyzeStatus}
-              />
-              {analyzeStatus === "success" && captureRoute ? (
-                <div className="capture-route-card">
-                  <p>{captureRoute.message}</p>
-                  <button
-                    className="secondary-button"
-                    type="button"
-                    onClick={onRoute}
-                  >
-                    {captureRoute.buttonLabel}
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              ) : null}
-            </section>
-
-            <section
-              className="panel map-panel capture-result-panel"
-              aria-labelledby="capture-result-title"
-            >
-              <div className="panel-heading">
-                <div>
-                  <h2 id="capture-result-title">
-                    LifeMap organizes it for you
-                  </h2>
-                  <span>
-                    It finds what&apos;s due, what&apos;s missing, and what
-                    needs you — then files it into Today, Vault, Calendar &amp;
-                    Review.
-                  </span>
-                </div>
-                <ShieldCheck size={18} />
-              </div>
-              <div
-                className="capture-summary-grid"
-                aria-label="Current analysis counts"
-              >
-                <div>
-                  <strong>{map.dueItems.length}</strong>
-                  <span>due</span>
-                </div>
-                <div>
-                  <strong>{map.missingInfo.length}</strong>
-                  <span>missing</span>
-                </div>
-                <div>
-                  <strong>{map.waitingOn.length}</strong>
-                  <span>waiting</span>
-                </div>
-                <div>
-                  <strong>{map.nextActions.length}</strong>
-                  <span>actions</span>
-                </div>
-              </div>
-              {analyzeStatus === "success" ? (
-                <section
-                  aria-labelledby="capture-routing-title"
-                  className="capture-routing-panel"
-                >
-                  <div>
-                    <h3 id="capture-routing-title">Route this map</h3>
-                    <p>
-                      Open the surface that matches what you want to do next.
-                    </p>
-                  </div>
-                  <div
-                    aria-label="Choose where to open this analysis"
-                    className="capture-routing-actions"
-                  >
-                    <button type="button" onClick={onOpenToday}>
-                      <Sparkles size={15} />
-                      Go to Today
-                    </button>
-                    <button type="button" onClick={onOpenVault}>
-                      <ShieldCheck size={15} />
-                      Go to Vault
-                    </button>
-                    <button type="button" onClick={onReview}>
-                      <Bell size={15} />
-                      Review approvals
-                    </button>
-                  </div>
-                </section>
-              ) : null}
-            </section>
-          </div>
+            Close
+          </button>
         </div>
+        <p className="notebook-sub">
+          Paste any messy email, note, form, or travel plan. LifeMap turns it
+          into due items, missing info, and ready-to-review drafts — nothing
+          sends automatically.
+        </p>
+      </header>
+
+      <h2 className="notebook-section-title" id="ai-intake-title">
+        Paste anything
+      </h2>
+      <textarea
+        aria-label="Paste email, screenshot notes, forms, travel plans, or family admin"
+        className="notebook-paste"
+        placeholder="Paste anything here…"
+        value={intake}
+        wrap="soft"
+        onChange={(event) => onIntakeChange(event.target.value)}
+      />
+
+      <div className="notebook-paste-actions">
+        <button
+          className="notebook-cta"
+          type="button"
+          disabled={analyzeStatus === "loading" || !hasIntake}
+          onClick={onAnalyze}
+        >
+          {analyzeStatus === "loading" ? (
+            <>
+              <span className="spinner" aria-hidden="true" />
+              Analyzing…
+            </>
+          ) : (
+            <>
+              Analyze intake
+              <ChevronRight size={15} />
+            </>
+          )}
+        </button>
+        {analyzeStatus === "success" ? (
+          <button className="notebook-link" type="button" onClick={onReview}>
+            Review drafts
+          </button>
+        ) : null}
       </div>
+
+      <CaptureAnalyzeNotice
+        error={analyzeError}
+        map={map}
+        status={analyzeStatus}
+      />
+
+      {analyzeStatus === "success" && captureRoute ? (
+        <div className="notebook-note">
+          <strong>{captureRoute.message}</strong>
+          <button className="notebook-link" type="button" onClick={onRoute}>
+            {captureRoute.buttonLabel}
+          </button>
+        </div>
+      ) : null}
+
+      {analyzeStatus === "success" ? (
+        <section aria-labelledby="capture-routing-title">
+          <h2 className="notebook-section-title" id="capture-routing-title">
+            Route this map
+          </h2>
+          <div className="notebook-route-actions">
+            <button
+              className="notebook-link"
+              type="button"
+              onClick={onOpenToday}
+            >
+              Go to Today
+            </button>
+            <button
+              className="notebook-link"
+              type="button"
+              onClick={onOpenVault}
+            >
+              Go to Vault
+            </button>
+            <button className="notebook-link" type="button" onClick={onReview}>
+              Review approvals
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      <section aria-labelledby="capture-type-title">
+        <h2 className="notebook-section-title" id="capture-type-title">
+          Choose what this is
+        </h2>
+        <p className="notebook-sub">
+          Start from a category to prefill an example, or just paste above.
+        </p>
+        <div className="notebook-list">
+          {captureTypeOptions.map((option) => (
+            <button
+              aria-label={`Use ${option.title.toLowerCase()} template`}
+              className="notebook-row"
+              disabled={!option.sample}
+              key={option.title}
+              type="button"
+              onClick={() => {
+                if (option.sample) {
+                  onLoadExample(option.sample.rawIntake);
+                }
+              }}
+            >
+              <span className="notebook-row-main">
+                <span className="notebook-row-title">{option.title}</span>
+                <span className="notebook-row-sub">{option.description}</span>
+              </span>
+              <ChevronRight className="notebook-chev" size={16} />
+            </button>
+          ))}
+        </div>
+      </section>
     </section>
   );
 }

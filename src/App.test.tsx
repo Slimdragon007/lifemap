@@ -601,13 +601,6 @@ describe("LifeMap MVP app", () => {
 
     const capture = screen.getByRole("region", { name: "Ask LifeMap AI" });
     expect(
-      within(capture).getByRole("region", { name: "LifeMap AI capture path" }),
-    ).toBeInTheDocument();
-    expect(within(capture).getByText("1 Paste")).toBeInTheDocument();
-    expect(within(capture).getByText("2 Analyze")).toBeInTheDocument();
-    expect(within(capture).getByText("3 Route")).toBeInTheDocument();
-    expect(within(capture).getByText("Ready to analyze")).toBeInTheDocument();
-    expect(
       within(capture).getByRole("heading", {
         name: "Paste anything",
       }),
@@ -616,6 +609,12 @@ describe("LifeMap MVP app", () => {
       within(capture).getByRole("textbox", {
         name: "Paste email, screenshot notes, forms, travel plans, or family admin",
       }),
+    ).toBeInTheDocument();
+    expect(
+      within(capture).getByRole("button", { name: "Analyze intake" }),
+    ).toBeInTheDocument();
+    expect(
+      within(capture).getByRole("region", { name: "Choose what this is" }),
     ).toBeInTheDocument();
   });
 
@@ -634,7 +633,7 @@ describe("LifeMap MVP app", () => {
 
     expect(
       within(captureTypePicker).getByText(
-        "Start with the bucket, then paste or edit the messy details.",
+        "Start from a category to prefill an example, or just paste above.",
       ),
     ).toBeInTheDocument();
     expect(
@@ -678,13 +677,10 @@ describe("LifeMap MVP app", () => {
     );
 
     expect(
-      await within(capture).findByText("Map ready to route"),
+      await within(capture).findByRole("heading", { name: "Route this map" }),
     ).toBeInTheDocument();
-    expect(within(capture).getByText("Step 3 of 3")).toBeInTheDocument();
     expect(
-      within(capture).getByText(
-        "Open the surface that matches what you want to do next.",
-      ),
+      within(capture).getByRole("button", { name: "Review drafts" }),
     ).toBeInTheDocument();
   });
 
