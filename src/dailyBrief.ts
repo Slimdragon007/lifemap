@@ -4,6 +4,7 @@ export type BriefPriority = {
   id: string;
   label: string;
   reason: string;
+  owner?: string;
 };
 
 export type BriefOpenLoop = {
@@ -53,6 +54,7 @@ export function buildDailyBriefFromAnalysis(
   const topPriorities = analysis.nextActions.slice(0, 3).map((action) => ({
     id: `priority-${action.id}`,
     label: action.label,
+    owner: action.owner,
     reason: firstDue
       ? `${firstDue.title} is due ${firstDue.dueDate}.`
       : "This is one of the clearest next moves in the current map.",

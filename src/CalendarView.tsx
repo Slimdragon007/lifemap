@@ -148,7 +148,7 @@ function CalendarView({
       <div className="notebook-list">
         {recurringCareItems.length > 0 ? (
           recurringCareItems.map((item) => (
-            <div className="notebook-row" key={item.id}>
+            <div className="notebook-row entry" key={item.id}>
               <span className="notebook-when">
                 {formatShortDate(item.nextDue)}
               </span>
@@ -183,9 +183,14 @@ function EventRow({
   const pending = isGenerated && !isSaved;
 
   return (
-    <div className={pending ? "notebook-row pending" : "notebook-row"}>
+    <div
+      className={pending ? "notebook-row entry pending" : "notebook-row entry"}
+    >
       <span className="notebook-when">{formatWhen(event.date)}</span>
       <span className="notebook-row-main">
+        {pending ? (
+          <span className="notebook-notch" aria-hidden="true" />
+        ) : null}
         <span className="notebook-row-title">{event.title}</span>
         <span className="notebook-row-sub">
           {event.time} · {event.owner} · {event.source}

@@ -7381,22 +7381,28 @@ body {
   color: var(--ink, #2c2018);
 }
 
+/* ── The Ledger Spine ───────────────────────────────────────────────────────
+   The list is the family's running record. Each row is a two-column ledger
+   entry: the "when" in the date rail (left), the entry hung off a continuous
+   vertical rule (the binding). The one entry that needs your sign-off carries
+   an oxblood notch on that rule — the red-pen mark. Robust grid layout: the
+   spine is a real column border, so it can't clip or drift. */
 .atlas-today .lowstim-list {
   display: flex;
   flex-direction: column;
+  margin-top: 8px;
 }
 
-/* Borderless row: the only chrome is a 1px bottom border. The row keeps the
-   .atlas-priority-card class so the locked motion contract (140ms settle +
-   scale(0.98) press, verified by tests/e2e/motion.spec.ts) still applies. */
+/* Each row is a ledger entry: [ date rail | entry ]. Keeps .atlas-priority-card
+   so the locked motion contract (140ms settle + scale(0.98) press,
+   motion.spec.ts) still applies. */
 .atlas-today .lowstim-item {
-  display: flex;
-  align-items: center;
-  gap: 13px;
+  display: grid;
+  grid-template-columns: 66px minmax(0, 1fr);
+  align-items: baseline;
   width: 100%;
-  padding: 16px 4px;
+  padding: 0;
   border: 0;
-  border-bottom: 1px solid var(--line, #ecdfcd);
   border-radius: 0;
   background: none;
   box-shadow: none;
@@ -7404,8 +7410,9 @@ body {
   backdrop-filter: none;
   font: inherit;
   font-size: 15px;
+  line-height: 1.45;
   text-align: left;
-  color: var(--ink, #2c2018);
+  color: var(--ink, #1c2b2a);
   cursor: pointer;
 }
 
@@ -7415,10 +7422,50 @@ body {
   transform: none;
 }
 
+.atlas-today .lowstim-item:hover .lowstim-text {
+  color: var(--accent, #3e5f50);
+}
+
 /* Preserve the press feedback (scale 0.98) over the higher-specificity hover
-   reset above, so the locked motion contract holds on the borderless rows. */
+   reset above, so the locked motion contract holds on the entry rows. */
 .atlas-today .lowstim-item:active {
   transform: scale(0.98);
+}
+
+/* The date rail: mono "when", right-aligned just shy of the spine. */
+.atlas-today .lowstim-when {
+  grid-column: 1;
+  padding: 16px 12px 16px 0;
+  text-align: right;
+  font-family: var(--font-mono, "Fragment Mono", monospace);
+  font-size: 10px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  color: var(--ink-quiet, #93a099);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The entry, hung off the spine: the left border is one segment of the
+   continuous binding; stacked rows make it unbroken. */
+.atlas-today .lowstim-entry {
+  grid-column: 2;
+  position: relative;
+  padding: 16px 4px 16px 18px;
+  border-left: 1px solid var(--line-strong, #c2c8bc); /* the binding reads stronger */
+  border-bottom: 1px solid var(--rule, #d4d8ce);
+}
+
+/* The oxblood "needs your sign-off" notch, straddling the spine. */
+.atlas-today .lowstim-notch {
+  position: absolute;
+  left: -2px;
+  top: 17px;
+  width: 3px;
+  height: 18px;
+  border-radius: 1px;
+  background: var(--needs, #b23a2e);
 }
 
 .atlas-today .lowstim-item.first {
@@ -7427,39 +7474,19 @@ body {
 
 .atlas-today .lowstim-item.priority-completed .lowstim-text,
 .atlas-today .lowstim-item.priority-snoozed .lowstim-text {
-  color: var(--ink-quiet, #b39a82);
+  color: var(--ink-quiet, #93a099);
   text-decoration: line-through;
 }
 
-.atlas-today .lowstim-dot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent, #cf7a52);
-}
-
+/* Legacy markers retired — entries are grouped state, not a 01/02/03 sequence. */
+.atlas-today .lowstim-dot,
 .atlas-today .lowstim-qn {
-  flex: none;
-  width: 14px;
-  text-align: center;
-  font-family: var(--font-mono, "Fragment Mono", monospace);
-  font-size: 12px;
-  color: var(--ink-quiet, #b39a82);
+  display: none;
 }
 
 .atlas-today .lowstim-text {
-  flex: 1;
+  display: block;
   min-width: 0;
-}
-
-.atlas-today .lowstim-when {
-  flex: none;
-  margin-left: auto;
-  font-family: var(--font-mono, "Fragment Mono", monospace);
-  font-size: 11.5px;
-  color: var(--ink-quiet, #b39a82);
-  white-space: nowrap;
 }
 
 .atlas-today .lowstim-item-quiet {
@@ -7529,8 +7556,61 @@ body {
   color: var(--ink-soft, #6f6356);
 }
 
+/* "Your LifeMap" area picker — flattened into the ledger: quiet monochrome
+   icon tiles, no boxes/shadows, a ruled section label. Icons stay (the picker
+   affordance) but the card chrome that broke the flat register is gone. */
 .atlas-today .lowstim-areas {
-  margin-top: 30px;
+  margin-top: 34px;
+}
+
+.atlas-today .atlas-lifemap-section h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-mono, "Fragment Mono", monospace);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-quiet, #93a099);
+}
+
+.atlas-today .atlas-area-grid {
+  gap: 2px 4px;
+}
+
+.atlas-today .atlas-area-tile {
+  min-height: 0;
+  padding: 12px 10px 12px 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--ink, #1c2b2a);
+  align-content: start;
+}
+
+.atlas-today .atlas-area-tile:hover {
+  background: none;
+  transform: none;
+}
+
+.atlas-today .atlas-area-tile:hover strong {
+  color: var(--accent, #3e5f50);
+}
+
+.atlas-today .atlas-area-tile svg {
+  color: var(--ink-quiet, #93a099);
+}
+
+.atlas-today .atlas-area-tile strong {
+  color: var(--ink, #1c2b2a);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.atlas-today .atlas-area-tile span {
+  color: var(--ink-quiet, #93a099);
+  font-size: 10.5px;
+  font-weight: 500;
 }
 
 .atlas-today .lowstim-briefmeta {
@@ -7860,6 +7940,60 @@ button.notebook-row:active {
   white-space: nowrap;
 }
 
+/* ── Ledger entry rows (shared, opt-in) ─────────────────────────────────────
+   Add .entry to a .notebook-row to make it a ledger entry: the mono "when" in
+   the date rail, content hung off the binding (a left rule), and an optional
+   oxblood notch (.notebook-notch) for entries that need your sign-off. Used on
+   the dated/sign-off lists (Calendar, Vault records & loops, Review) — NOT on
+   profile/setting rows, so those keep their plain layout. */
+.notebook-row.entry {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.notebook-row.entry .notebook-when {
+  grid-column: 1;
+  align-self: start;
+  width: auto;
+  min-width: 0;
+  padding: 15px 10px 15px 0;
+  text-align: right;
+  font-size: 10px;
+  line-height: 1.6;
+  border-bottom: 1px solid var(--rule, #d4d8ce);
+}
+
+.notebook-row.entry .notebook-row-main {
+  grid-column: 2;
+  position: relative;
+  padding: 15px 14px 15px 18px;
+  border-left: 1px solid var(--line-strong, #c2c8bc); /* the binding */
+  border-bottom: 1px solid var(--rule, #d4d8ce);
+}
+
+.notebook-row.entry .notebook-row-actions,
+.notebook-row.entry > .notebook-tag {
+  grid-column: 3;
+  align-self: center;
+  padding: 15px 0 15px 12px;
+  border-bottom: 1px solid var(--rule, #d4d8ce);
+}
+
+/* The oxblood "needs your sign-off" notch, straddling the binding. */
+.notebook-notch {
+  position: absolute;
+  left: -2px;
+  top: 17px;
+  width: 3px;
+  height: 18px;
+  border-radius: 1px;
+  background: var(--needs, #b23a2e);
+}
+
 /* Monochrome initials chip replacing colored profile avatars. */
 .notebook-initials {
   flex: none;
@@ -7967,6 +8101,26 @@ button.notebook-row:active {
 
 .notebook-approval.paused {
   opacity: 0.55;
+}
+
+/* Review is the purest ledger: every entry awaits your sign-off. Hang each
+   approval off the binding and mark the active ones with the oxblood notch;
+   paused (toggled-off) entries carry no notch — nothing's waiting on you. */
+.app-shell.view-review .notebook-approval {
+  position: relative;
+  padding-left: 18px;
+  border-left: 1px solid var(--line-strong, #c2c8bc);
+}
+
+.app-shell.view-review .notebook-approval:not(.paused)::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: 19px;
+  width: 3px;
+  height: 18px;
+  border-radius: 1px;
+  background: var(--needs, #b23a2e);
 }
 
 .notebook-approval-head {

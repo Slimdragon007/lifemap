@@ -256,14 +256,14 @@ function VaultView({
       <h2 className="notebook-section-title">Emergency view</h2>
       {familyMembers.length > 0 ? (
         <div className="notebook-list">
-          <div className="notebook-row">
+          <div className="notebook-row entry">
             <span className="notebook-when">Contact</span>
             <span className="notebook-row-main">
               <span className="notebook-row-title">Primary contact</span>
               <span className="notebook-row-sub">{identity.name}</span>
             </span>
           </div>
-          <div className="notebook-row">
+          <div className="notebook-row entry">
             <span className="notebook-when">Health</span>
             <span className="notebook-row-main">
               <span className="notebook-row-title">Casey health note</span>
@@ -272,7 +272,7 @@ function VaultView({
               </span>
             </span>
           </div>
-          <div className="notebook-row">
+          <div className="notebook-row entry">
             <span className="notebook-when">Pet</span>
             <span className="notebook-row-main">
               <span className="notebook-row-title">Milo vet</span>
@@ -292,7 +292,7 @@ function VaultView({
       {recurringCareItems.length > 0 ? (
         <div className="notebook-list">
           {recurringCareItems.slice(0, 3).map((item) => (
-            <div className="notebook-row" key={item.id}>
+            <div className="notebook-row entry" key={item.id}>
               <span className="notebook-when">
                 {formatShortDate(item.nextDue)}
               </span>
@@ -334,19 +334,21 @@ function VaultRow({
 }) {
   const isGenerated = item.id.startsWith("ai-vault-");
   const pending = isGenerated && !isSaved;
-  const sub = `${item.owner} · ${item.category}${
+  const sub = `${item.owner}${
     item.renewalDate ? ` · review by ${formatShortDate(item.renewalDate)}` : ""
   }`;
 
   if (pending) {
     return (
-      <div className="notebook-row pending">
+      <div className="notebook-row entry pending">
+        <span className="notebook-when">{item.category}</span>
         <button
           aria-label={`Open details for ${item.title}`}
           className="notebook-row-main notebook-row-open"
           type="button"
           onClick={onOpenDetails}
         >
+          <span className="notebook-notch" aria-hidden="true" />
           <span className="notebook-row-title">{item.title}</span>
           <span className="notebook-row-sub">{sub}</span>
         </button>
@@ -374,10 +376,11 @@ function VaultRow({
   return (
     <button
       aria-label={`Open details for ${item.title}`}
-      className="notebook-row"
+      className="notebook-row entry"
       type="button"
       onClick={onOpenDetails}
     >
+      <span className="notebook-when">{item.category}</span>
       <span className="notebook-row-main">
         <span className="notebook-row-title">{item.title}</span>
         <span className="notebook-row-sub">{sub}</span>

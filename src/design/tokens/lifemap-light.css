@@ -1,68 +1,70 @@
 :root {
   /* ================================================================= */
-  /* LOW-STIMULUS — the app's design language (replaces Haven).         */
-  /* Warm, near-monochrome, one rationed coral accent, calm by design.  */
-  /* Variable NAMES are kept stable so every screen inherits at once;   */
-  /* only the VALUES changed from the old cool/blue theme.              */
+  /* THE HOUSEHOLD LEDGER — the app's design language.                  */
+  /* LifeMap = your family's standing record: cool archival paper, ink, */
+  /* sage ruled lines, ONE saturated signal (oxblood = needs your sign- */
+  /* off) and a calm ledger-green for interactive/settled. Variable     */
+  /* NAMES are kept stable so every screen inherits the retheme at once.*/
   /* ================================================================= */
 
-  /* Type — quiet humanist sans everywhere (no serif display) */
+  /* Type — Darker Grotesque display (ledger headers), Hanken body, mono data */
   --font-ui:
     "Hanken Grotesque", ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-display:
-    "Hanken Grotesque", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    "Darker Grotesque", "Hanken Grotesque", ui-sans-serif, system-ui,
+    -apple-system, sans-serif;
   --font-mono:
     "Fragment Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
 
-  /* Canvas — warm cream, minimal variation */
-  --color-canvas-warm: #fcf7ee;
-  --color-canvas-app: #fcf7ee;
-  --color-canvas-login: #fcf7ee;
-  --color-canvas-soft-blue: #faf2e8;
-  --color-canvas-soft-warm: #faf2e8;
+  /* Canvas — cool archival oatmeal (deliberately off warm cream) */
+  --color-canvas-warm: #f1f3ee;
+  --color-canvas-app: #f1f3ee;
+  --color-canvas-login: #f1f3ee;
+  --color-canvas-soft-blue: #eaeee7;
+  --color-canvas-soft-warm: #eaeee7;
 
-  /* Surfaces — flat warm paper (low-stim: less glass, more calm) */
-  --color-surface-glass: rgba(255, 254, 250, 0.86);
-  --color-surface-panel: #fffefa;
-  --color-surface-panel-strong: #fffefa;
-  --color-surface-command: #fffefa;
-  --color-surface-command-soft: #fcf7ee;
-  --color-surface-nav: rgba(252, 247, 238, 0.92);
-  --color-surface-capture: #fffefa;
-  --color-surface-row: #fffefa;
-  --color-backdrop-capture: rgba(252, 247, 238, 0.55);
+  /* Surfaces — flat ledger stock, a hair lighter than the canvas */
+  --color-surface-glass: rgba(248, 250, 245, 0.86);
+  --color-surface-panel: #f8faf5;
+  --color-surface-panel-strong: #f8faf5;
+  --color-surface-command: #f8faf5;
+  --color-surface-command-soft: #f1f3ee;
+  --color-surface-nav: rgba(241, 243, 238, 0.92);
+  --color-surface-capture: #f8faf5;
+  --color-surface-row: #f8faf5;
+  --color-backdrop-capture: rgba(241, 243, 238, 0.55);
 
-  /* Ink — warm browns */
-  --color-text-primary: #2c2018;
-  --color-text-strong: #211712;
-  --color-text-secondary: #6f6356;
-  --color-text-quiet: #b39a82;
-  --color-text-inverse: #fffefa;
+  /* Ink — fountain-pen: near-black with a green-blue undertone */
+  --color-text-primary: #1c2b2a;
+  --color-text-strong: #131f1e;
+  --color-text-secondary: #5e6b66;
+  --color-text-quiet: #93a099;
+  --color-text-inverse: #f8faf5;
 
-  /* Borders — warm line */
-  --color-border-subtle: #ecdfcd;
-  --color-border-strong: #e0cfb8;
-  --color-focus-ring: rgba(207, 122, 82, 0.32);
+  /* Borders — sage ruled lines */
+  --color-border-subtle: #d4d8ce;
+  --color-border-strong: #c2c8bc;
+  --color-focus-ring: rgba(62, 95, 80, 0.34);
 
-  /* Accent — single rationed coral (the old "blue" is now coral everywhere) */
-  --color-accent-blue: #cf7a52;
-  --color-accent-blue-strong: #b9663f;
-  --color-accent-blue-soft: rgba(207, 122, 82, 0.12);
-  --color-accent-sky: #f0e3d2;
-  --color-accent-warm: #cf7a52;
-  --color-accent-warm-soft: rgba(207, 122, 82, 0.13);
-  --color-accent-clay: #cf7a52;
-  --color-accent-plum: #6f6356;
-  --color-accent-sage: #7fa284;
-  --color-accent-amber: #c98a3f;
-  --color-status-danger: #b65a45;
+  /* Accent — calm ledger-green for interactive (links, CTAs, active states) */
+  --color-accent-blue: #3e5f50;
+  --color-accent-blue-strong: #2f4a3e;
+  --color-accent-blue-soft: rgba(62, 95, 80, 0.12);
+  --color-accent-sky: #e3e9e1;
+  --color-accent-warm: #3e5f50;
+  --color-accent-warm-soft: rgba(62, 95, 80, 0.12);
+  --color-accent-clay: #3e5f50;
+  --color-accent-plum: #5e6b66;
+  --color-accent-sage: #4a6b5c;
+  --color-accent-amber: #9a7b3a;
+  --color-status-danger: #b23a2e;
 
-  --color-action-ink: #2c2018;
+  --color-action-ink: #1c2b2a;
 
-  /* Gradients — flattened toward calm (CTA is a quiet coral, surfaces are paper) */
-  --gradient-action-primary: linear-gradient(180deg, #ef8d63 0%, #cf7a52 100%);
-  --gradient-command-surface: linear-gradient(180deg, #fffefa 0%, #fcf7ee 100%);
+  /* Gradients — flattened to a calm solid ledger-green CTA on ledger paper */
+  --gradient-action-primary: linear-gradient(180deg, #4a6f5d 0%, #3e5f50 100%);
+  --gradient-command-surface: linear-gradient(180deg, #f8faf5 0%, #f1f3ee 100%);
 
   --radius-control: 12px;
   --radius-panel: 16px;
@@ -86,13 +88,26 @@
   --motion-enter: 220ms;
   --motion-cap: 300ms;
 
-  /* Single warm accent exposed semantically for new low-stim components */
-  --accent: #cf7a52;
-  --accent-soft: #ef8d63;
-  --paper: #fcf7ee;
-  --paper-raised: #fffefa;
-  --warm-line: #ecdfcd;
-  --warm-ink: #2c2018;
-  --warm-ink-soft: #6f6356;
-  --warm-ink-quiet: #b39a82;
+  /* Ledger semantics for the notebook/ledger components.
+     --accent  = calm interactive (links, CTAs, active filters, the spine)
+     --needs   = the oxblood "red pen": action-required / needs your sign-off ONLY
+     --filed   = ledger-green: settled / handled / saved */
+  --accent: #3e5f50;
+  --accent-soft: #4a6f5d;
+  --needs: #b23a2e;
+  --needs-soft: rgba(178, 58, 46, 0.12);
+  --filed: #4a6b5c;
+  --paper: #f1f3ee;
+  --paper-raised: #f8faf5;
+  --rule: #d4d8ce;
+  --warm-line: #d4d8ce;
+  --warm-ink: #1c2b2a;
+  --warm-ink-soft: #5e6b66;
+  --warm-ink-quiet: #93a099;
+
+  /* Back-compat aliases for components that read --line / --ink-* directly. */
+  --line: #d4d8ce;
+  --ink: #1c2b2a;
+  --ink-soft: #5e6b66;
+  --ink-quiet: #93a099;
 }

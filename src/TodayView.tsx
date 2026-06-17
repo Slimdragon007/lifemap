@@ -153,7 +153,7 @@ function TodayView({
                 ? "Done"
                 : actionState === "snoozed"
                   ? "Tomorrow"
-                  : getPriorityWhen(priority.label, priority.reason, index);
+                  : (priority.owner ?? "");
             const className = [
               "lowstim-item",
               "atlas-priority-card",
@@ -170,15 +170,13 @@ function TodayView({
                 type="button"
                 onClick={() => onOpenPriority(priority)}
               >
-                {isFirst ? (
-                  <span className="lowstim-dot" aria-hidden="true" />
-                ) : (
-                  <span className="lowstim-qn" aria-hidden="true">
-                    {index + 1}
-                  </span>
-                )}
-                <span className="lowstim-text">{priority.label}</span>
                 <span className="lowstim-when">{whenLabel}</span>
+                <span className="lowstim-entry">
+                  {isFirst ? (
+                    <span className="lowstim-notch" aria-hidden="true" />
+                  ) : null}
+                  <span className="lowstim-text">{priority.label}</span>
+                </span>
               </button>
             );
           })}
@@ -208,11 +206,10 @@ function TodayView({
                     type="button"
                     onClick={onOpenBrief}
                   >
-                    <span className="lowstim-qn" aria-hidden="true">
-                      ○
-                    </span>
-                    <span className="lowstim-text">{item.label}</span>
                     <span className="lowstim-when">{item.when}</span>
+                    <span className="lowstim-entry">
+                      <span className="lowstim-text">{item.label}</span>
+                    </span>
                   </button>
                 ))}
               </div>
@@ -282,36 +279,6 @@ function TodayView({
       </div>
     </section>
   );
-}
-
-function getPriorityWhen(label: string, reason: string, index: number) {
-  const text = `${label} ${reason}`.toLowerCase();
-  if (
-    text.includes("passport") ||
-    text.includes("travel") ||
-    text.includes("flight")
-  ) {
-    return "soon";
-  }
-  if (
-    text.includes("doctor") ||
-    text.includes("dental") ||
-    text.includes("health") ||
-    text.includes("medical") ||
-    text.includes("medication") ||
-    text.includes("vaccine") ||
-    text.includes("vet")
-  ) {
-    return "upcoming";
-  }
-  if (
-    text.includes("home") ||
-    text.includes("bill") ||
-    text.includes("insurance")
-  ) {
-    return "soon";
-  }
-  return index === 2 ? "upcoming" : "soon";
 }
 
 function BriefNotice({

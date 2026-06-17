@@ -112,16 +112,19 @@ export const presentationBrief: DailyBrief = {
       id: "priority-slip",
       label: "Field trip permission slip",
       reason: "Due tomorrow - Emma",
+      owner: "Emma",
     },
     {
       id: "priority-passport",
       label: "Renew passport",
       reason: "Due in 12 days - You",
+      owner: "You",
     },
     {
       id: "priority-vet",
       label: "Milo vet appointment",
       reason: "Jun 18 at 10:30 AM",
+      owner: "Milo",
     },
   ],
   openLoops: [
