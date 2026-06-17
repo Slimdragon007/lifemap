@@ -52,6 +52,17 @@ import { demoMode } from "./demoMode";
 import { viewerIdentity } from "./viewer";
 import { sampleCollections } from "./sampleData";
 import {
+  buildCalendarEventsFromAnalysis,
+  buildVaultItemsFromAnalysis,
+} from "./familyOS";
+import {
+  loadFamilyCollections,
+  upsertFamilyEvent,
+  upsertVaultItem,
+  type FamilyCollections,
+  type FamilyDataClient,
+} from "./family-data";
+import {
   getAccessToken,
   getSupabase,
   isSupabaseConfigured,
@@ -287,6 +298,15 @@ function App() {
   const { session, loading: sessionLoading } = useSession();
   const identity = useMemo(() => viewerIdentity(session, demoMode), [session]);
   const samples = useMemo(() => sampleCollections(demoMode), []);
+  // The sensitive family collections. In demo mode these are the local seeds;
+  // in real mode they start empty and are loaded per-user from Supabase (RLS),
+  // then grown as the user saves AI-extracted suggestions into the real tables.
+  const [collections, setCollections] = useState<FamilyCollections>(() => ({
+    familyMembers: samples.familyMembers,
+    familyEvents: samples.familyEvents,
+    vaultItems: samples.vaultItems,
+    recurringCareItems: samples.recurringCareItems,
+  }));
   const storedState = useMemo<StoredDemoState>(
     () => ({
       isLoggedIn,
@@ -389,6 +409,40 @@ function App() {
   }, [session]);
 
   useEffect(() => {
+    if (!isSupabaseConfigured || !session) {
+      return;
+    }
+
+    let active = true;
+    const userId = session.user.id;
+
+    loadFamilyCollections(userId, getSupabase() as unknown as FamilyDataClient)
+      .then((result) => {
+        if (!active) {
+          return;
+        }
+
+        if (result.ok) {
+          setCollections(result.collections);
+        } else {
+          console.warn("LifeMap family load failed", result.error);
+          setToastMessage("Couldn't load your saved records — try again.");
+        }
+      })
+      .catch((error) => {
+        if (!active) {
+          return;
+        }
+
+        console.error("LifeMap family load error", error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session]);
+
+  useEffect(() => {
     if (
       !isSupabaseConfigured ||
       !session ||
@@ -430,6 +484,10 @@ function App() {
   }
 
   function saveSuggestion(id: string) {
+    if (isSupabaseConfigured && session) {
+      void materializeSuggestions([id]);
+      return;
+    }
     setSavedSuggestionIds((current) => new Set(current).add(id));
     setDismissedSuggestionIds((current) => {
       const next = new Set(current);
@@ -439,6 +497,10 @@ function App() {
   }
 
   function saveSuggestions(ids: string[]) {
+    if (isSupabaseConfigured && session) {
+      void materializeSuggestions(ids);
+      return;
+    }
     setSavedSuggestionIds((current) => {
       const next = new Set(current);
       ids.forEach((id) => next.add(id));
@@ -449,6 +511,70 @@ function App() {
       ids.forEach((id) => next.delete(id));
       return next;
     });
+  }
+
+  // Real mode: turn a saved AI suggestion into a durable, typed row in the
+  // per-user Supabase tables (RLS-enforced). The freshly-persisted row (with its
+  // real uuid) joins the in-memory collection, and the ephemeral analysis
+  // suggestion is removed from the review list so it doesn't double-render.
+  async function materializeSuggestions(ids: string[]) {
+    if (!session) {
+      return;
+    }
+    const userId = session.user.id;
+    const client = getSupabase() as unknown as FamilyDataClient;
+    const vaultCandidates = buildVaultItemsFromAnalysis(map);
+    const eventCandidates = buildCalendarEventsFromAnalysis(map);
+    const persistedIds: string[] = [];
+    let failed = false;
+
+    for (const id of ids) {
+      if (id.startsWith("ai-vault-")) {
+        const candidate = vaultCandidates.find((item) => item.id === id);
+        if (!candidate) {
+          continue;
+        }
+        const result = await upsertVaultItem(userId, candidate, client);
+        if (result.ok) {
+          const saved = result.item;
+          setCollections((current) => ({
+            ...current,
+            vaultItems: [saved, ...current.vaultItems],
+          }));
+          persistedIds.push(id);
+        } else {
+          failed = true;
+        }
+      } else if (id.startsWith("ai-event-")) {
+        const candidate = eventCandidates.find((event) => event.id === id);
+        if (!candidate) {
+          continue;
+        }
+        const result = await upsertFamilyEvent(userId, candidate, client);
+        if (result.ok) {
+          const saved = result.item;
+          setCollections((current) => ({
+            ...current,
+            familyEvents: [saved, ...current.familyEvents],
+          }));
+          persistedIds.push(id);
+        } else {
+          failed = true;
+        }
+      }
+    }
+
+    if (persistedIds.length > 0) {
+      // Remove the now-persisted suggestions from the review list.
+      setDismissedSuggestionIds((current) => {
+        const next = new Set(current);
+        persistedIds.forEach((id) => next.add(id));
+        return next;
+      });
+    }
+    if (failed) {
+      setToastMessage("Couldn't save every record — try again.");
+    }
   }
 
   function dismissSuggestion(id: string) {
@@ -872,8 +998,8 @@ function App() {
           <CalendarView
             analysis={map}
             dismissedSuggestionIds={dismissedSuggestionIds}
-            familyEvents={samples.familyEvents}
-            recurringCareItems={samples.recurringCareItems}
+            familyEvents={collections.familyEvents}
+            recurringCareItems={collections.recurringCareItems}
             savedSuggestionIds={savedSuggestionIds}
             onDismissSuggestion={dismissSuggestion}
             onSaveSuggestion={saveSuggestion}
@@ -883,11 +1009,11 @@ function App() {
           <VaultView
             analysis={map}
             dismissedSuggestionIds={dismissedSuggestionIds}
-            familyMembers={samples.familyMembers}
+            familyMembers={collections.familyMembers}
             identity={identity}
-            recurringCareItems={samples.recurringCareItems}
+            recurringCareItems={collections.recurringCareItems}
             savedSuggestionIds={savedSuggestionIds}
-            vaultItems={samples.vaultItems}
+            vaultItems={collections.vaultItems}
             onDismissSuggestion={dismissSuggestion}
             onSaveSuggestion={saveSuggestion}
             onSaveSuggestions={saveSuggestions}
