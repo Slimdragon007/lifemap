@@ -245,6 +245,44 @@ export async function getDataKey(
   }
 }
 
+export type SendFeedbackResult = { ok: true } | { ok: false; error: string };
+
+// Sends in-app feedback to the app owner (email + Notion, server-side).
+// Auth-gated so the Worker can tag who sent it.
+export async function sendFeedback(
+  input: { message: string; url?: string },
+  accessToken: string,
+  origin = getApiOrigin(),
+): Promise<SendFeedbackResult> {
+  if (!origin) {
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+
+  try {
+    const response = await fetch(`${origin}/api/feedback`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(input),
+    });
+    const payload: unknown = await response.json();
+
+    if (isRecord(payload) && payload.ok === true) {
+      return { ok: true };
+    }
+
+    return {
+      ok: false,
+      error: readError(isRecord(payload) ? payload.error : undefined),
+    };
+  } catch (error) {
+    console.error("LifeMap feedback request failed", error);
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+}
+
 export type GoogleAuthUrlResult =
   | { ok: true; url: string }
   | { ok: false; error: string };

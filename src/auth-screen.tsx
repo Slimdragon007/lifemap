@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { getSupabase } from "./supabaseClient";
 
-type Mode = "signin" | "signup";
+type Mode = "signin" | "signup" | "reset";
 
 // Real email + password auth (no magic links — they resolve to the wrong
 // localhost when a link is opened on a phone). Shown only when Supabase is
@@ -23,8 +23,26 @@ function AuthScreen() {
     setNotice(undefined);
 
     const supabase = getSupabase();
-    const credentials = { email: email.trim(), password };
+    const trimmedEmail = email.trim();
 
+    // Password recovery: email a reset link back to wherever the app lives.
+    if (mode === "reset") {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        trimmedEmail,
+        typeof window !== "undefined"
+          ? { redirectTo: window.location.origin }
+          : undefined,
+      );
+      setStatus("idle");
+      if (resetError) {
+        setError(resetError.message);
+        return;
+      }
+      setNotice("Check your email for a link to reset your password.");
+      return;
+    }
+
+    const credentials = { email: trimmedEmail, password };
     const { error: authError } =
       mode === "signup"
         ? await supabase.auth.signUp(credentials)
@@ -43,18 +61,27 @@ function AuthScreen() {
     setStatus("idle");
   }
 
+  const title =
+    mode === "signin"
+      ? "Welcome back."
+      : mode === "signup"
+        ? "Let's set things down."
+        : "Reset your password.";
+  const lede =
+    mode === "signin"
+      ? "Map your life, clear your head, know your next move."
+      : mode === "signup"
+        ? "One calm home for the family-admin chaos."
+        : "Enter your email and we'll send you a reset link.";
+
   return (
     <main className="auth">
       <section className="auth-card" aria-labelledby="auth-title">
         <span className="auth-mark">LifeMap</span>
         <h1 id="auth-title" className="auth-title">
-          {mode === "signin" ? "Welcome back." : "Let's set things down."}
+          {title}
         </h1>
-        <p className="auth-lede">
-          {mode === "signin"
-            ? "Map your life, clear your head, know your next move."
-            : "One calm home for the family-admin chaos."}
-        </p>
+        <p className="auth-lede">{lede}</p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="auth-field">
@@ -68,22 +95,38 @@ function AuthScreen() {
               onChange={(event) => setEmail(event.target.value)}
             />
           </label>
-          <label className="auth-field">
-            <span>Password</span>
-            <input
-              autoComplete={
-                mode === "signup" ? "new-password" : "current-password"
-              }
-              minLength={8}
-              placeholder={
-                mode === "signup" ? "at least 8 characters" : "••••••••"
-              }
-              required
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </label>
+          {mode !== "reset" ? (
+            <label className="auth-field">
+              <span>Password</span>
+              <input
+                autoComplete={
+                  mode === "signup" ? "new-password" : "current-password"
+                }
+                minLength={8}
+                placeholder={
+                  mode === "signup" ? "at least 8 characters" : "••••••••"
+                }
+                required
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            </label>
+          ) : null}
+
+          {mode === "signin" ? (
+            <button
+              className="auth-forgot"
+              type="button"
+              onClick={() => {
+                setMode("reset");
+                setError(undefined);
+                setNotice(undefined);
+              }}
+            >
+              Forgot password?
+            </button>
+          ) : null}
 
           {error ? (
             <p className="auth-msg error" aria-live="polite">
@@ -104,11 +147,19 @@ function AuthScreen() {
             {status === "loading" ? (
               <>
                 <span className="spinner" aria-hidden="true" />
-                {mode === "signin" ? "Signing in…" : "Creating…"}
+                {mode === "signin"
+                  ? "Signing in…"
+                  : mode === "signup"
+                    ? "Creating…"
+                    : "Sending…"}
               </>
             ) : (
               <>
-                {mode === "signin" ? "Sign in" : "Sign up"}
+                {mode === "signin"
+                  ? "Sign in"
+                  : mode === "signup"
+                    ? "Sign up"
+                    : "Send reset link"}
                 <ArrowRight size={17} aria-hidden="true" />
               </>
             )}
@@ -124,9 +175,11 @@ function AuthScreen() {
             setNotice(undefined);
           }}
         >
-          {mode === "signin"
-            ? "New here? Create an account"
-            : "Already have an account? Sign in"}
+          {mode === "signup"
+            ? "Already have an account? Sign in"
+            : mode === "reset"
+              ? "Back to sign in"
+              : "New here? Create an account"}
         </button>
       </section>
     </main>

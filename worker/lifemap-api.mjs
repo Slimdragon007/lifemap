@@ -25,7 +25,17 @@ const RATE_LIMIT_ERROR =
 const DEFAULT_MODEL = "gpt-5.5";
 
 // AI routes are unauthenticated and proxy OpenAI, so they are the abuse surface.
-const RATE_LIMITED_PATHS = ["/api/analyze", "/api/classify", "/api/brief"];
+// Feedback is auth-gated but still capped to blunt spam.
+const RATE_LIMITED_PATHS = [
+  "/api/analyze",
+  "/api/classify",
+  "/api/brief",
+  "/api/feedback",
+];
+
+// Where in-app feedback is emailed.
+const FEEDBACK_TO = "m.haslim@gmail.com";
+const FEEDBACK_FAILURE_ERROR = "Couldn't send feedback right now. Try again.";
 
 export default {
   async fetch(request, env) {
@@ -50,6 +60,17 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/api/data-key") {
       return handleDataKey(request, env, corsHeaders);
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/feedback") {
+      if (!(await enforceRateLimit(request, env))) {
+        return jsonResponse(
+          { ok: false, error: RATE_LIMIT_ERROR },
+          429,
+          corsHeaders,
+        );
+      }
+      return handleFeedback(request, env, corsHeaders);
     }
 
     if (
@@ -247,6 +268,147 @@ function bytesToBase64(bytes) {
     bin += String.fromCharCode(bytes[i]);
   }
   return btoa(bin);
+}
+
+// In-app feedback: auth-gated (so we know who sent it). Always emails Slim;
+// also logs to Notion when configured. A Notion failure never fails the request.
+async function handleFeedback(request, env, corsHeaders) {
+  const auth = await verifySupabaseUser(
+    request.headers.get("Authorization"),
+    env,
+    fetch,
+  );
+  if (!auth.ok) {
+    return jsonResponse(
+      { ok: false, error: UNAUTHENTICATED_ERROR },
+      401,
+      corsHeaders,
+    );
+  }
+
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return jsonResponse(
+      { ok: false, error: INVALID_INPUT_ERROR },
+      400,
+      corsHeaders,
+    );
+  }
+
+  const result = await recordFeedback({
+    env,
+    message: typeof payload?.message === "string" ? payload.message.trim() : "",
+    url: typeof payload?.url === "string" ? payload.url : "",
+    fromEmail: auth.email,
+    mailer: createCloudflareMailer(env.EMAIL),
+  });
+  return jsonResponse(result.body, result.status, corsHeaders);
+}
+
+export async function recordFeedback({
+  env,
+  message,
+  url,
+  fromEmail,
+  mailer,
+  fetchImpl = fetch,
+}) {
+  if (!message) {
+    return {
+      status: 400,
+      body: { ok: false, error: "Add a little feedback first." },
+    };
+  }
+
+  const body = [
+    `From: ${fromEmail || "unknown"}`,
+    url ? `Page: ${url}` : "",
+    "",
+    message,
+  ]
+    .filter((line, index) => line !== "" || index === 2)
+    .join("\n");
+
+  // Try both channels independently and succeed if EITHER lands, so feedback is
+  // never lost to a single-channel outage.
+  const sent = await mailer.sendEmail({
+    to: FEEDBACK_TO,
+    from: env.SEND_FROM,
+    replyTo: fromEmail,
+    subject: `LifeMap feedback from ${fromEmail || "a user"}`,
+    body,
+  });
+  if (!sent.ok) {
+    console.error("LifeMap feedback email failed", sent.error);
+  }
+
+  const notion = await logFeedbackToNotion({
+    env,
+    message,
+    url,
+    fromEmail,
+    fetchImpl,
+  });
+
+  // Failure only if email failed AND Notion didn't capture it (down or unset).
+  if (!sent.ok && notion !== "ok") {
+    return { status: 502, body: { ok: false, error: FEEDBACK_FAILURE_ERROR } };
+  }
+  return { status: 200, body: { ok: true } };
+}
+
+// Returns "ok" | "skipped" | "failed". Skips silently unless both the Notion
+// token and DB id are set, so feedback works (email-only) before Notion is wired.
+async function logFeedbackToNotion({
+  env,
+  message,
+  url,
+  fromEmail,
+  fetchImpl,
+}) {
+  const token =
+    typeof env.NOTION_TOKEN === "string" ? env.NOTION_TOKEN.trim() : "";
+  const dbId =
+    typeof env.NOTION_FEEDBACK_DB_ID === "string"
+      ? env.NOTION_FEEDBACK_DB_ID.trim()
+      : "";
+  if (!token || !dbId) {
+    return "skipped";
+  }
+
+  const title = message.length > 60 ? `${message.slice(0, 57)}…` : message;
+  try {
+    const response = await fetchImpl("https://api.notion.com/v1/pages", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Notion-Version": "2022-06-28",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        parent: { database_id: dbId },
+        properties: {
+          Feedback: { title: [{ text: { content: title || "Feedback" } }] },
+          Message: {
+            rich_text: [{ text: { content: message.slice(0, 1900) } }],
+          },
+          From: { email: fromEmail || null },
+          "Page URL": { url: url || null },
+          Status: { select: { name: "New" } },
+        },
+      }),
+    });
+    if (!response.ok) {
+      console.error("LifeMap feedback Notion log failed", response.status);
+      return "failed";
+    }
+    return "ok";
+  } catch (error) {
+    console.error("LifeMap feedback Notion log error", error);
+    return "failed";
+  }
 }
 
 async function verifySupabaseUser(authHeader, env, fetchImpl) {

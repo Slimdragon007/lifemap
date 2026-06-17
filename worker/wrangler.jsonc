@@ -12,6 +12,7 @@
     "GOOGLE_CLIENT_ID": "REPLACE_WITH_GOOGLE_OAUTH_CLIENT_ID",
     "GOOGLE_REDIRECT_URI": "https://lifemap-api.m-haslim.workers.dev/api/google/callback",
     "APP_ORIGIN": "https://app.getlifemap.com",
+    "NOTION_FEEDBACK_DB_ID": "5d8e44ecd9d349ad96d9c52690bc524c",
   },
   "send_email": [{ "name": "EMAIL" }],
   "kv_namespaces": [

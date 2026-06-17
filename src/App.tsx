@@ -47,12 +47,14 @@ import {
   saveStoredDemoState,
 } from "./storage";
 import CalendarView from "./CalendarView";
-import AuthScreen from "./AuthScreen";
+import AuthScreen from "./auth-screen";
+import SetNewPasswordScreen from "./set-new-password-screen";
+import FeedbackBubble from "./feedback-bubble";
 import BucketDetailView from "./BucketDetailView";
 import LaunchPlanView from "./LaunchPlanView";
 import GuidedSetupView from "./GuidedSetupView";
 import PrivacyView from "./PrivacyView";
-import { useSession } from "./useSession";
+import { useSession } from "./use-session";
 import { demoMode } from "./demoMode";
 import { viewerIdentity } from "./viewer";
 import { sampleCollections } from "./sampleData";
@@ -300,7 +302,12 @@ function App() {
   );
   const [captureRoute, setCaptureRoute] = useState<CaptureRoute>();
   const [remoteLoadedFor, setRemoteLoadedFor] = useState<string>();
-  const { session, loading: sessionLoading } = useSession();
+  const {
+    session,
+    loading: sessionLoading,
+    recovering,
+    clearRecovery,
+  } = useSession();
   const identity = useMemo(() => viewerIdentity(session, demoMode), [session]);
   const samples = useMemo(() => sampleCollections(demoMode), []);
   // The sensitive family collections. In demo mode these are the local seeds;
@@ -795,6 +802,17 @@ function App() {
           <p>Loading your map…</p>
         </section>
       </main>
+    );
+  }
+
+  if (isSupabaseConfigured && recovering) {
+    return (
+      <SetNewPasswordScreen
+        onDone={() => {
+          clearRecovery();
+          setToastMessage("Password updated.");
+        }}
+      />
     );
   }
 
@@ -1334,6 +1352,7 @@ function App() {
         />
       ) : null}
       {toastMessage ? <Toast message={toastMessage} /> : null}
+      {session ? <FeedbackBubble /> : null}
     </>
   );
 }

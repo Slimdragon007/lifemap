@@ -5,6 +5,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   signInWithPassword: vi.fn(),
   signUp: vi.fn(),
+  resetPasswordForEmail: vi.fn(),
 }));
 
 vi.mock("./supabaseClient", () => ({
@@ -13,11 +14,12 @@ vi.mock("./supabaseClient", () => ({
     auth: {
       signInWithPassword: mocks.signInWithPassword,
       signUp: mocks.signUp,
+      resetPasswordForEmail: mocks.resetPasswordForEmail,
     },
   }),
 }));
 
-import AuthScreen from "./AuthScreen";
+import AuthScreen from "./auth-screen";
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -55,6 +57,26 @@ describe("AuthScreen", () => {
 
     await waitFor(() => expect(mocks.signUp).toHaveBeenCalled());
     expect(await screen.findByText(/check your email/i)).toBeInTheDocument();
+  });
+
+  test("sends a password reset link from the forgot-password flow", async () => {
+    mocks.resetPasswordForEmail.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    render(<AuthScreen />);
+
+    await user.click(screen.getByRole("button", { name: /forgot password/i }));
+    await user.type(screen.getByLabelText("Email"), "alex@example.com");
+    await user.click(screen.getByRole("button", { name: /send reset link/i }));
+
+    await waitFor(() =>
+      expect(mocks.resetPasswordForEmail).toHaveBeenCalledWith(
+        "alex@example.com",
+        expect.objectContaining({ redirectTo: expect.any(String) }),
+      ),
+    );
+    expect(
+      await screen.findByText(/check your email for a link/i),
+    ).toBeInTheDocument();
   });
 
   test("surfaces an auth error", async () => {
