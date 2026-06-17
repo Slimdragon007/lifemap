@@ -48,6 +48,10 @@ export default {
       return handleGoogleRoute(url, request, env, corsHeaders);
     }
 
+    if (request.method === "POST" && url.pathname === "/api/data-key") {
+      return handleDataKey(request, env, corsHeaders);
+    }
+
     if (
       request.method !== "POST" ||
       !["/api/analyze", "/api/classify", "/api/brief", "/api/send"].includes(
@@ -169,6 +173,80 @@ export async function enforceRateLimit(request, env) {
     // A limiter outage should not take down the endpoint.
     return true;
   }
+}
+
+// Per-user field-encryption key. The browser fetches this once per session and
+// uses it to AES-GCM encrypt/decrypt the sensitive vault/member columns before
+// they ever reach Supabase. The master key is a Worker secret; the per-user key
+// is derived deterministically (HKDF) so nothing is stored. Auth-gated: the key
+// only comes back for the signed-in user it belongs to.
+async function handleDataKey(request, env, corsHeaders) {
+  const auth = await verifySupabaseUser(
+    request.headers.get("Authorization"),
+    env,
+    fetch,
+  );
+  if (!auth.ok) {
+    return jsonResponse(
+      { ok: false, error: UNAUTHENTICATED_ERROR },
+      401,
+      corsHeaders,
+    );
+  }
+
+  const master =
+    typeof env.FIELD_ENCRYPTION_KEY === "string"
+      ? env.FIELD_ENCRYPTION_KEY.trim()
+      : "";
+  if (!master) {
+    return jsonResponse(
+      { ok: false, error: "Field encryption is not configured." },
+      500,
+      corsHeaders,
+    );
+  }
+
+  const key = await deriveUserFieldKey(master, auth.id);
+  return jsonResponse({ ok: true, key }, 200, corsHeaders);
+}
+
+// HKDF-SHA256(master, salt=userId, info="lifemap-field-v1") → 256-bit key (base64).
+export async function deriveUserFieldKey(masterBase64, userId) {
+  const ikm = await crypto.subtle.importKey(
+    "raw",
+    base64ToBytes(masterBase64),
+    "HKDF",
+    false,
+    ["deriveBits"],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: "HKDF",
+      hash: "SHA-256",
+      salt: new TextEncoder().encode(userId),
+      info: new TextEncoder().encode("lifemap-field-v1"),
+    },
+    ikm,
+    256,
+  );
+  return bytesToBase64(new Uint8Array(bits));
+}
+
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) {
+    out[i] = bin.charCodeAt(i);
+  }
+  return out;
+}
+
+function bytesToBase64(bytes) {
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    bin += String.fromCharCode(bytes[i]);
+  }
+  return btoa(bin);
 }
 
 async function verifySupabaseUser(authHeader, env, fetchImpl) {

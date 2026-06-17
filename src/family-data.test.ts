@@ -5,10 +5,12 @@ import {
   upsertVaultItem,
   type FamilyDataClient,
 } from "./family-data";
+import { createFieldCrypto } from "./field-crypto";
 import type { VaultItem } from "./familyOS";
 
 const UUID = "11111111-1111-4111-8111-111111111111";
 const EVENT_UUID = "22222222-2222-4222-8222-222222222222";
+const KEY = btoa("0123456789abcdef0123456789abcdef");
 
 describe("family-data RLS-scoped persistence", () => {
   test("loads and maps the four collections for the signed-in user", async () => {
@@ -185,6 +187,90 @@ describe("family-data RLS-scoped persistence", () => {
     ).resolves.toEqual({ ok: true });
     expect(outerEq).toHaveBeenCalledWith("id", UUID);
     expect(innerEq).toHaveBeenCalledWith("user_id", "user-1");
+  });
+});
+
+describe("family-data field encryption", () => {
+  test("encrypts vault detail on write and decrypts it back on read", async () => {
+    const crypto = createFieldCrypto(KEY);
+    let storedDetail = "";
+    const upsert = vi.fn((payload: Record<string, unknown>) => {
+      storedDetail = payload.detail as string;
+      return {
+        select: () => ({
+          maybeSingle: async () => ({
+            data: {
+              id: UUID,
+              title: "P",
+              category: "identity",
+              owner: "",
+              status: "Current",
+              detail: storedDetail,
+            },
+            error: null,
+          }),
+        }),
+      };
+    });
+    const client = {
+      from: () => ({ select: vi.fn(), upsert, delete: vi.fn() }),
+    } as unknown as FamilyDataClient;
+
+    const result = await upsertVaultItem(
+      "user-1",
+      {
+        id: UUID,
+        title: "P",
+        category: "identity",
+        owner: "",
+        status: "Current",
+        detail: "SSN 123-45-6789",
+      },
+      client,
+      crypto,
+    );
+
+    // stored value is ciphertext, not plaintext
+    expect(storedDetail.startsWith("v1:")).toBe(true);
+    expect(storedDetail).not.toContain("123-45-6789");
+    // round-trips back to plaintext for the app
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.item.detail).toBe("SSN 123-45-6789");
+  });
+
+  test("decrypts encrypted member details/care_notes on load", async () => {
+    const crypto = createFieldCrypto(KEY);
+    const encDetails = await crypto.encrypt(
+      JSON.stringify([{ label: "Allergy", value: "Peanuts" }]),
+    );
+    const encNotes = await crypto.encrypt(JSON.stringify(["MCV4 due"]));
+    const { client } = makeReadClient({
+      family_members: [
+        {
+          id: UUID,
+          user_id: "user-1",
+          name: "Casey",
+          role: "",
+          initials: "C",
+          profile_type: "child",
+          details: encDetails,
+          care_notes: encNotes,
+        },
+      ],
+      vault_items: [],
+      family_events: [],
+      recurring_care_items: [],
+    });
+
+    const result = await loadFamilyCollections("user-1", client, crypto);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.collections.familyMembers[0].details).toEqual([
+      { label: "Allergy", value: "Peanuts" },
+    ]);
+    expect(result.collections.familyMembers[0].careNotes).toEqual(["MCV4 due"]);
   });
 });
 

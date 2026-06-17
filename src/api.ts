@@ -202,6 +202,49 @@ export async function sendDraftEmail(
   }
 }
 
+export type DataKeyResult =
+  | { ok: true; key: string }
+  | { ok: false; error: string };
+
+// Fetches the signed-in user's per-user field-encryption key (base64) from the
+// Worker. Auth-gated; the Worker derives it from a master secret via HKDF.
+export async function getDataKey(
+  accessToken: string,
+  origin = getApiOrigin(),
+): Promise<DataKeyResult> {
+  if (!origin) {
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+
+  try {
+    const response = await fetch(`${origin}/api/data-key`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: "{}",
+    });
+    const payload: unknown = await response.json();
+
+    if (
+      isRecord(payload) &&
+      payload.ok === true &&
+      typeof payload.key === "string"
+    ) {
+      return { ok: true, key: payload.key };
+    }
+
+    return {
+      ok: false,
+      error: readError(isRecord(payload) ? payload.error : undefined),
+    };
+  } catch (error) {
+    console.error("LifeMap data-key request failed", error);
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+}
+
 export type GoogleAuthUrlResult =
   | { ok: true; url: string }
   | { ok: false; error: string };

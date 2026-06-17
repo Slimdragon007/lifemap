@@ -22,6 +22,11 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { analyzeWithAi, generateBriefWithAi, sendDraftEmail } from "./api";
 import {
+  clearFieldCrypto,
+  ensureFieldCrypto,
+  getFieldCrypto,
+} from "./field-crypto";
+import {
   buildDailyBriefFromAnalysis,
   type BriefPriority,
   type DailyBrief,
@@ -415,30 +420,42 @@ function App() {
 
     let active = true;
     const userId = session.user.id;
+    const accessToken = session.access_token;
 
-    loadFamilyCollections(userId, getSupabase() as unknown as FamilyDataClient)
-      .then((result) => {
-        if (!active) {
-          return;
-        }
-
-        if (result.ok) {
-          setCollections(result.collections);
-        } else {
-          console.warn("LifeMap family load failed", result.error);
-          setToastMessage("Couldn't load your saved records — try again.");
-        }
-      })
-      .catch((error) => {
-        if (!active) {
-          return;
-        }
-
+    (async () => {
+      // Activate per-user field encryption before reading, so the sensitive
+      // columns decrypt on the way in (and encrypt on later writes).
+      const crypto = await ensureFieldCrypto(accessToken);
+      const result = await loadFamilyCollections(
+        userId,
+        getSupabase() as unknown as FamilyDataClient,
+        crypto,
+      );
+      if (!active) {
+        return;
+      }
+      if (result.ok) {
+        setCollections(result.collections);
+      } else {
+        console.warn("LifeMap family load failed", result.error);
+        setToastMessage("Couldn't load your saved records — try again.");
+      }
+    })().catch((error) => {
+      if (active) {
         console.error("LifeMap family load error", error);
-      });
+      }
+    });
 
     return () => {
       active = false;
+    };
+  }, [session]);
+
+  // Drop the cached per-user field key when the session changes (sign-out or a
+  // different user), so the next session re-derives its own key.
+  useEffect(() => {
+    return () => {
+      clearFieldCrypto();
     };
   }, [session]);
 
@@ -523,6 +540,7 @@ function App() {
     }
     const userId = session.user.id;
     const client = getSupabase() as unknown as FamilyDataClient;
+    const crypto = getFieldCrypto();
     const vaultCandidates = buildVaultItemsFromAnalysis(map);
     const eventCandidates = buildCalendarEventsFromAnalysis(map);
     const persistedIds: string[] = [];
@@ -534,7 +552,7 @@ function App() {
         if (!candidate) {
           continue;
         }
-        const result = await upsertVaultItem(userId, candidate, client);
+        const result = await upsertVaultItem(userId, candidate, client, crypto);
         if (result.ok) {
           const saved = result.item;
           setCollections((current) => ({

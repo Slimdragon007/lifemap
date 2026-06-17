@@ -2,9 +2,28 @@ import { describe, expect, test, vi } from "vitest";
 import {
   analyzePayload,
   classifyPayload,
+  deriveUserFieldKey,
   enforceRateLimit,
   generateBriefPayload,
 } from "./lifemap-api.mjs";
+
+const MASTER = btoa("0123456789abcdef0123456789abcdef");
+
+describe("deriveUserFieldKey", () => {
+  test("is deterministic per user (same master + id → same key)", async () => {
+    const a = await deriveUserFieldKey(MASTER, "user-1");
+    const b = await deriveUserFieldKey(MASTER, "user-1");
+    expect(a).toBe(b);
+    // 256-bit key, base64-encoded
+    expect(atob(a).length).toBe(32);
+  });
+
+  test("yields a different key per user", async () => {
+    const a = await deriveUserFieldKey(MASTER, "user-1");
+    const b = await deriveUserFieldKey(MASTER, "user-2");
+    expect(a).not.toBe(b);
+  });
+});
 
 function requestWithIp(ip) {
   return new Request("https://lifemap-api.example/api/analyze", {

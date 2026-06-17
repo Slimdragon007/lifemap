@@ -6,6 +6,7 @@ import type {
   VaultCategory,
   VaultItem,
 } from "./familyOS";
+import { type FieldCrypto, identityFieldCrypto } from "./field-crypto";
 
 // Per-user, RLS-protected data layer for the sensitive family collections that
 // V1 must durably store (tables defined in supabase/migrations/0003_family_data.sql).
@@ -87,6 +88,7 @@ const FAILED_DELETE = "LifeMap could not remove that item.";
 export async function loadFamilyCollections(
   userId: string,
   client: FamilyDataClient,
+  crypto: FieldCrypto = identityFieldCrypto,
 ): Promise<LoadFamilyResult> {
   // Each read is scoped to userId; RLS guarantees no cross-user leakage.
   const [members, events, vault, care] = await Promise.all([
@@ -101,12 +103,19 @@ export async function loadFamilyCollections(
     return { ok: false, collections: EMPTY_COLLECTIONS, error: failure.error };
   }
 
+  // family_members and vault_items carry encrypted fields, so their mappers are
+  // async; events and care items have no sensitive columns.
+  const [familyMembers, vaultItems] = await Promise.all([
+    Promise.all(rowsOf(members).map((row) => mapMemberRow(row, crypto))),
+    Promise.all(rowsOf(vault).map((row) => mapVaultRow(row, crypto))),
+  ]);
+
   return {
     ok: true,
     collections: {
-      familyMembers: rowsOf(members).map(mapMemberRow),
+      familyMembers,
       familyEvents: rowsOf(events).map(mapEventRow),
-      vaultItems: rowsOf(vault).map(mapVaultRow),
+      vaultItems,
       recurringCareItems: rowsOf(care).map(mapCareRow),
     },
   };
@@ -143,12 +152,13 @@ export async function upsertFamilyMember(
   userId: string,
   member: FamilyMember,
   client: FamilyDataClient,
+  crypto: FieldCrypto = identityFieldCrypto,
 ): Promise<WriteResult<FamilyMember>> {
   return writeRow(
     client,
     "family_members",
-    memberToRow(userId, member),
-    mapMemberRow,
+    await memberToRow(userId, member, crypto),
+    (row) => mapMemberRow(row, crypto),
   );
 }
 
@@ -169,8 +179,14 @@ export async function upsertVaultItem(
   userId: string,
   item: VaultItem,
   client: FamilyDataClient,
+  crypto: FieldCrypto = identityFieldCrypto,
 ): Promise<WriteResult<VaultItem>> {
-  return writeRow(client, "vault_items", vaultToRow(userId, item), mapVaultRow);
+  return writeRow(
+    client,
+    "vault_items",
+    await vaultToRow(userId, item, crypto),
+    (row) => mapVaultRow(row, crypto),
+  );
 }
 
 export async function upsertRecurringCareItem(
@@ -190,7 +206,7 @@ async function writeRow<T>(
   client: FamilyDataClient,
   table: FamilyTable,
   payload: Record<string, unknown>,
-  map: (row: Record<string, unknown>) => T,
+  map: (row: Record<string, unknown>) => T | Promise<T>,
 ): Promise<WriteResult<T>> {
   const result = await client
     .from(table)
@@ -205,7 +221,7 @@ async function writeRow<T>(
     };
   }
 
-  return { ok: true, item: map(result.data) };
+  return { ok: true, item: await map(result.data) };
 }
 
 // ── Per-entity deletes ───────────────────────────────────────────────────────
@@ -235,23 +251,29 @@ export async function deleteFamilyRow(
 // the AI just created (temp ids like "ai-vault-…") we omit it so Postgres mints
 // a uuid, and the caller re-reads the returned row to learn the durable id.
 
-function memberToRow(
+async function memberToRow(
   userId: string,
   member: FamilyMember,
-): Record<string, unknown> {
+  crypto: FieldCrypto,
+): Promise<Record<string, unknown>> {
+  // details / care_notes are SENSITIVE jsonb arrays: serialize then encrypt, and
+  // store the ciphertext as a jsonb string scalar.
   return withId(member.id, {
     user_id: userId,
     name: member.name,
     role: member.role,
     initials: member.initials,
     profile_type: member.profileType,
-    details: member.details,
-    care_notes: member.careNotes,
+    details: await crypto.encrypt(JSON.stringify(member.details ?? [])),
+    care_notes: await crypto.encrypt(JSON.stringify(member.careNotes ?? [])),
     updated_at: nowIso(),
   });
 }
 
-function mapMemberRow(row: Record<string, unknown>): FamilyMember {
+async function mapMemberRow(
+  row: Record<string, unknown>,
+  crypto: FieldCrypto,
+): Promise<FamilyMember> {
   return {
     id: str(row.id),
     name: str(row.name),
@@ -259,13 +281,37 @@ function mapMemberRow(row: Record<string, unknown>): FamilyMember {
     initials: str(row.initials),
     profileType: (str(row.profile_type) ||
       "adult") as FamilyMember["profileType"],
-    details: Array.isArray(row.details)
-      ? (row.details as FamilyMember["details"])
-      : [],
-    careNotes: Array.isArray(row.care_notes)
-      ? (row.care_notes as string[])
-      : [],
+    details: (await decodeJsonArray(
+      row.details,
+      crypto,
+    )) as FamilyMember["details"],
+    careNotes: (await decodeJsonArray(row.care_notes, crypto)) as string[],
   };
+}
+
+// Decodes a sensitive jsonb-array column that may be: a legacy plaintext array
+// (older rows), an encrypted `v1:` string, or a plaintext JSON string. Always
+// returns an array.
+async function decodeJsonArray(
+  raw: unknown,
+  crypto: FieldCrypto,
+): Promise<unknown[]> {
+  if (Array.isArray(raw)) {
+    return raw; // legacy jsonb array, pre-encryption
+  }
+  if (typeof raw !== "string" || !raw) {
+    return [];
+  }
+  const decoded = await crypto.decrypt(raw);
+  if (!decoded) {
+    return [];
+  }
+  try {
+    const parsed: unknown = JSON.parse(decoded);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 function eventToRow(
@@ -299,21 +345,28 @@ function mapEventRow(row: Record<string, unknown>): FamilyEvent {
   };
 }
 
-function vaultToRow(userId: string, item: VaultItem): Record<string, unknown> {
+async function vaultToRow(
+  userId: string,
+  item: VaultItem,
+  crypto: FieldCrypto,
+): Promise<Record<string, unknown>> {
   return withId(item.id, {
     user_id: userId,
     title: item.title,
     category: item.category,
     owner: item.owner,
     status: item.status,
-    detail: item.detail,
+    detail: await crypto.encrypt(item.detail), // SENSITIVE: policy/ID numbers
     renewal_date: item.renewalDate ?? null,
     linked_event_id: linkedEventIdForRow(item.linkedEventId),
     updated_at: nowIso(),
   });
 }
 
-function mapVaultRow(row: Record<string, unknown>): VaultItem {
+async function mapVaultRow(
+  row: Record<string, unknown>,
+  crypto: FieldCrypto,
+): Promise<VaultItem> {
   const renewalDate = str(row.renewal_date);
   const linkedEventId = str(row.linked_event_id);
   return {
@@ -322,7 +375,7 @@ function mapVaultRow(row: Record<string, unknown>): VaultItem {
     category: (str(row.category) || "identity") as VaultCategory,
     owner: str(row.owner),
     status: (str(row.status) || "Current") as VaultItem["status"],
-    detail: str(row.detail),
+    detail: await crypto.decrypt(str(row.detail)),
     ...(renewalDate ? { renewalDate } : {}),
     ...(linkedEventId ? { linkedEventId } : {}),
   };
