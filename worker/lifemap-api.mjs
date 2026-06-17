@@ -33,6 +33,12 @@ const RATE_LIMITED_PATHS = [
   "/api/feedback",
 ];
 
+// The OpenAI-calling routes — capped by a global daily budget (below) on top of
+// the per-IP rate limit, so a spike can't burn the OpenAI bill.
+const AI_OPENAI_PATHS = ["/api/analyze", "/api/classify", "/api/brief"];
+const AI_BUDGET_ERROR =
+  "LifeMap hit today's AI limit. Please try again tomorrow.";
+
 // Where in-app feedback is emailed.
 const FEEDBACK_TO = "m.haslim@gmail.com";
 const FEEDBACK_FAILURE_ERROR = "Couldn't send feedback right now. Try again.";
@@ -93,6 +99,17 @@ export default {
       }
     }
 
+    if (
+      AI_OPENAI_PATHS.includes(url.pathname) &&
+      !(await withinDailyBudget(env))
+    ) {
+      return jsonResponse(
+        { ok: false, error: AI_BUDGET_ERROR },
+        503,
+        corsHeaders,
+      );
+    }
+
     try {
       const payload = await request.json();
       let result;
@@ -120,7 +137,83 @@ export default {
       );
     }
   },
+
+  // Cron Trigger (see wrangler triggers.crons): serverless uptime watch. Runs on
+  // Cloudflare's network, independent of any local machine.
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(
+      runUptimeCheck({
+        env,
+        fetchImpl: fetch,
+        mailer: createCloudflareMailer(env.EMAIL),
+      }),
+    );
+  },
 };
+
+// ── Daily AI budget (global ceiling on OpenAI calls) ────────────────────────
+// Counts AI calls per UTC day in KV. Fails OPEN (allows) if KV is unavailable or
+// unset, so a counter glitch never blocks real users. Eventual consistency makes
+// the cap approximate — it errs toward allowing slightly more, never blocking.
+export async function withinDailyBudget(env, now = new Date()) {
+  const kv = env.GOOGLE_TOKENS;
+  const limit = Number.parseInt(env.DAILY_AI_LIMIT ?? "", 10);
+  if (!kv || !Number.isFinite(limit) || limit <= 0) {
+    return true;
+  }
+  const key = `ai-usage:${now.toISOString().slice(0, 10)}`;
+  try {
+    const current = Number.parseInt((await kv.get(key)) ?? "0", 10) || 0;
+    if (current >= limit) {
+      return false;
+    }
+    await kv.put(key, String(current + 1), { expirationTtl: 60 * 60 * 48 });
+    return true;
+  } catch (error) {
+    console.error("LifeMap daily-budget KV error", error);
+    return true;
+  }
+}
+
+// ── Serverless uptime watch ─────────────────────────────────────────────────
+// Checks the public app + worker /health; emails Slim only on a state change
+// (down / recovered) so there is no alert spam. Cheap — no OpenAI calls.
+export async function runUptimeCheck({ env, fetchImpl, mailer }) {
+  const appOrigin = env.APP_ORIGIN || "https://app.getlifemap.com";
+
+  let healthy = true;
+  try {
+    const [app, health] = await Promise.all([
+      fetchImpl(appOrigin, { method: "GET" }),
+      fetchImpl("https://lifemap-api.m-haslim.workers.dev/health"),
+    ]);
+    healthy = app.ok && health.ok;
+  } catch {
+    healthy = false;
+  }
+
+  const kv = env.GOOGLE_TOKENS;
+  const last = kv ? await kv.get("monitor:last-status") : null;
+  const status = healthy ? "up" : "down";
+
+  // Only notify on a transition (and treat the very first run as a baseline).
+  if (last && last !== status) {
+    await mailer.sendEmail({
+      to: FEEDBACK_TO,
+      from: env.SEND_FROM,
+      subject: healthy
+        ? "✅ LifeMap is back up"
+        : "⚠️ LifeMap appears to be down",
+      body: healthy
+        ? `LifeMap recovered. ${appOrigin} and the API /health are responding again.`
+        : `LifeMap looks down. ${appOrigin} or the API /health did not return OK. Check Cloudflare.`,
+    });
+  }
+  if (kv && last !== status) {
+    await kv.put("monitor:last-status", status);
+  }
+  return status;
+}
 
 export async function analyzePayload(payload, env, fetchImpl = fetch) {
   const rawIntake =

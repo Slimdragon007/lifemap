@@ -13,6 +13,12 @@
     "GOOGLE_REDIRECT_URI": "https://lifemap-api.m-haslim.workers.dev/api/google/callback",
     "APP_ORIGIN": "https://app.getlifemap.com",
     "NOTION_FEEDBACK_DB_ID": "5d8e44ecd9d349ad96d9c52690bc524c",
+    "DAILY_AI_LIMIT": "500",
+  },
+  // Serverless uptime watch: pings the app + /health every 15 min and emails on
+  // a state change. Runs on Cloudflare's network (the scheduled() handler).
+  "triggers": {
+    "crons": ["*/15 * * * *"],
   },
   "send_email": [{ "name": "EMAIL" }],
   "kv_namespaces": [
