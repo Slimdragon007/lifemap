@@ -36,8 +36,8 @@ describe("VaultView de-demo", () => {
     );
 
     expect(screen.queryByText("Alex Kim")).toBeNull();
-    expect(screen.queryByText(/Casey health note/i)).toBeNull();
-    expect(screen.queryByText(/Milo vet/i)).toBeNull();
+    expect(screen.queryByText(/MCV4 vaccine record due for camp/i)).toBeNull();
+    expect(screen.queryByText(/Rabies booster due this month/i)).toBeNull();
     expect(screen.getByText(/No family profiles yet/i)).toBeInTheDocument();
     expect(
       screen.getByText(/Emergency basics appear once you add family profiles/i),
@@ -62,6 +62,8 @@ describe("VaultView de-demo", () => {
     );
 
     expect(screen.getAllByText("Alex Kim").length).toBeGreaterThan(0);
-    expect(screen.getByText(/Casey health note/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/MCV4 vaccine record due for camp/i),
+    ).toBeInTheDocument();
   });
 });
