@@ -1,6 +1,7 @@
 import { normalizeAnalysis, type LifeMapAnalysis } from "./lifemap";
 import { normalizeMentalLoad, type MentalLoadResult } from "./mentalLoad";
 import { normalizeDailyBrief, type DailyBrief } from "./dailyBrief";
+import type { FamilyEvent } from "./familyOS";
 
 export type AnalyzeApiResult =
   | {
@@ -372,6 +373,45 @@ export async function disconnectGoogle(
     };
   } catch (error) {
     console.error("LifeMap google disconnect request failed", error);
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+}
+
+export type PushCalendarEventResult =
+  | { ok: true; id: string }
+  | { ok: false; error: string };
+
+export async function pushCalendarEvent(
+  event: FamilyEvent,
+  accessToken: string,
+  origin = getApiOrigin(),
+): Promise<PushCalendarEventResult> {
+  if (!origin) {
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+  try {
+    const response = await fetch(`${origin}/api/google/push-event`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(event),
+    });
+    const payload: unknown = await response.json();
+    if (
+      isRecord(payload) &&
+      payload.ok === true &&
+      typeof payload.id === "string"
+    ) {
+      return { ok: true, id: payload.id };
+    }
+    return {
+      ok: false,
+      error: readError(isRecord(payload) ? payload.error : undefined),
+    };
+  } catch (error) {
+    console.error("LifeMap push calendar event failed", error);
     return { ok: false, error: DEFAULT_ERROR };
   }
 }
