@@ -17,14 +17,17 @@ emails/forms/notes) → AI sorts it → hands back your next three things.
 ## Branch & deploy workflow
 
 - Work off `main`. For non-trivial changes: branch → PR → merge to `main`.
-- **Deploys are MANUAL wrangler commands, not git-connected CI.** Production is whatever was
-  last hand-deployed. After merging to `main`:
-  - Frontend: `npm run deploy:pages` (builds + `wrangler pages deploy dist --branch main`)
-  - Worker: `npm run deploy:api`
-  - Then ALWAYS: `npm run verify:production` (6 checks: Pages HTML, Worker origin baked in
-    bundle, Worker /health, CORS, AI analyze, asset secret markers).
-- After any `deploy:pages`, grep the live bundle for the Supabase ref to confirm it's a
-  real-auth build, not a demo bundle.
+- **Frontend (Pages) AUTO-DEPLOYS from `main`** (git-connected, set up 2026-06-18). A push/merge
+  to `main` triggers a Cloudflare Pages build (`npm run build`, output `dist`) and deploys to
+  production. Build-time `VITE_*` env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`,
+  `VITE_API_ORIGIN`) live in the Pages project's Production env (NOT `.env.local` for prod).
+  So: **every merge to `main` ships to real users — keep `main` gated behind PR + green CI.**
+  Manual `npm run deploy:pages` still works as a fallback.
+- **The WORKER (`lifemap-api`) is NOT git-connected — deploy it manually:** `npm run deploy:api`
+  after any change under `worker/`. Pushing to `main` does NOT redeploy the Worker.
+- After any deploy: `npm run verify:production` (6 checks: Pages HTML, Worker origin baked in
+  bundle, Worker /health, CORS, AI analyze, asset secret markers), and grep the live bundle for
+  the Supabase ref to confirm it's a real-auth build, not a demo bundle.
 
 ## Gate (run before claiming done)
 
