@@ -9637,3 +9637,18 @@ button.notebook-row:active {
     transition: none;
   }
 }
+
+/* ===================================================================== */
+/* Phase 6 — global reduced-motion reset. Honor prefers-reduced-motion   */
+/* app-wide: stillness is the default, no persistent or entrance motion. */
+/* ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
