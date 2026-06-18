@@ -1468,56 +1468,151 @@ function CaptureWorkspace({
         </p>
       </header>
 
-      <h2 className="notebook-section-title" id="ai-intake-title">
+      <div className="capture-chat">
+        <div className="chat-bubble ai">
+          <span className="chat-avatar" aria-hidden="true">
+            <Sparkles size={14} />
+          </span>
+          <p>
+            Hi — paste anything cluttering your head and I&apos;ll sort it into
+            tasks, what&apos;s missing, and anything that needs your OK. Nothing
+            sends automatically.
+          </p>
+        </div>
+
+        {analyzeStatus !== "idle" && hasIntake ? (
+          <div className="chat-bubble user">
+            <p>{intake.trim().slice(0, 500)}</p>
+          </div>
+        ) : null}
+
+        {analyzeStatus === "loading" ? (
+          <div className="chat-bubble ai chat-typing">
+            <span className="chat-avatar" aria-hidden="true">
+              <Sparkles size={14} />
+            </span>
+            <span className="chat-dots" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className="sr-only">Reading your note…</span>
+          </div>
+        ) : null}
+
+        {analyzeStatus === "success" ? (
+          <div className="chat-bubble ai">
+            <span className="chat-avatar" aria-hidden="true">
+              <Sparkles size={14} />
+            </span>
+            <div className="capture-result">
+              <span className="capture-result-eyebrow">
+                Here&apos;s what I pulled out
+              </span>
+              {map.nextActions.length > 0 ? (
+                <div className="capture-result-group">
+                  <span className="capture-result-label">
+                    {map.nextActions.length}{" "}
+                    {pluralize("task", map.nextActions.length)}
+                  </span>
+                  <ul className="capture-result-list">
+                    {map.nextActions.slice(0, 4).map((action) => (
+                      <li key={action.id}>{action.label}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {map.missingInfo.length > 0 ? (
+                <div className="capture-result-group">
+                  <span className="capture-result-label">
+                    {map.missingInfo.length} missing
+                  </span>
+                  <div className="capture-pills">
+                    {map.missingInfo.slice(0, 4).map((info) => (
+                      <span className="capture-pill" key={info.label}>
+                        {info.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {map.draftMessages.length > 0 ? (
+                <p className="capture-result-foot">
+                  {map.draftMessages.length}{" "}
+                  {pluralize("reminder", map.draftMessages.length)} staged for
+                  your OK.
+                </p>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {analyzeStatus === "fallback" || analyzeStatus === "error" ? (
+          <div className="chat-bubble ai">
+            <span className="chat-avatar" aria-hidden="true">
+              <Sparkles size={14} />
+            </span>
+            <CaptureAnalyzeNotice
+              error={analyzeError}
+              map={map}
+              status={analyzeStatus}
+              onRetry={onAnalyze}
+            />
+          </div>
+        ) : null}
+
+        {analyzeStatus === "success" ? (
+          <button
+            className="capture-grew-chip"
+            type="button"
+            onClick={onOpenToday}
+          >
+            Your map grew — see it on Today
+            <ChevronRight size={14} />
+          </button>
+        ) : null}
+      </div>
+
+      <h2 className="capture-composer-eyebrow" id="ai-intake-title">
         Paste anything
       </h2>
-      <textarea
-        aria-label="Paste email, screenshot notes, forms, travel plans, or family admin"
-        className="notebook-paste"
-        placeholder="Paste anything here…"
-        value={intake}
-        wrap="soft"
-        onChange={(event) => onIntakeChange(event.target.value)}
-      />
-
-      <div className="notebook-paste-actions">
+      <div className="capture-composer">
+        <textarea
+          aria-label="Paste email, screenshot notes, forms, travel plans, or family admin"
+          className="capture-input"
+          placeholder="Paste anything here…"
+          value={intake}
+          wrap="soft"
+          onChange={(event) => onIntakeChange(event.target.value)}
+        />
         <button
-          className="notebook-cta"
+          aria-label="Analyze intake"
+          className="capture-send"
           type="button"
           disabled={analyzeStatus === "loading" || !hasIntake}
           onClick={onAnalyze}
         >
           {analyzeStatus === "loading" ? (
-            <>
-              <span className="spinner" aria-hidden="true" />
-              Analyzing…
-            </>
+            <span className="spinner" aria-hidden="true" />
           ) : (
-            <>
-              Analyze intake
-              <ChevronRight size={15} />
-            </>
+            <Send size={16} />
           )}
         </button>
-        {analyzeStatus === "success" ? (
-          <button className="notebook-link" type="button" onClick={onReview}>
-            Review drafts
-          </button>
-        ) : null}
       </div>
 
-      <CaptureAnalyzeNotice
-        error={analyzeError}
-        map={map}
-        status={analyzeStatus}
-        onRetry={onAnalyze}
-      />
-
       {analyzeStatus === "success" && captureRoute ? (
-        <div className="notebook-note">
-          <strong>{captureRoute.message}</strong>
-          <button className="notebook-link" type="button" onClick={onRoute}>
-            {captureRoute.buttonLabel}
+        <p className="capture-route-note">{captureRoute.message}</p>
+      ) : null}
+
+      {analyzeStatus === "success" ? (
+        <div className="capture-actions-row">
+          {captureRoute ? (
+            <button className="notebook-link" type="button" onClick={onRoute}>
+              {captureRoute.buttonLabel}
+            </button>
+          ) : null}
+          <button className="notebook-link" type="button" onClick={onReview}>
+            Review drafts
           </button>
         </div>
       ) : null}

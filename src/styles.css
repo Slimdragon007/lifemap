@@ -9176,3 +9176,212 @@ button.notebook-row:active {
 .atlas-station.lit span {
   color: var(--color-accent-blue);
 }
+
+/* ===================================================================== */
+/* Capture — "Ask LifeMap AI" chat (Phase 3): bubbles, composer,         */
+/* structured result card, and the capture->map "grew" chip.            */
+/* ===================================================================== */
+.capture-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 14px 0 20px;
+}
+.chat-bubble {
+  display: flex;
+  gap: 10px;
+  max-width: 88%;
+}
+.chat-bubble p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.chat-bubble.ai {
+  align-self: flex-start;
+}
+.chat-bubble.ai > p,
+.chat-bubble.ai .capture-result {
+  padding: 13px 15px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 18px 18px 18px 6px;
+  background: var(--color-surface-panel);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-row);
+}
+.chat-bubble.user {
+  align-self: flex-end;
+}
+.chat-bubble.user p {
+  padding: 13px 15px;
+  border-radius: 18px 18px 6px 18px;
+  background: var(--gradient-action-primary);
+  color: #fff;
+  white-space: pre-wrap;
+}
+.chat-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--color-accent-sky);
+  color: var(--color-accent-blue);
+}
+.chat-typing {
+  align-items: center;
+}
+.chat-dots {
+  display: inline-flex;
+  gap: 5px;
+  padding: 15px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 18px 18px 18px 6px;
+  background: var(--color-surface-panel);
+}
+.chat-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-accent-blue);
+  opacity: 0.4;
+  animation: chat-blink 1.2s var(--ease-out) infinite;
+}
+.chat-dots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.chat-dots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes chat-blink {
+  0%,
+  60%,
+  100% {
+    opacity: 0.4;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+.capture-result {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.capture-result-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-quiet);
+}
+.capture-result-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-accent-blue);
+}
+.capture-result-list {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14.5px;
+}
+.capture-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.capture-pill {
+  font-size: 12.5px;
+  color: var(--color-accent-clay);
+  background: var(--color-accent-warm-soft);
+  border: 1px solid rgba(217, 119, 87, 0.24);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.capture-result-foot {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.capture-grew-chip {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-accent-blue);
+  background: var(--color-accent-sky);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.capture-composer-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-quiet);
+  margin-bottom: 8px;
+}
+.capture-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 24px;
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-row);
+}
+.capture-input {
+  flex: 1;
+  min-height: 24px;
+  max-height: 180px;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  padding: 8px 0;
+}
+.capture-send {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 999px;
+  background: var(--gradient-action-primary);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow-control);
+  transition: transform var(--motion-press) var(--ease-out);
+}
+.capture-send:active {
+  transform: scale(0.92);
+}
+.capture-send:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.capture-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 14px 0 4px;
+}

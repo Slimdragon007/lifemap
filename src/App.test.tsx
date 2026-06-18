@@ -579,9 +579,7 @@ describe("LifeMap MVP app", () => {
     );
 
     expect(
-      await screen.findByText(
-        "I found 1 due item, 1 missing record, 1 person waiting, and 3 next actions.",
-      ),
+      await screen.findByText("Here's what I pulled out"),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Review drafts" }));
 
