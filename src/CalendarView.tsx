@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   buildCalendarEventsFromAnalysis,
   calendarLayers,
@@ -8,6 +8,10 @@ import {
 } from "./familyOS";
 import type { LifeMapAnalysis } from "./lifemap";
 import GoogleConnection from "./GoogleConnection";
+import { getGoogleStatus, pushCalendarEvent } from "./api";
+import { getAccessToken } from "./supabaseClient";
+
+type PushState = "idle" | "pushing" | "done" | "error";
 
 type CalendarViewProps = {
   analysis: LifeMapAnalysis;
@@ -33,6 +37,40 @@ function CalendarView({
   const [activeLayers, setActiveLayers] = useState<Set<CalendarLayer>>(
     () => new Set(calendarLayers.map((layer) => layer.id)),
   );
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [pushStates, setPushStates] = useState<Map<string, PushState>>(
+    () => new Map(),
+  );
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const token = await getAccessToken().catch(() => undefined);
+      if (!token) {
+        return;
+      }
+      const status = await getGoogleStatus(token);
+      if (active && status.ok) {
+        setGoogleConnected(status.connected);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function handlePushToGoogle(event: FamilyEvent) {
+    setPushStates((current) => new Map(current).set(event.id, "pushing"));
+    const token = await getAccessToken().catch(() => undefined);
+    if (!token) {
+      setPushStates((current) => new Map(current).set(event.id, "error"));
+      return;
+    }
+    const result = await pushCalendarEvent(event, token);
+    setPushStates((current) =>
+      new Map(current).set(event.id, result.ok ? "done" : "error"),
+    );
+  }
   const analysisEvents = useMemo(
     () => buildCalendarEventsFromAnalysis(analysis),
     [analysis],
@@ -132,6 +170,9 @@ function CalendarView({
             <EventRow
               event={event}
               isSaved={savedSuggestionIds.has(event.id)}
+              googleConnected={googleConnected}
+              pushState={pushStates.get(event.id) ?? "idle"}
+              onPushToGoogle={handlePushToGoogle}
               onDismissSuggestion={onDismissSuggestion}
               onSaveSuggestion={onSaveSuggestion}
               key={event.id}
@@ -171,11 +212,17 @@ function CalendarView({
 function EventRow({
   event,
   isSaved,
+  googleConnected,
+  pushState,
+  onPushToGoogle,
   onSaveSuggestion,
   onDismissSuggestion,
 }: {
   event: ReturnType<typeof buildCalendarEventsFromAnalysis>[number];
   isSaved: boolean;
+  googleConnected: boolean;
+  pushState: PushState;
+  onPushToGoogle: (event: FamilyEvent) => void;
   onSaveSuggestion: (id: string) => void;
   onDismissSuggestion: (id: string) => void;
 }) {
@@ -218,7 +265,25 @@ function EventRow({
           </button>
         </span>
       ) : isGenerated && isSaved ? (
-        <span className="notebook-tag">Saved to LifeMap</span>
+        <span className="notebook-row-actions">
+          <span className="notebook-tag">Saved to LifeMap</span>
+          {googleConnected && pushState === "done" ? (
+            <span className="notebook-tag">On your Google Calendar ✓</span>
+          ) : googleConnected ? (
+            <button
+              className="notebook-link"
+              type="button"
+              disabled={pushState === "pushing"}
+              onClick={() => onPushToGoogle(event)}
+            >
+              {pushState === "pushing"
+                ? "Adding…"
+                : pushState === "error"
+                  ? "Try again"
+                  : "Add to Google Calendar"}
+            </button>
+          ) : null}
+        </span>
       ) : null}
     </div>
   );
