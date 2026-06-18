@@ -1,0 +1,61 @@
+# LifeMap — agent & pickup-session guide
+
+AI family-admin app that reduces mental load. Core loop: record the day (paste messy
+emails/forms/notes) → AI sorts it → hands back your next three things.
+
+## Where things live (source of truth)
+
+- **Production:** https://app.getlifemap.com (Cloudflare Pages project `lifemap`, also at
+  `lifemap-d33.pages.dev`). API Worker: `lifemap-api.m-haslim.workers.dev`.
+- **Repo:** github.com/Slimdragon007/lifemap. **Default + production branch = `main`.**
+- **Supabase:** project ref `tljijkoqfnimnkpzhozy` (auth + Postgres). Email confirmation is
+  OFF (instant signup); password reset shipped. Sensitive columns are AES-256-GCM encrypted
+  at rest; per-user RLS on all family tables.
+- **Canonical build log / decisions:** Obsidian `10_WIKI/LifeMap.md` and Notion session notes
+  under "LifeMap — Accounts & Access". Read the latest build-log entry before starting.
+
+## Branch & deploy workflow
+
+- Work off `main`. For non-trivial changes: branch → PR → merge to `main`.
+- **Deploys are MANUAL wrangler commands, not git-connected CI.** Production is whatever was
+  last hand-deployed. After merging to `main`:
+  - Frontend: `npm run deploy:pages` (builds + `wrangler pages deploy dist --branch main`)
+  - Worker: `npm run deploy:api`
+  - Then ALWAYS: `npm run verify:production` (6 checks: Pages HTML, Worker origin baked in
+    bundle, Worker /health, CORS, AI analyze, asset secret markers).
+- After any `deploy:pages`, grep the live bundle for the Supabase ref to confirm it's a
+  real-auth build, not a demo bundle.
+
+## Gate (run before claiming done)
+
+- `npm test` — **use Node 22, NOT 26.** Node 26 ships a built-in `localStorage` global that
+  shadows jsdom's and breaks the suite.
+- `npm run typecheck` · `npm run lint` · `npm run build`
+- App/UI features: also exercise the Playwright e2e suite in `tests/e2e/` — unit + lint + tsc
+  alone is not "done" for app behavior.
+
+## Demo vs live (build-time split — important)
+
+- **Demo:** the dev server reads `tests/e2e/env-demo/.env`, which omits `VITE_SUPABASE_*`, so
+  `isSupabaseConfigured` is false → `demoMode` true → "Alex Kim" sample seed, localStorage only.
+  The demo bundle has NO Supabase credentials compiled in and cannot touch prod data.
+- **Live:** `.env.local` (gitignored) has real `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`
+  → `demoMode` false, real per-user Supabase. Build live ONLY with `.env.local` present, or it
+  silently ships a demo bundle.
+- The `mobile-pwa` preview deploy is built from `.env.local` and shares the PROD Supabase
+  project — signing into it touches real data. No isolated staging DB yet.
+
+## Stack
+
+Vite + React 18 + TypeScript · Vitest (jsdom) · Cloudflare Pages (frontend) + single Worker
+(`worker/lifemap-api.mjs`) · Supabase auth/Postgres · OpenAI `gpt-5.5` for extraction
+(server-side only; key is a Worker secret).
+
+## Gotchas
+
+- **Set Worker secrets with `wrangler secret put`, not the dashboard.** Dashboard-set secrets
+  only stage and silently drop on the next CLI `wrangler deploy`.
+- New TypeScript files must be **kebab-case** (a naming-lint hook enforces it). Older modules
+  (`familyOS.ts`, `remoteState.ts`) are camelCase — match the lint for NEW files only.
+- Apply Supabase DDL/migrations **at deploy**, not ahead of it.
+- Config (`wrangler.jsonc`, env): see `docs/cloudflare-deployment.md`.
