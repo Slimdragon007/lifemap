@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   UserRoundCheck,
   UsersRound,
+  X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { analyzeWithAi, generateBriefWithAi, sendDraftEmail } from "./api";
@@ -294,6 +295,7 @@ function App() {
     Partial<Record<string, PriorityActionState>>
   >({});
   const [toastMessage, setToastMessage] = useState<string>();
+  const [toastUndo, setToastUndo] = useState<(() => void) | undefined>();
   const [view, setView] = useState<AppView>("today");
   const [showFullMap, setShowFullMap] = useState(false);
   const [selectedSetupBucketId, setSelectedSetupBucketId] =
@@ -384,9 +386,16 @@ function App() {
       return;
     }
 
-    const timeout = window.setTimeout(() => setToastMessage(undefined), 2600);
+    // Undo toasts linger longer (5s) so the user has time to reverse a dismiss.
+    const timeout = window.setTimeout(
+      () => {
+        setToastMessage(undefined);
+        setToastUndo(undefined);
+      },
+      toastUndo ? 5000 : 2600,
+    );
     return () => window.clearTimeout(timeout);
-  }, [toastMessage]);
+  }, [toastMessage, toastUndo]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !session) {
@@ -641,12 +650,35 @@ function App() {
     }
   }
 
+  // Show a toast that can carry an Undo action (5s, restores prior state).
+  function notify(message: string, undo?: () => void) {
+    setToastMessage(message);
+    setToastUndo(() => undo);
+  }
+
+  function dismissToast() {
+    setToastMessage(undefined);
+    setToastUndo(undefined);
+  }
+
   function dismissSuggestion(id: string) {
+    // Capture prior state so Undo can restore it (never confirm, always undo).
+    const wasSaved = savedSuggestionIds.has(id);
     setDismissedSuggestionIds((current) => new Set(current).add(id));
     setSavedSuggestionIds((current) => {
       const next = new Set(current);
       next.delete(id);
       return next;
+    });
+    notify("Dismissed.", () => {
+      setDismissedSuggestionIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
+      if (wasSaved) {
+        setSavedSuggestionIds((current) => new Set(current).add(id));
+      }
     });
   }
 
@@ -1441,7 +1473,20 @@ function App() {
           onSnooze={snoozeSelectedPriority}
         />
       ) : null}
-      {toastMessage ? <Toast message={toastMessage} /> : null}
+      {toastMessage ? (
+        <Toast
+          message={toastMessage}
+          onClose={dismissToast}
+          onUndo={
+            toastUndo
+              ? () => {
+                  toastUndo();
+                  dismissToast();
+                }
+              : undefined
+          }
+        />
+      ) : null}
       {session ? <FeedbackBubble /> : null}
     </>
   );
@@ -2246,11 +2291,34 @@ function PriorityActionDialog({
   );
 }
 
-function Toast({ message }: { message: string }) {
+function Toast({
+  message,
+  onUndo,
+  onClose,
+}: {
+  message: string;
+  onUndo?: () => void;
+  onClose: () => void;
+}) {
   return (
     <div className="lifemap-toast" role="status" aria-live="polite">
       <Sparkles size={16} />
       <span>{message}</span>
+      {onUndo ? (
+        <>
+          <button className="lifemap-toast-undo" type="button" onClick={onUndo}>
+            Undo
+          </button>
+          <button
+            aria-label="Dismiss notification"
+            className="lifemap-toast-close"
+            type="button"
+            onClick={onClose}
+          >
+            <X size={14} />
+          </button>
+        </>
+      ) : null}
     </div>
   );
 }

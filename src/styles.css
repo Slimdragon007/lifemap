@@ -1588,16 +1588,37 @@ a:focus-visible {
   z-index: 90;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   max-width: min(360px, calc(100vw - 32px));
-  padding: 13px 15px;
+  padding: 13px 16px;
   border-radius: 18px;
-  color: #fffaf4;
-  background: var(--slate);
-  box-shadow: var(--shadow);
-  font-size: 13px;
-  font-weight: 820;
-  animation: rise-in 180ms var(--ease) both;
+  color: #f8fbfe;
+  background: #1c2733;
+  box-shadow: var(--shadow-command);
+  font-size: 13.5px;
+  font-weight: 600;
+  animation: rise-in 180ms var(--ease-out) both;
+}
+.lifemap-toast-undo {
+  border: none;
+  background: transparent;
+  color: #9ccdf0;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.lifemap-toast-close {
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: rgba(248, 251, 254, 0.55);
+  cursor: pointer;
+  padding: 2px;
+}
+.lifemap-toast-close:hover {
+  color: #f8fbfe;
 }
 
 @keyframes rise-in {

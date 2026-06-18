@@ -838,9 +838,9 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Vault" }));
     expect(screen.getByText("Parent signature")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Dismiss" }));
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Suggestion dismissed.",
-    );
+    // Dismiss applies immediately and offers an Undo toast (never a confirm).
+    expect(screen.getByText("Dismissed.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
     expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
     expect(screen.getByText("Documents & records")).toBeInTheDocument();
 
