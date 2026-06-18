@@ -1,10 +1,12 @@
 import { createCloudflareMailer } from "./mailer.mjs";
 import {
   buildAuthUrl,
+  createCalendarEvent,
   deleteCreds,
   exchangeCode,
   googleEmailFromIdToken,
   loadCreds,
+  refreshAccessToken,
   revokeToken,
   saveCreds,
   signState,
@@ -629,7 +631,92 @@ async function handleGoogleRoute(url, request, env, corsHeaders) {
     const result = await googleDisconnectPayload({ authHeader, env });
     return jsonResponse(result.body, result.status, corsHeaders);
   }
+  if (request.method === "POST" && url.pathname === "/api/google/push-event") {
+    const event = await request.json().catch(() => null);
+    const result = await googlePushEventPayload({ authHeader, event, env });
+    return jsonResponse(result.body, result.status, corsHeaders);
+  }
   return jsonResponse({ ok: false, error: "Not found." }, 404, corsHeaders);
+}
+
+function toGoogleAllDayEvent(event) {
+  const descriptionParts = [
+    event.time ? `Time: ${event.time}` : "",
+    event.owner ? `Owner: ${event.owner}` : "",
+    event.source ? `Source: ${event.source}` : "",
+    event.needsPrep ? `Prep: ${event.needsPrep}` : "",
+  ].filter(Boolean);
+  return {
+    summary: event.title,
+    description: descriptionParts.join("\n"),
+    start: { date: event.date },
+    end: { date: event.date },
+  };
+}
+
+export async function googlePushEventPayload({
+  authHeader,
+  event,
+  env,
+  kv = env.GOOGLE_TOKENS,
+  fetchImpl = fetch,
+}) {
+  const auth = await verifySupabaseUser(authHeader, env, fetchImpl);
+  if (!auth.ok) {
+    return { status: 401, body: { ok: false, error: UNAUTHENTICATED_ERROR } };
+  }
+  if (
+    !event ||
+    typeof event.title !== "string" ||
+    typeof event.date !== "string"
+  ) {
+    return { status: 400, body: { ok: false, error: "Invalid event." } };
+  }
+  const creds = await loadCreds(kv, auth.id);
+  if (!creds || !creds.refresh_token) {
+    return {
+      status: 409,
+      body: { ok: false, error: "Google Calendar not connected." },
+    };
+  }
+
+  let accessToken = creds.access_token;
+  const now = Math.floor(Date.now() / 1000);
+  if (!accessToken || !creds.expiry || creds.expiry <= now + 60) {
+    const refreshed = await refreshAccessToken(
+      {
+        refreshToken: creds.refresh_token,
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+      },
+      fetchImpl,
+    );
+    if (!refreshed.ok) {
+      return {
+        status: 502,
+        body: { ok: false, error: "Couldn't refresh Google access." },
+      };
+    }
+    accessToken = refreshed.tokens.access_token;
+    await saveCreds(kv, auth.id, {
+      ...creds,
+      access_token: accessToken,
+      expiry: now + (Number(refreshed.tokens.expires_in) || 0),
+    });
+  }
+
+  const created = await createCalendarEvent(
+    accessToken,
+    toGoogleAllDayEvent(event),
+    fetchImpl,
+  );
+  if (!created.ok) {
+    return {
+      status: 502,
+      body: { ok: false, error: "Couldn't add to Google Calendar." },
+    };
+  }
+  return { status: 200, body: { ok: true, id: created.id } };
 }
 
 export async function googleAuthUrlPayload({
