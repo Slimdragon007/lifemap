@@ -43,7 +43,7 @@ function AuthScreen() {
     }
 
     const credentials = { email: trimmedEmail, password };
-    const { error: authError } =
+    const { data, error: authError } =
       mode === "signup"
         ? await supabase.auth.signUp(credentials)
         : await supabase.auth.signInWithPassword(credentials);
@@ -54,7 +54,10 @@ function AuthScreen() {
       return;
     }
 
-    if (mode === "signup") {
+    // When email confirmation is disabled, signUp returns a session and the
+    // auth listener (use-session.ts) logs the user straight in — show nothing.
+    // If there's no session, confirmation is still required, so guide them.
+    if (mode === "signup" && !data.session) {
       setNotice("Check your email to confirm your account, then sign in.");
       setMode("signin");
     }

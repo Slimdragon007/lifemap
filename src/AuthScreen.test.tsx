@@ -43,8 +43,33 @@ describe("AuthScreen", () => {
     );
   });
 
-  test("creates an account and prompts to confirm email", async () => {
-    mocks.signUp.mockResolvedValue({ error: null });
+  test("creates an account and signs in instantly when confirmation is off", async () => {
+    // Email confirmation disabled (mailer_autoconfirm): signUp returns a
+    // session, so the auth listener logs the user in — no confirm-email notice.
+    mocks.signUp.mockResolvedValue({
+      data: { session: { access_token: "tok" }, user: { id: "u1" } },
+      error: null,
+    });
+    const user = userEvent.setup();
+    render(<AuthScreen />);
+
+    await user.click(
+      screen.getByRole("button", { name: /create an account/i }),
+    );
+    await user.type(screen.getByLabelText("Email"), "new@example.com");
+    await user.type(screen.getByLabelText("Password"), "supersecret");
+    await user.click(screen.getByRole("button", { name: /^sign up$/i }));
+
+    await waitFor(() => expect(mocks.signUp).toHaveBeenCalled());
+    expect(screen.queryByText(/check your email/i)).not.toBeInTheDocument();
+  });
+
+  test("prompts to confirm email when confirmation is required", async () => {
+    // Fallback: confirmation still on means signUp returns no session.
+    mocks.signUp.mockResolvedValue({
+      data: { session: null, user: { id: "u1" } },
+      error: null,
+    });
     const user = userEvent.setup();
     render(<AuthScreen />);
 
