@@ -48,6 +48,7 @@ import {
 } from "./storage";
 import CalendarView from "./CalendarView";
 import AuthScreen from "./auth-screen";
+import OnboardingView from "./onboarding-view";
 import SetNewPasswordScreen from "./set-new-password-screen";
 import FeedbackBubble from "./feedback-bubble";
 import ModalBackdrop from "./modal-backdrop";
@@ -210,7 +211,8 @@ type AppView =
   | "setup"
   | "bucket"
   | "launchPlan"
-  | "privacy";
+  | "privacy"
+  | "onboarding";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 type PriorityActionState = "completed" | "snoozed";
@@ -479,6 +481,25 @@ function App() {
       clearFieldCrypto();
     };
   }, [session]);
+
+  // First-run gate (real mode only — demo never triggers this): a brand-new
+  // signed-in user with no buckets and no "onboarded" flag sees the wizard once.
+  useEffect(() => {
+    if (!isSupabaseConfigured || !session) {
+      return;
+    }
+    let onboarded = true;
+    try {
+      onboarded = window.localStorage.getItem("lifemap-onboarded") === "1";
+    } catch {
+      onboarded = true;
+    }
+    if (!onboarded && setupBucketIds.length === 0) {
+      setView("onboarding");
+    }
+    // Intentionally keyed on session id: run once when a session appears.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user.id]);
 
   useEffect(() => {
     if (
@@ -811,6 +832,16 @@ function App() {
     setSelectedPriority(undefined);
   }
 
+  // First-run onboarding: mark seen and drop the user into Today.
+  function completeOnboarding() {
+    try {
+      window.localStorage.setItem("lifemap-onboarded", "1");
+    } catch {
+      // Storage can be unavailable (private mode); the flow still completes.
+    }
+    setView("today");
+  }
+
   // Today map-hero: tapping a trunk node checks the task off (or un-checks it).
   function togglePriorityDone(id: string) {
     setPriorityActionStates((current) => {
@@ -880,6 +911,15 @@ function App() {
           </span>
         </section>
       </main>
+    );
+  }
+
+  if (view === "onboarding") {
+    return (
+      <OnboardingView
+        onComplete={() => completeOnboarding()}
+        onSkip={() => completeOnboarding()}
+      />
     );
   }
 
@@ -1357,6 +1397,7 @@ function App() {
             onOpenSetup={() => setView("setup")}
             onOpenLaunchPlan={() => setView("launchPlan")}
             onOpenApprovals={() => setView("review")}
+            onOpenOnboarding={() => setView("onboarding")}
             onOpenPrivacy={() => setView("privacy")}
             onResetDemo={handleResetDemo}
             onSignOut={() => getSupabase().auth.signOut()}
@@ -1760,6 +1801,7 @@ function MoreView({
   onOpenSetup,
   onOpenLaunchPlan,
   onOpenApprovals,
+  onOpenOnboarding,
   onOpenPrivacy,
   onResetDemo,
   onSignOut,
@@ -1771,6 +1813,7 @@ function MoreView({
   onOpenSetup: () => void;
   onOpenLaunchPlan: () => void;
   onOpenApprovals: () => void;
+  onOpenOnboarding: () => void;
   onOpenPrivacy: () => void;
   onResetDemo: () => void;
   onSignOut: () => void;
@@ -1812,6 +1855,21 @@ function MoreView({
               <span>
                 Pick family, pets, travel, and life logistics buckets.
               </span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
+          <button
+            aria-label="Replay the welcome tour"
+            className="more-row"
+            type="button"
+            onClick={onOpenOnboarding}
+          >
+            <span className="more-row-icon">
+              <Sparkles size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Welcome tour</strong>
+              <span>Replay the first-run walkthrough of your map.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
