@@ -1,4 +1,10 @@
-import { Bell, ChevronDown, ChevronRight, RefreshCw } from "lucide-react";
+import {
+  Bell,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  RefreshCw,
+} from "lucide-react";
 import { useState } from "react";
 import { STARTER_LIFE_AREAS, getSetupLifeArea } from "./lifeAreas";
 import type { BriefPriority, DailyBrief } from "./dailyBrief";
@@ -28,6 +34,7 @@ type TodayViewProps = {
   onOpenSetupBucket: (bucket: RecommendedBucket) => void;
   onOpenApprovals: () => void;
   onOpenPriority: (priority: BriefPriority) => void;
+  onTogglePriorityDone: (id: string) => void;
 };
 
 function TodayView({
@@ -47,6 +54,7 @@ function TodayView({
   onOpenSetupBucket,
   onOpenApprovals,
   onOpenPriority,
+  onTogglePriorityDone,
 }: TodayViewProps) {
   const [showMore, setShowMore] = useState(false);
 
@@ -92,9 +100,19 @@ function TodayView({
     setupBuckets.length > 0
       ? setupBuckets.map((bucket) => ({
           ...getSetupLifeArea(bucket, setupProfile),
+          isLit: true,
           onClick: () => onOpenSetupBucket(bucket),
         }))
-      : STARTER_LIFE_AREAS.map((area) => ({ ...area, onClick: onOpenSetup }));
+      : STARTER_LIFE_AREAS.map((area) => ({
+          ...area,
+          isLit: false,
+          onClick: onOpenSetup,
+        }));
+
+  const doneCount = topPriorities.filter(
+    (priority) => priorityActionStates[priority.id] === "completed",
+  ).length;
+  const litCount = lifeAreas.filter((area) => area.isLit).length;
 
   return (
     <section
@@ -147,41 +165,52 @@ function TodayView({
             : "Welcome to LifeMap. Capture your first messy note below — an email, a school form, a to-do — and it becomes your map."}
         </p>
 
+        <div className="atlas-trunk-head">
+          <span className="atlas-eyebrow">Now · tap to check off</span>
+          <span className="atlas-progress">
+            {doneCount} of {topPriorities.length} done
+          </span>
+        </div>
         <h2 className="sr-only">Top Priorities</h2>
-        <div className="lowstim-list">
+        <div className="atlas-trunk">
+          <span className="atlas-spine" aria-hidden="true" />
           {topPriorities.map((priority, index) => {
-            const actionState = priorityActionStates[priority.id];
-            const isFirst = index === 0;
-            const whenLabel =
-              actionState === "completed"
-                ? "Done"
-                : actionState === "snoozed"
-                  ? "Tomorrow"
-                  : (priority.owner ?? "");
+            const isDone = priorityActionStates[priority.id] === "completed";
+            const isNeeds = index === 0 && !isDone;
             const className = [
-              "lowstim-item",
-              "atlas-priority-card",
-              isFirst ? "first" : "",
-              actionState ? `priority-${actionState}` : "",
+              "atlas-task",
+              isNeeds ? "needs" : "",
+              isDone ? "done" : "",
             ]
               .filter(Boolean)
               .join(" ");
             return (
-              <button
-                aria-label={`Open priority ${priority.label}`}
-                className={className}
-                key={priority.id}
-                type="button"
-                onClick={() => onOpenPriority(priority)}
-              >
-                <span className="lowstim-when">{whenLabel}</span>
-                <span className="lowstim-entry">
-                  {isFirst ? (
-                    <span className="lowstim-notch" aria-hidden="true" />
+              <div className={className} key={priority.id}>
+                <button
+                  aria-label={
+                    isDone
+                      ? `Mark ${priority.label} not done`
+                      : `Check off ${priority.label}`
+                  }
+                  aria-pressed={isDone}
+                  className="atlas-node"
+                  type="button"
+                  onClick={() => onTogglePriorityDone(priority.id)}
+                >
+                  {isDone ? <Check size={13} strokeWidth={3} /> : null}
+                </button>
+                <button
+                  aria-label={`Open priority ${priority.label}`}
+                  className="atlas-task-card"
+                  type="button"
+                  onClick={() => onOpenPriority(priority)}
+                >
+                  <span className="atlas-task-text">{priority.label}</span>
+                  {isNeeds ? (
+                    <span className="atlas-needs-pill">Needs you</span>
                   ) : null}
-                  <span className="lowstim-text">{priority.label}</span>
-                </span>
-              </button>
+                </button>
+              </div>
             );
           })}
         </div>
@@ -231,23 +260,35 @@ function TodayView({
         </button>
 
         <section
-          className="atlas-section atlas-lifemap-section lowstim-areas"
+          className="atlas-section atlas-lifemap-section"
           aria-labelledby="lifemap-title"
         >
-          <h2 id="lifemap-title">Your LifeMap</h2>
-          <div className="atlas-area-grid">
-            {lifeAreas.map(({ id, label, meta, icon: Icon, onClick }) => (
-              <button
-                className="atlas-area-tile"
-                key={id}
-                type="button"
-                onClick={onClick}
-              >
-                <Icon size={22} />
-                <strong>{label}</strong>
-                <span>{meta}</span>
-              </button>
-            ))}
+          <div className="atlas-trunk-head">
+            <span className="atlas-eyebrow" id="lifemap-title">
+              Your LifeMap · tap to light up
+            </span>
+            <span className="atlas-progress">
+              {litCount} of {lifeAreas.length} active
+            </span>
+          </div>
+          <div className="atlas-branch-panel">
+            <div className="atlas-branch">
+              <span className="atlas-branch-line" aria-hidden="true" />
+              {lifeAreas.map(({ id, label, icon: Icon, isLit, onClick }) => (
+                <button
+                  className={`atlas-station${isLit ? " lit" : ""}`}
+                  key={id}
+                  type="button"
+                  onClick={onClick}
+                >
+                  <span className="atlas-station-dot">
+                    <Icon size={17} />
+                  </span>
+                  <strong>{label}</strong>
+                  <span>{isLit ? "On your map" : "Set up"}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 

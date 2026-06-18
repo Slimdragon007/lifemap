@@ -316,7 +316,7 @@ describe("LifeMap MVP app", () => {
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "School 2 kids" }),
+      screen.getByRole("button", { name: "School On your map" }),
     ).toBeInTheDocument();
   });
 
@@ -370,16 +370,16 @@ describe("LifeMap MVP app", () => {
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Profiles 5 profiles" }),
+      screen.getByRole("button", { name: "Profiles On your map" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "School 2 kids" }),
+      screen.getByRole("button", { name: "School On your map" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Records IDs + cards" }),
+      screen.getByRole("button", { name: "Records On your map" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Pets 1 pet" }),
+      screen.getByRole("button", { name: "Pets On your map" }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Health 2 updates" }),
@@ -409,7 +409,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(
-      screen.getByRole("button", { name: "Records IDs + cards" }),
+      screen.getByRole("button", { name: "Records On your map" }),
     );
 
     expect(
@@ -456,7 +456,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(
-      screen.getByRole("button", { name: "Records IDs + cards" }),
+      screen.getByRole("button", { name: "Records On your map" }),
     );
     await user.click(
       screen.getByRole("button", { name: "Start records capture" }),
@@ -501,7 +501,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(
-      screen.getByRole("button", { name: "Records IDs + cards" }),
+      screen.getByRole("button", { name: "Records On your map" }),
     );
     await user.click(
       screen.getByRole("button", { name: "Start records capture" }),
@@ -1134,7 +1134,10 @@ describe("LifeMap MVP app", () => {
     expect(
       screen.queryByRole("dialog", { name: "Renew passport" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByText("Done")).toBeInTheDocument();
+    // Completed priorities show as a checked-off node (struck text), not a label.
+    expect(
+      screen.getByRole("button", { name: "Mark Renew passport not done" }),
+    ).toBeInTheDocument();
   });
 
   test("keeps Vault profile and record details tucked away until tapped", async () => {

@@ -43,6 +43,7 @@ function renderToday(identity: { name: string; initials: string }) {
       onOpenBrainDump={vi.fn()}
       onOpenFamilyMap={vi.fn()}
       onOpenPriority={vi.fn()}
+      onTogglePriorityDone={vi.fn()}
       onOpenSetup={vi.fn()}
       onOpenSetupBucket={vi.fn()}
     />,

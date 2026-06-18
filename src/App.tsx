@@ -811,6 +811,19 @@ function App() {
     setSelectedPriority(undefined);
   }
 
+  // Today map-hero: tapping a trunk node checks the task off (or un-checks it).
+  function togglePriorityDone(id: string) {
+    setPriorityActionStates((current) => {
+      const next = { ...current };
+      if (next[id] === "completed") {
+        delete next[id];
+      } else {
+        next[id] = "completed";
+      }
+      return next;
+    });
+  }
+
   if (isSupabaseConfigured && sessionLoading) {
     return (
       <main className="login-shell">
@@ -1007,6 +1020,7 @@ function App() {
             onOpenBrainDump={openCapture}
             onOpenFamilyMap={() => setView("family")}
             onOpenPriority={setSelectedPriority}
+            onTogglePriorityDone={togglePriorityDone}
             onOpenSetup={() => setView("setup")}
             onOpenSetupBucket={(bucket) => {
               setSelectedSetupBucketId(bucket.id);
