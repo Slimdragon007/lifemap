@@ -95,7 +95,7 @@ describe("family-data RLS-scoped persistence", () => {
   });
 
   test("omits a temp client id on insert so Postgres mints the uuid", async () => {
-    const upsert = vi.fn((..._args: unknown[]) => ({
+    const upsert = vi.fn(() => ({
       select: () => ({
         maybeSingle: async () => ({
           data: {
@@ -130,15 +130,16 @@ describe("family-data RLS-scoped persistence", () => {
     if (!result.ok) return;
     expect(result.item.id).toBe(UUID);
 
-    const payload = upsert.mock.calls[0][0] as Record<string, unknown>;
+    const callArgs = upsert.mock.calls[0] as unknown[];
+    const payload = callArgs[0] as Record<string, unknown>;
     expect(payload.id).toBeUndefined();
     expect(payload.user_id).toBe("user-1");
     expect(payload.linked_event_id).toBeNull();
-    expect(upsert.mock.calls[0][1]).toEqual({ onConflict: "id" });
+    expect(callArgs[1]).toEqual({ onConflict: "id" });
   });
 
   test("keeps a real uuid id on update", async () => {
-    const upsert = vi.fn((..._args: unknown[]) => ({
+    const upsert = vi.fn(() => ({
       select: () => ({
         maybeSingle: async () => ({
           data: {
@@ -170,7 +171,10 @@ describe("family-data RLS-scoped persistence", () => {
       client,
     );
 
-    const payload = upsert.mock.calls[0][0] as Record<string, unknown>;
+    const payload = (upsert.mock.calls[0] as unknown[])[0] as Record<
+      string,
+      unknown
+    >;
     expect(payload.id).toBe(UUID);
   });
 

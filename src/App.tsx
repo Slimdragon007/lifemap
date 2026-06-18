@@ -22,11 +22,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { analyzeWithAi, generateBriefWithAi, sendDraftEmail } from "./api";
-import {
-  clearFieldCrypto,
-  ensureFieldCrypto,
-  getFieldCrypto,
-} from "./field-crypto";
+import { clearFieldCrypto, ensureFieldCrypto } from "./field-crypto";
 import {
   buildDailyBriefFromAnalysis,
   type BriefPriority,
@@ -2364,16 +2360,6 @@ function AnalyzeNotice({
   }
 
   return null;
-}
-
-function StatusPill({
-  label,
-  tone,
-}: {
-  label: string;
-  tone: "urgent" | "warning" | "calm";
-}) {
-  return <span className={`status-pill ${tone}`}>{label}</span>;
 }
 
 function ApprovalQueue({

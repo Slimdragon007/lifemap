@@ -39,7 +39,6 @@ type TodayViewProps = {
 
 function TodayView({
   brief,
-  map,
   identity,
   approvalCount,
   status,
