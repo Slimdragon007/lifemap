@@ -9,6 +9,7 @@ import {
 } from "./familyOS";
 import type { LifeMapAnalysis } from "./lifemap";
 import type { ViewerIdentity } from "./viewer";
+import ModalBackdrop from "./modal-backdrop";
 
 const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
   { id: "all", label: "All" },
@@ -263,24 +264,19 @@ function VaultView({
               <span className="notebook-row-sub">{identity.name}</span>
             </span>
           </div>
-          <div className="notebook-row entry">
-            <span className="notebook-when">Health</span>
-            <span className="notebook-row-main">
-              <span className="notebook-row-title">Casey health note</span>
-              <span className="notebook-row-sub">
-                Peanut allergy · Cetirizine as needed
-              </span>
-            </span>
-          </div>
-          <div className="notebook-row entry">
-            <span className="notebook-when">Pet</span>
-            <span className="notebook-row-main">
-              <span className="notebook-row-title">Milo vet</span>
-              <span className="notebook-row-sub">
-                Desert Paws Veterinary · rabies booster due Jun 20
-              </span>
-            </span>
-          </div>
+          {familyMembers
+            .filter((member) => member.careNotes.length > 0)
+            .map((member) => (
+              <div className="notebook-row entry" key={member.id}>
+                <span className="notebook-when">{member.role}</span>
+                <span className="notebook-row-main">
+                  <span className="notebook-row-title">{member.name}</span>
+                  <span className="notebook-row-sub">
+                    {member.careNotes.join(" · ")}
+                  </span>
+                </span>
+              </div>
+            ))}
         </div>
       ) : (
         <p className="notebook-empty">
@@ -402,12 +398,13 @@ function VaultDetailDialog({
   onReveal: () => void;
 }) {
   return (
-    <div className="modal-backdrop">
+    <ModalBackdrop onClose={onClose}>
       <section
         aria-labelledby="vault-detail-title"
         aria-modal="true"
         className="review-dialog vault-detail-dialog"
         role="dialog"
+        tabIndex={-1}
       >
         <div className="review-dialog-top">
           <div>
@@ -469,7 +466,7 @@ function VaultDetailDialog({
           </article>
         </div>
       </section>
-    </div>
+    </ModalBackdrop>
   );
 }
 

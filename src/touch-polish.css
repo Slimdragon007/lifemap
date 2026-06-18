@@ -1,0 +1,93 @@
+/*
+ * Tier 2 — native touch feel.
+ * The difference between "a web page on a phone" and "an app". Pure interaction
+ * polish: no layout or color changes. Loaded last so it can refine the cascade.
+ */
+
+/* --- Page-level: no rubber-band chaining, no text auto-inflation on rotate --- */
+html {
+  -webkit-text-size-adjust: 100%; /* iOS: don't resize text when rotating */
+  text-size-adjust: 100%;
+}
+
+html,
+body {
+  /* Kill the whole-page bounce / pull-to-refresh that screams "browser".
+     Inner scroll regions still scroll normally. */
+  overscroll-behavior: none;
+}
+
+/* --- Kill the grey tap-flash everywhere (was only set in 2 spots) --- */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* --- Interactive controls: feel like native buttons, not web links --- */
+button,
+a,
+label,
+summary,
+[role="button"],
+[role="tab"],
+[role="switch"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.nav-item,
+.tab,
+.icon-button {
+  /* Remove the ~300ms double-tap-zoom delay → taps register instantly */
+  touch-action: manipulation;
+  /* No long-press "copy/share" callout popping over your own buttons */
+  -webkit-touch-callout: none;
+  /* No accidental text-selection highlight when tapping/holding chrome */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Keep real content (and inputs) selectable — only chrome is locked above */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="date"],
+textarea,
+[contenteditable="true"],
+p,
+li,
+.selectable {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* --- Inputs: iOS zooms the whole page when a focused field is under 16px.
+       This app declares its fields at 13–15px via higher-specificity class
+       selectors (.auth-field input, .composer-grid textarea, etc.), so a plain
+       `input {}` floor loses the cascade. On touch devices only (pointer:coarse,
+       so desktop keeps its designed sizes) force every form control to a 16px
+       floor with !important — justified as a correctness invariant: a focused
+       field must never trigger zoom. The zoom is also what makes the fixed nav
+       appear to drift, so this is the single fix for both. --- */
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Preserve the one intentionally-large field (the numeric count input) */
+  .setup-count-grid input {
+    font-size: 26px !important;
+  }
+}
+
+/* --- Momentum scrolling on any scroll container --- */
+.scroll,
+[data-scroll],
+.app-scroll,
+main {
+  -webkit-overflow-scrolling: touch;
+}

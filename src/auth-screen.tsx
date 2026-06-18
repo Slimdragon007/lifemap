@@ -88,6 +88,8 @@ function AuthScreen() {
             <span>Email</span>
             <input
               autoComplete="email"
+              id="auth-email"
+              name="email"
               placeholder="you@example.com"
               required
               type="email"
@@ -102,6 +104,8 @@ function AuthScreen() {
                 autoComplete={
                   mode === "signup" ? "new-password" : "current-password"
                 }
+                id="auth-password"
+                name="password"
                 minLength={8}
                 placeholder={
                   mode === "signup" ? "at least 8 characters" : "••••••••"

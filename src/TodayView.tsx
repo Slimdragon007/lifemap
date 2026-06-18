@@ -141,7 +141,11 @@ function TodayView({
       </header>
 
       <div className="lowstim-today">
-        <p className="lowstim-brief">{brief.todaySummary}</p>
+        <p className="lowstim-brief">
+          {brief.todaySummary?.trim()
+            ? brief.todaySummary
+            : "Welcome to LifeMap. Capture your first messy note below — an email, a school form, a to-do — and it becomes your map."}
+        </p>
 
         <h2 className="sr-only">Top Priorities</h2>
         <div className="lowstim-list">
@@ -247,29 +251,29 @@ function TodayView({
           </div>
         </section>
 
-        <div className="lowstim-briefmeta">
-          <button
-            className="atlas-link-button"
-            type="button"
-            onClick={onOpenBrief}
-          >
-            View full brief
-            <ChevronRight size={14} />
-          </button>
-          <p className="grounding-note">{brief.groundingNote}</p>
-        </div>
+        {brief.groundingNote?.trim() ? (
+          <div className="lowstim-briefmeta">
+            <button
+              className="atlas-link-button"
+              type="button"
+              onClick={onOpenBrief}
+            >
+              View full brief
+              <ChevronRight size={14} />
+            </button>
+            <p className="grounding-note">{brief.groundingNote}</p>
+          </div>
+        ) : null}
 
-        <p className="lowstim-foot">
-          {waiting ? (
-            <>
-              Waiting on <b>{waiting.label}</b> — {waiting.blockedBy}
-              <br />
-              Nothing else needs you today.
-            </>
-          ) : (
-            "Nothing else needs you today."
-          )}
-        </p>
+        {waiting ? (
+          <p className="lowstim-foot">
+            Waiting on <b>{waiting.label}</b> — {waiting.blockedBy}
+            <br />
+            Nothing else needs you today.
+          </p>
+        ) : brief.todaySummary?.trim() ? (
+          <p className="lowstim-foot">Nothing else needs you today.</p>
+        ) : null}
 
         <BriefNotice
           status={status}

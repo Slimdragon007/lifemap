@@ -48,7 +48,11 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  overflow-x: hidden;
+  /* `overflow-x: clip` (not `hidden`): clip prevents horizontal scroll WITHOUT
+     making <body> a scroll container. On iOS Safari, `overflow-x: hidden` here
+     turns body into the scroller and breaks `position: fixed` — the bottom nav
+     then scrolls up with the page. `clip` keeps the nav truly pinned. */
+  overflow-x: clip;
   background: var(--bone);
 }
 
@@ -7457,6 +7461,22 @@ body {
   border-bottom: 1px solid var(--rule, #d4d8ce);
 }
 
+/* Mobile: the date rail is empty for most entries, so a fixed 66px rail wastes
+   ~17% of the screen and shoves every entry far right (text started ~89px in).
+   Shrink the rail + spine padding so entries sit near the left edge, while the
+   rail stays a fixed width so the ledger spine still aligns across rows. */
+@media (max-width: 640px) {
+  .atlas-today .lowstim-item {
+    grid-template-columns: 16px minmax(0, 1fr);
+  }
+  .atlas-today .lowstim-when {
+    padding-right: 6px;
+  }
+  .atlas-today .lowstim-entry {
+    padding-left: 14px;
+  }
+}
+
 /* The oxblood "needs your sign-off" notch, straddling the spine. */
 .atlas-today .lowstim-notch {
   position: absolute;
@@ -7887,7 +7907,10 @@ button.notebook-row:active {
 
 /* Inline text action — the one accent. */
 .notebook-link {
-  padding: 0;
+  /* Padding + negative margin gives a ~34px tap target (WCAG 2.5.8) without
+     changing the visual layout of these inline actions (Save/Dismiss/Edit). */
+  padding: 8px 4px;
+  margin: -8px 0;
   border: 0;
   background: none;
   font: inherit;
@@ -7981,6 +8004,35 @@ button.notebook-row:active {
   align-self: center;
   padding: 15px 0 15px 12px;
   border-bottom: 1px solid var(--rule, #d4d8ce);
+}
+
+/* Mobile: the third "actions/status" column squeezes Save/Dismiss/Current
+   against the right edge with a big gap. Drop to two columns and stack the
+   actions on their own line under the title, keeping the spine + row separator
+   continuous (separator moves to the row container so it spans full width). */
+@media (max-width: 640px) {
+  .notebook-row.entry {
+    grid-template-columns: 62px minmax(0, 1fr);
+    border-bottom: 1px solid var(--rule, #d4d8ce);
+  }
+  .notebook-row.entry .notebook-when {
+    grid-row: 1 / -1;
+    border-bottom: 0;
+  }
+  .notebook-row.entry .notebook-row-main {
+    border-bottom: 0;
+    padding-bottom: 8px;
+  }
+  .notebook-row.entry .notebook-row-actions,
+  .notebook-row.entry > .notebook-tag {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    align-self: start;
+    padding: 0 0 15px 18px;
+    border-left: 1px solid var(--line-strong, #c2c8bc); /* continue the binding */
+    border-bottom: 0;
+  }
 }
 
 /* The oxblood "needs your sign-off" notch, straddling the binding. */
@@ -8814,13 +8866,15 @@ button.notebook-row:active {
 /* ── Feedback bubble + panel ───────────────────────────────────────── */
 .feedback-bubble {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
+  right: max(16px, env(safe-area-inset-right));
+  /* FAB above the bottom nav (mobile) / bottom-right corner (desktop has a side
+     nav). Keeps clear of both the nav and the top-right header controls. */
+  bottom: calc(90px + env(safe-area-inset-bottom));
   z-index: 60;
   display: grid;
   place-items: center;
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--rule, #e7ddc9);
   border-radius: 999px;
   background: var(--accent, #cf7a52);
@@ -8841,8 +8895,8 @@ button.notebook-row:active {
 
 .feedback-panel {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(146px + env(safe-area-inset-bottom));
   z-index: 60;
   display: flex;
   flex-direction: column;

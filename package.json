@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "dev:web": "vite --host 0.0.0.0 --port 5173",
+    "dev:demo": "vite --host 127.0.0.1 --port 5174 --config tests/e2e/vite.demo.config.ts",
     "dev:api": "wrangler dev --config worker/wrangler.jsonc --port 8787",
     "deploy:api": "wrangler deploy --config worker/wrangler.jsonc",
     "deploy:pages": "npm run build && wrangler pages deploy dist --project-name lifemap --branch main",

@@ -19,7 +19,7 @@ import {
   UserRoundCheck,
   UsersRound,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { analyzeWithAi, generateBriefWithAi, sendDraftEmail } from "./api";
 import {
   clearFieldCrypto,
@@ -50,6 +50,7 @@ import CalendarView from "./CalendarView";
 import AuthScreen from "./auth-screen";
 import SetNewPasswordScreen from "./set-new-password-screen";
 import FeedbackBubble from "./feedback-bubble";
+import ModalBackdrop from "./modal-backdrop";
 import BucketDetailView from "./BucketDetailView";
 import LaunchPlanView from "./LaunchPlanView";
 import GuidedSetupView from "./GuidedSetupView";
@@ -319,6 +320,9 @@ function App() {
     vaultItems: samples.vaultItems,
     recurringCareItems: samples.recurringCareItems,
   }));
+  // True only when a remote load actually failed — lets data-backed views show a
+  // "couldn't load" banner instead of an empty state that reads as "no records".
+  const [recordsLoadFailed, setRecordsLoadFailed] = useState(false);
   const storedState = useMemo<StoredDemoState>(
     () => ({
       isLoggedIn,
@@ -420,43 +424,53 @@ function App() {
     };
   }, [session]);
 
-  useEffect(() => {
-    if (!isSupabaseConfigured || !session) {
-      return;
-    }
-
-    let active = true;
-    const userId = session.user.id;
-    const accessToken = session.access_token;
-
-    (async () => {
-      // Activate per-user field encryption before reading, so the sensitive
-      // columns decrypt on the way in (and encrypt on later writes).
-      const crypto = await ensureFieldCrypto(accessToken);
-      const result = await loadFamilyCollections(
-        userId,
-        getSupabase() as unknown as FamilyDataClient,
-        crypto,
-      );
-      if (!active) {
+  // Load the per-user family records from Supabase. Extracted so both the
+  // initial-load effect and the Review banner's "Try again" can re-run it; the
+  // isActive guard lets the effect cancel a stale load when the session changes.
+  const loadFamilyRecords = useCallback(
+    async (isActive: () => boolean = () => true) => {
+      if (!isSupabaseConfigured || !session) {
         return;
       }
-      if (result.ok) {
-        setCollections(result.collections);
-      } else {
-        console.warn("LifeMap family load failed", result.error);
-        setToastMessage("Couldn't load your saved records — try again.");
+      const userId = session.user.id;
+      const accessToken = session.access_token;
+      try {
+        // Activate per-user field encryption before reading, so the sensitive
+        // columns decrypt on the way in (and encrypt on later writes).
+        const crypto = await ensureFieldCrypto(accessToken);
+        const result = await loadFamilyCollections(
+          userId,
+          getSupabase() as unknown as FamilyDataClient,
+          crypto,
+        );
+        if (!isActive()) {
+          return;
+        }
+        if (result.ok) {
+          setCollections(result.collections);
+          setRecordsLoadFailed(false);
+        } else {
+          console.warn("LifeMap family load failed", result.error);
+          setRecordsLoadFailed(true);
+          setToastMessage("Couldn't load your saved records — try again.");
+        }
+      } catch (error) {
+        if (isActive()) {
+          console.error("LifeMap family load error", error);
+          setRecordsLoadFailed(true);
+        }
       }
-    })().catch((error) => {
-      if (active) {
-        console.error("LifeMap family load error", error);
-      }
-    });
+    },
+    [session],
+  );
 
+  useEffect(() => {
+    let active = true;
+    void loadFamilyRecords(() => active);
     return () => {
       active = false;
     };
-  }, [session]);
+  }, [loadFamilyRecords]);
 
   // Drop the cached per-user field key when the session changes (sign-out or a
   // different user), so the next session re-derives its own key.
@@ -547,7 +561,11 @@ function App() {
     }
     const userId = session.user.id;
     const client = getSupabase() as unknown as FamilyDataClient;
-    const crypto = getFieldCrypto();
+    // Derive the per-user encryption key BEFORE writing. Using the synchronous
+    // getFieldCrypto() here could return identity (no-op) crypto if a save fires
+    // before the key finishes loading — silently persisting plaintext sensitive
+    // fields. Awaiting guarantees real encryption at rest.
+    const crypto = await ensureFieldCrypto(session.access_token);
     const vaultCandidates = buildVaultItemsFromAnalysis(map);
     const eventCandidates = buildCalendarEventsFromAnalysis(map);
     const persistedIds: string[] = [];
@@ -1246,6 +1264,22 @@ function App() {
                 approval.
               </p>
             </header>
+            {recordsLoadFailed ? (
+              <div className="analyze-notice error" role="alert">
+                <span>
+                  We couldn't load your saved records, so this list may be
+                  incomplete — it doesn't mean your data is gone.
+                </span>
+                <button
+                  className="notebook-link"
+                  type="button"
+                  onClick={() => void loadFamilyRecords()}
+                >
+                  <RotateCcw size={14} />
+                  Try again
+                </button>
+              </div>
+            ) : null}
             <ApprovalQueue
               disabledApprovals={disabledApprovals}
               editedApprovals={editedApprovals}
@@ -1462,6 +1496,7 @@ function CaptureWorkspace({
         error={analyzeError}
         map={map}
         status={analyzeStatus}
+        onRetry={onAnalyze}
       />
 
       {analyzeStatus === "success" && captureRoute ? (
@@ -1538,10 +1573,12 @@ function CaptureAnalyzeNotice({
   status,
   error,
   map,
+  onRetry,
 }: {
   status: "idle" | "loading" | "success" | "error" | "fallback";
   error?: string;
   map: LifeMapAnalysis;
+  onRetry: () => void;
 }) {
   if (status === "loading") {
     return (
@@ -1569,18 +1606,32 @@ function CaptureAnalyzeNotice({
 
   if (status === "fallback") {
     return (
-      <p className="analyze-notice error" aria-live="polite">
+      <div className="analyze-notice error" role="status" aria-live="polite">
         <span>{error}</span>
         <span>Showing the local parser so the workflow still works.</span>
-      </p>
+        <button className="notebook-link" type="button" onClick={onRetry}>
+          <RotateCcw size={14} />
+          Try AI again
+        </button>
+      </div>
     );
   }
 
   if (status === "error") {
+    const offline =
+      typeof navigator !== "undefined" && navigator.onLine === false;
     return (
-      <p className="analyze-notice error" aria-live="polite">
-        {error}
-      </p>
+      <div className="analyze-notice error" role="alert" aria-live="assertive">
+        <span>
+          {offline
+            ? "You appear to be offline. Reconnect, then try again."
+            : (error ?? "LifeMap couldn't analyze that. Please try again.")}
+        </span>
+        <button className="notebook-link" type="button" onClick={onRetry}>
+          <RotateCcw size={14} />
+          Try again
+        </button>
+      </div>
     );
   }
 
@@ -1797,12 +1848,13 @@ function DailyBriefDialog({
   onOpenApprovals: () => void;
 }) {
   return (
-    <div className="modal-backdrop">
+    <ModalBackdrop onClose={onClose}>
       <section
         aria-labelledby="daily-brief-dialog-title"
         aria-modal="true"
         className="review-dialog action-dialog"
         role="dialog"
+        tabIndex={-1}
       >
         <div className="review-dialog-top">
           <div>
@@ -1870,7 +1922,7 @@ function DailyBriefDialog({
           </button>
         </div>
       </section>
-    </div>
+    </ModalBackdrop>
   );
 }
 
@@ -1920,12 +1972,13 @@ function PriorityActionDialog({
   onSnooze: () => void;
 }) {
   return (
-    <div className="modal-backdrop">
+    <ModalBackdrop onClose={onClose}>
       <section
         aria-labelledby="priority-action-dialog-title"
         aria-modal="true"
         className="review-dialog action-dialog"
         role="dialog"
+        tabIndex={-1}
       >
         <div className="review-dialog-top">
           <div>
@@ -2001,7 +2054,7 @@ function PriorityActionDialog({
           </button>
         </div>
       </section>
-    </div>
+    </ModalBackdrop>
   );
 }
 
@@ -2118,18 +2171,26 @@ function ApprovalQueue({
             selectedCount={selectedCount}
           />
           <div className="approval-list">
-            {editedApprovals.map((item) => (
-              <ApprovalCard
-                approved={!disabledApprovals.has(item.id)}
-                item={item}
-                key={item.id}
-                sent={sentDraftIds.has(item.id)}
-                sending={sendingDraftId === item.id}
-                onSave={(body) => onSave(item.id, body)}
-                onToggle={() => onToggle(item.id)}
-                onSend={(to) => onSendDraft(item, to)}
-              />
-            ))}
+            {editedApprovals.length > 0 ? (
+              editedApprovals.map((item) => (
+                <ApprovalCard
+                  approved={!disabledApprovals.has(item.id)}
+                  item={item}
+                  key={item.id}
+                  sent={sentDraftIds.has(item.id)}
+                  sending={sendingDraftId === item.id}
+                  onSave={(body) => onSave(item.id, body)}
+                  onToggle={() => onToggle(item.id)}
+                  onSend={(to) => onSendDraft(item, to)}
+                />
+              ))
+            ) : (
+              <p className="notebook-empty">
+                Nothing to review yet. Capture a note and tap “Analyze intake” —
+                drafts and reminders LifeMap suggests will wait here for your
+                approval.
+              </p>
+            )}
           </div>
           <button
             className="notebook-cta"
@@ -2470,12 +2531,13 @@ function ReviewDialog({
   const itemLabel = approvals.length === 1 ? "item" : "items";
 
   return (
-    <div className="modal-backdrop">
+    <ModalBackdrop onClose={onClose}>
       <section
         aria-labelledby="review-dialog-title"
         aria-modal="true"
         className="review-dialog"
         role="dialog"
+        tabIndex={-1}
       >
         <div className="review-dialog-top">
           <div>
@@ -2525,7 +2587,7 @@ function ReviewDialog({
           </button>
         </div>
       </section>
-    </div>
+    </ModalBackdrop>
   );
 }
 

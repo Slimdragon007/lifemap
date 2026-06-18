@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LifeMap">
+  <!-- Full-bleed deep-green field: square so iOS squircle + Android maskable both crop cleanly -->
+  <rect width="512" height="512" fill="#3e5f50"/>
+  <defs>
+    <clipPath id="card"><rect x="112" y="104" width="288" height="304" rx="28"/></clipPath>
+  </defs>
+  <!-- The ledger card -->
+  <rect x="112" y="104" width="288" height="304" rx="28" fill="#f1f3ee"/>
+  <g clip-path="url(#card)">
+    <!-- spine -->
+    <rect x="112" y="104" width="46" height="304" fill="#2f4a3e"/>
+    <!-- sage ruled lines -->
+    <rect x="188" y="182" width="178" height="14" rx="7" fill="#4a6b5c" opacity="0.28"/>
+    <rect x="188" y="238" width="178" height="14" rx="7" fill="#4a6b5c" opacity="0.28"/>
+    <rect x="188" y="294" width="116" height="14" rx="7" fill="#4a6b5c" opacity="0.28"/>
+    <!-- oxblood "needs you" notch -->
+    <rect x="330" y="136" width="34" height="34" rx="9" fill="#b23a2e"/>
+  </g>
+</svg>

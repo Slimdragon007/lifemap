@@ -12,6 +12,7 @@ type ConnectionState =
 function GoogleConnection() {
   const [state, setState] = useState<ConnectionState>({ kind: "loading" });
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
 
   useEffect(() => {
     let active = true;
@@ -41,6 +42,7 @@ function GoogleConnection() {
 
   async function connect() {
     setBusy(true);
+    setError(undefined);
     const token = await getAccessToken().catch(() => undefined);
     if (!token) {
       setBusy(false);
@@ -52,6 +54,7 @@ function GoogleConnection() {
       window.location.assign(result.url);
     } else {
       setBusy(false);
+      setError("Couldn't start the Google connection. Please try again.");
     }
   }
 
@@ -104,6 +107,11 @@ function GoogleConnection() {
         <CalendarCheck size={16} />
         Connect Google Calendar
       </button>
+      {error ? (
+        <p className="google-connect-note" role="alert">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

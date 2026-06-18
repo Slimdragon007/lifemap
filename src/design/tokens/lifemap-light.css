@@ -39,7 +39,8 @@
   --color-text-primary: #1c2b2a;
   --color-text-strong: #131f1e;
   --color-text-secondary: #5e6b66;
-  --color-text-quiet: #93a099;
+  /* Darkened from #93a099 (~2.4:1, failed WCAG AA) to ~4.5:1 on canvas/paper. */
+  --color-text-quiet: #62716a;
   --color-text-inverse: #f8faf5;
 
   /* Borders — sage ruled lines */
@@ -103,11 +104,11 @@
   --warm-line: #d4d8ce;
   --warm-ink: #1c2b2a;
   --warm-ink-soft: #5e6b66;
-  --warm-ink-quiet: #93a099;
+  --warm-ink-quiet: #62716a;
 
   /* Back-compat aliases for components that read --line / --ink-* directly. */
   --line: #d4d8ce;
   --ink: #1c2b2a;
   --ink-soft: #5e6b66;
-  --ink-quiet: #93a099;
+  --ink-quiet: #62716a;
 }
