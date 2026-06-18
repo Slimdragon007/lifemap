@@ -1356,6 +1356,7 @@ function App() {
             onOpenCapture={() => openCapture()}
             onOpenSetup={() => setView("setup")}
             onOpenLaunchPlan={() => setView("launchPlan")}
+            onOpenApprovals={() => setView("review")}
             onOpenPrivacy={() => setView("privacy")}
             onResetDemo={handleResetDemo}
             onSignOut={() => getSupabase().auth.signOut()}
@@ -1758,6 +1759,7 @@ function MoreView({
   onOpenCapture,
   onOpenSetup,
   onOpenLaunchPlan,
+  onOpenApprovals,
   onOpenPrivacy,
   onResetDemo,
   onSignOut,
@@ -1768,6 +1770,7 @@ function MoreView({
   onOpenCapture: () => void;
   onOpenSetup: () => void;
   onOpenLaunchPlan: () => void;
+  onOpenApprovals: () => void;
   onOpenPrivacy: () => void;
   onResetDemo: () => void;
   onSignOut: () => void;
@@ -1875,6 +1878,24 @@ function MoreView({
             <span>Safety</span>
             <h2 id="more-account-title">Account and privacy</h2>
           </div>
+          <button
+            aria-label="Open approvals and permissions"
+            className="more-row"
+            type="button"
+            onClick={onOpenApprovals}
+          >
+            <span className="more-row-icon">
+              <ListChecks size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Approvals &amp; permissions</strong>
+              <span>
+                Every draft waits for your OK — see what&apos;s pending and what
+                LifeMap has saved.
+              </span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
           <article className="more-row more-row-static">
             <span className="more-row-icon">
               <LockKeyhole size={18} />
