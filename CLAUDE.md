@@ -23,8 +23,13 @@ emails/forms/notes) → AI sorts it → hands back your next three things.
   `VITE_API_ORIGIN`) live in the Pages project's Production env (NOT `.env.local` for prod).
   So: **every merge to `main` ships to real users — keep `main` gated behind PR + green CI.**
   Manual `npm run deploy:pages` still works as a fallback.
-- **The WORKER (`lifemap-api`) is NOT git-connected — deploy it manually:** `npm run deploy:api`
-  after any change under `worker/`. Pushing to `main` does NOT redeploy the Worker.
+- **The WORKER (`lifemap-api`) ALSO AUTO-DEPLOYS from `main`** (Cloudflare Workers Builds,
+  git-connected 2026-06-18). A push to `main` runs `npx wrangler deploy --config
+worker/wrangler.jsonc` and deploys the Worker. So Pages **and** Worker both ship from the
+  same commit on every push — no manual step. Worker secrets (`OPENAI_API_KEY`,
+  `FIELD_ENCRYPTION_KEY`, `NOTION_TOKEN`) persist across builds. Manual `npm run deploy:api`
+  still works as a fallback. (Build watch paths = `*`, so the Worker rebuilds on any push; can
+  be narrowed to `worker/*` later if desired.)
 - After any deploy: `npm run verify:production` (6 checks: Pages HTML, Worker origin baked in
   bundle, Worker /health, CORS, AI analyze, asset secret markers), and grep the live bundle for
   the Supabase ref to confirm it's a real-auth build, not a demo bundle.
