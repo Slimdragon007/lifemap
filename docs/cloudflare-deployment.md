@@ -77,3 +77,5 @@ Before sharing a production preview:
 4. Run `npm run build`.
 5. Inspect the built assets and confirm no server-only secret names or values are present.
 6. Run `npm run verify:production` after deploy to confirm Pages, Worker health, CORS, AI analyze, and public asset checks.
+
+<!-- worker git-deploy: trigger first Workers Build (webhook now active) -->
