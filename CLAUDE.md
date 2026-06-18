@@ -51,6 +51,25 @@ Vite + React 18 + TypeScript · Vitest (jsdom) · Cloudflare Pages (frontend) + 
 (`worker/lifemap-api.mjs`) · Supabase auth/Postgres · OpenAI `gpt-5.5` for extraction
 (server-side only; key is a Worker secret).
 
+## Cloudflare & infra inventory (verified 2026-06-18, all green)
+
+- **Pages** project `lifemap` → `app.getlifemap.com` (custom domain, 200) + `lifemap-d33.pages.dev`.
+  Config: root `wrangler.jsonc` (`pages_build_output_dir: dist`).
+- **Worker** `lifemap-api` → `lifemap-api.m-haslim.workers.dev` (`/health` 200). Config:
+  `worker/wrangler.jsonc`. Runs the AI routes (`/api/analyze|classify|brief`), authed
+  `/api/send`, Google connect (`/api/google/*`), feedback, and a `*/15 * * * *` cron uptime watch.
+- **KV** namespace `lifemap-google-tokens` (`5a0a54b67b004ed89ac150c81f6df8bf`), bound as
+  `GOOGLE_TOKENS` — stores Google OAuth tokens only (never browser/Supabase).
+- **Email** Cloudflare Email Sending, `send_email` binding `EMAIL`, from `notify@getlifemap.com`.
+- **Rate limit** `AI_RATE_LIMITER` 20 req/60s/IP on the open AI routes.
+- **Worker secrets** (set via `wrangler secret put`): `OPENAI_API_KEY`, `FIELD_ENCRYPTION_KEY`,
+  `NOTION_TOKEN`.
+- **Not configured yet (known):**
+  - **Google Calendar OAuth** — `GOOGLE_CLIENT_ID` in `worker/wrangler.jsonc` is still the
+    `REPLACE_WITH_…` placeholder; `GOOGLE_CLIENT_SECRET` / `GOOGLE_OAUTH_STATE_SECRET` unset.
+    The in-app Connect button errors until these are set (see `docs/cloudflare-deployment.md`).
+  - **Marketing apex** `getlifemap.com` does not resolve — no landing page; app lives on `app.`.
+
 ## Gotchas
 
 - **Set Worker secrets with `wrangler secret put`, not the dashboard.** Dashboard-set secrets
