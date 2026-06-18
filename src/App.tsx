@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   UserRoundCheck,
   UsersRound,
+  X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { analyzeWithAi, generateBriefWithAi, sendDraftEmail } from "./api";
@@ -48,6 +49,7 @@ import {
 } from "./storage";
 import CalendarView from "./CalendarView";
 import AuthScreen from "./auth-screen";
+import OnboardingView from "./onboarding-view";
 import SetNewPasswordScreen from "./set-new-password-screen";
 import FeedbackBubble from "./feedback-bubble";
 import ModalBackdrop from "./modal-backdrop";
@@ -210,7 +212,8 @@ type AppView =
   | "setup"
   | "bucket"
   | "launchPlan"
-  | "privacy";
+  | "privacy"
+  | "onboarding";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 type PriorityActionState = "completed" | "snoozed";
@@ -292,6 +295,7 @@ function App() {
     Partial<Record<string, PriorityActionState>>
   >({});
   const [toastMessage, setToastMessage] = useState<string>();
+  const [toastUndo, setToastUndo] = useState<(() => void) | undefined>();
   const [view, setView] = useState<AppView>("today");
   const [showFullMap, setShowFullMap] = useState(false);
   const [selectedSetupBucketId, setSelectedSetupBucketId] =
@@ -382,9 +386,16 @@ function App() {
       return;
     }
 
-    const timeout = window.setTimeout(() => setToastMessage(undefined), 2600);
+    // Undo toasts linger longer (5s) so the user has time to reverse a dismiss.
+    const timeout = window.setTimeout(
+      () => {
+        setToastMessage(undefined);
+        setToastUndo(undefined);
+      },
+      toastUndo ? 5000 : 2600,
+    );
     return () => window.clearTimeout(timeout);
-  }, [toastMessage]);
+  }, [toastMessage, toastUndo]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !session) {
@@ -479,6 +490,25 @@ function App() {
       clearFieldCrypto();
     };
   }, [session]);
+
+  // First-run gate (real mode only — demo never triggers this): a brand-new
+  // signed-in user with no buckets and no "onboarded" flag sees the wizard once.
+  useEffect(() => {
+    if (!isSupabaseConfigured || !session) {
+      return;
+    }
+    let onboarded = true;
+    try {
+      onboarded = window.localStorage.getItem("lifemap-onboarded") === "1";
+    } catch {
+      onboarded = true;
+    }
+    if (!onboarded && setupBucketIds.length === 0) {
+      setView("onboarding");
+    }
+    // Intentionally keyed on session id: run once when a session appears.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user.id]);
 
   useEffect(() => {
     if (
@@ -620,12 +650,35 @@ function App() {
     }
   }
 
+  // Show a toast that can carry an Undo action (5s, restores prior state).
+  function notify(message: string, undo?: () => void) {
+    setToastMessage(message);
+    setToastUndo(() => undo);
+  }
+
+  function dismissToast() {
+    setToastMessage(undefined);
+    setToastUndo(undefined);
+  }
+
   function dismissSuggestion(id: string) {
+    // Capture prior state so Undo can restore it (never confirm, always undo).
+    const wasSaved = savedSuggestionIds.has(id);
     setDismissedSuggestionIds((current) => new Set(current).add(id));
     setSavedSuggestionIds((current) => {
       const next = new Set(current);
       next.delete(id);
       return next;
+    });
+    notify("Dismissed.", () => {
+      setDismissedSuggestionIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
+      if (wasSaved) {
+        setSavedSuggestionIds((current) => new Set(current).add(id));
+      }
     });
   }
 
@@ -811,6 +864,29 @@ function App() {
     setSelectedPriority(undefined);
   }
 
+  // First-run onboarding: mark seen and drop the user into Today.
+  function completeOnboarding() {
+    try {
+      window.localStorage.setItem("lifemap-onboarded", "1");
+    } catch {
+      // Storage can be unavailable (private mode); the flow still completes.
+    }
+    setView("today");
+  }
+
+  // Today map-hero: tapping a trunk node checks the task off (or un-checks it).
+  function togglePriorityDone(id: string) {
+    setPriorityActionStates((current) => {
+      const next = { ...current };
+      if (next[id] === "completed") {
+        delete next[id];
+      } else {
+        next[id] = "completed";
+      }
+      return next;
+    });
+  }
+
   if (isSupabaseConfigured && sessionLoading) {
     return (
       <main className="login-shell">
@@ -867,6 +943,15 @@ function App() {
           </span>
         </section>
       </main>
+    );
+  }
+
+  if (view === "onboarding") {
+    return (
+      <OnboardingView
+        onComplete={() => completeOnboarding()}
+        onSkip={() => completeOnboarding()}
+      />
     );
   }
 
@@ -1007,6 +1092,7 @@ function App() {
             onOpenBrainDump={openCapture}
             onOpenFamilyMap={() => setView("family")}
             onOpenPriority={setSelectedPriority}
+            onTogglePriorityDone={togglePriorityDone}
             onOpenSetup={() => setView("setup")}
             onOpenSetupBucket={(bucket) => {
               setSelectedSetupBucketId(bucket.id);
@@ -1342,6 +1428,8 @@ function App() {
             onOpenCapture={() => openCapture()}
             onOpenSetup={() => setView("setup")}
             onOpenLaunchPlan={() => setView("launchPlan")}
+            onOpenApprovals={() => setView("review")}
+            onOpenOnboarding={() => setView("onboarding")}
             onOpenPrivacy={() => setView("privacy")}
             onResetDemo={handleResetDemo}
             onSignOut={() => getSupabase().auth.signOut()}
@@ -1385,7 +1473,20 @@ function App() {
           onSnooze={snoozeSelectedPriority}
         />
       ) : null}
-      {toastMessage ? <Toast message={toastMessage} /> : null}
+      {toastMessage ? (
+        <Toast
+          message={toastMessage}
+          onClose={dismissToast}
+          onUndo={
+            toastUndo
+              ? () => {
+                  toastUndo();
+                  dismissToast();
+                }
+              : undefined
+          }
+        />
+      ) : null}
       {session ? <FeedbackBubble /> : null}
     </>
   );
@@ -1454,56 +1555,151 @@ function CaptureWorkspace({
         </p>
       </header>
 
-      <h2 className="notebook-section-title" id="ai-intake-title">
+      <div className="capture-chat">
+        <div className="chat-bubble ai">
+          <span className="chat-avatar" aria-hidden="true">
+            <Sparkles size={14} />
+          </span>
+          <p>
+            Hi — paste anything cluttering your head and I&apos;ll sort it into
+            tasks, what&apos;s missing, and anything that needs your OK. Nothing
+            sends automatically.
+          </p>
+        </div>
+
+        {analyzeStatus !== "idle" && hasIntake ? (
+          <div className="chat-bubble user">
+            <p>{intake.trim().slice(0, 500)}</p>
+          </div>
+        ) : null}
+
+        {analyzeStatus === "loading" ? (
+          <div className="chat-bubble ai chat-typing">
+            <span className="chat-avatar" aria-hidden="true">
+              <Sparkles size={14} />
+            </span>
+            <span className="chat-dots" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className="sr-only">Reading your note…</span>
+          </div>
+        ) : null}
+
+        {analyzeStatus === "success" ? (
+          <div className="chat-bubble ai">
+            <span className="chat-avatar" aria-hidden="true">
+              <Sparkles size={14} />
+            </span>
+            <div className="capture-result">
+              <span className="capture-result-eyebrow">
+                Here&apos;s what I pulled out
+              </span>
+              {map.nextActions.length > 0 ? (
+                <div className="capture-result-group">
+                  <span className="capture-result-label">
+                    {map.nextActions.length}{" "}
+                    {pluralize("task", map.nextActions.length)}
+                  </span>
+                  <ul className="capture-result-list">
+                    {map.nextActions.slice(0, 4).map((action) => (
+                      <li key={action.id}>{action.label}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {map.missingInfo.length > 0 ? (
+                <div className="capture-result-group">
+                  <span className="capture-result-label">
+                    {map.missingInfo.length} missing
+                  </span>
+                  <div className="capture-pills">
+                    {map.missingInfo.slice(0, 4).map((info) => (
+                      <span className="capture-pill" key={info.label}>
+                        {info.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {map.draftMessages.length > 0 ? (
+                <p className="capture-result-foot">
+                  {map.draftMessages.length}{" "}
+                  {pluralize("reminder", map.draftMessages.length)} staged for
+                  your OK.
+                </p>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {analyzeStatus === "fallback" || analyzeStatus === "error" ? (
+          <div className="chat-bubble ai">
+            <span className="chat-avatar" aria-hidden="true">
+              <Sparkles size={14} />
+            </span>
+            <CaptureAnalyzeNotice
+              error={analyzeError}
+              map={map}
+              status={analyzeStatus}
+              onRetry={onAnalyze}
+            />
+          </div>
+        ) : null}
+
+        {analyzeStatus === "success" ? (
+          <button
+            className="capture-grew-chip"
+            type="button"
+            onClick={onOpenToday}
+          >
+            Your map grew — see it on Today
+            <ChevronRight size={14} />
+          </button>
+        ) : null}
+      </div>
+
+      <h2 className="capture-composer-eyebrow" id="ai-intake-title">
         Paste anything
       </h2>
-      <textarea
-        aria-label="Paste email, screenshot notes, forms, travel plans, or family admin"
-        className="notebook-paste"
-        placeholder="Paste anything here…"
-        value={intake}
-        wrap="soft"
-        onChange={(event) => onIntakeChange(event.target.value)}
-      />
-
-      <div className="notebook-paste-actions">
+      <div className="capture-composer">
+        <textarea
+          aria-label="Paste email, screenshot notes, forms, travel plans, or family admin"
+          className="capture-input"
+          placeholder="Paste anything here…"
+          value={intake}
+          wrap="soft"
+          onChange={(event) => onIntakeChange(event.target.value)}
+        />
         <button
-          className="notebook-cta"
+          aria-label="Analyze intake"
+          className="capture-send"
           type="button"
           disabled={analyzeStatus === "loading" || !hasIntake}
           onClick={onAnalyze}
         >
           {analyzeStatus === "loading" ? (
-            <>
-              <span className="spinner" aria-hidden="true" />
-              Analyzing…
-            </>
+            <span className="spinner" aria-hidden="true" />
           ) : (
-            <>
-              Analyze intake
-              <ChevronRight size={15} />
-            </>
+            <Send size={16} />
           )}
         </button>
-        {analyzeStatus === "success" ? (
-          <button className="notebook-link" type="button" onClick={onReview}>
-            Review drafts
-          </button>
-        ) : null}
       </div>
 
-      <CaptureAnalyzeNotice
-        error={analyzeError}
-        map={map}
-        status={analyzeStatus}
-        onRetry={onAnalyze}
-      />
-
       {analyzeStatus === "success" && captureRoute ? (
-        <div className="notebook-note">
-          <strong>{captureRoute.message}</strong>
-          <button className="notebook-link" type="button" onClick={onRoute}>
-            {captureRoute.buttonLabel}
+        <p className="capture-route-note">{captureRoute.message}</p>
+      ) : null}
+
+      {analyzeStatus === "success" ? (
+        <div className="capture-actions-row">
+          {captureRoute ? (
+            <button className="notebook-link" type="button" onClick={onRoute}>
+              {captureRoute.buttonLabel}
+            </button>
+          ) : null}
+          <button className="notebook-link" type="button" onClick={onReview}>
+            Review drafts
           </button>
         </div>
       ) : null}
@@ -1649,6 +1845,8 @@ function MoreView({
   onOpenCapture,
   onOpenSetup,
   onOpenLaunchPlan,
+  onOpenApprovals,
+  onOpenOnboarding,
   onOpenPrivacy,
   onResetDemo,
   onSignOut,
@@ -1659,6 +1857,8 @@ function MoreView({
   onOpenCapture: () => void;
   onOpenSetup: () => void;
   onOpenLaunchPlan: () => void;
+  onOpenApprovals: () => void;
+  onOpenOnboarding: () => void;
   onOpenPrivacy: () => void;
   onResetDemo: () => void;
   onSignOut: () => void;
@@ -1700,6 +1900,21 @@ function MoreView({
               <span>
                 Pick family, pets, travel, and life logistics buckets.
               </span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
+          <button
+            aria-label="Replay the welcome tour"
+            className="more-row"
+            type="button"
+            onClick={onOpenOnboarding}
+          >
+            <span className="more-row-icon">
+              <Sparkles size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Welcome tour</strong>
+              <span>Replay the first-run walkthrough of your map.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
@@ -1766,6 +1981,24 @@ function MoreView({
             <span>Safety</span>
             <h2 id="more-account-title">Account and privacy</h2>
           </div>
+          <button
+            aria-label="Open approvals and permissions"
+            className="more-row"
+            type="button"
+            onClick={onOpenApprovals}
+          >
+            <span className="more-row-icon">
+              <ListChecks size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Approvals &amp; permissions</strong>
+              <span>
+                Every draft waits for your OK — see what&apos;s pending and what
+                LifeMap has saved.
+              </span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
           <article className="more-row more-row-static">
             <span className="more-row-icon">
               <LockKeyhole size={18} />
@@ -2058,11 +2291,34 @@ function PriorityActionDialog({
   );
 }
 
-function Toast({ message }: { message: string }) {
+function Toast({
+  message,
+  onUndo,
+  onClose,
+}: {
+  message: string;
+  onUndo?: () => void;
+  onClose: () => void;
+}) {
   return (
     <div className="lifemap-toast" role="status" aria-live="polite">
       <Sparkles size={16} />
       <span>{message}</span>
+      {onUndo ? (
+        <>
+          <button className="lifemap-toast-undo" type="button" onClick={onUndo}>
+            Undo
+          </button>
+          <button
+            aria-label="Dismiss notification"
+            className="lifemap-toast-close"
+            type="button"
+            onClick={onClose}
+          >
+            <X size={14} />
+          </button>
+        </>
+      ) : null}
     </div>
   );
 }
