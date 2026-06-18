@@ -4,6 +4,8 @@
 const AUTH_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const REVOKE_ENDPOINT = "https://oauth2.googleapis.com/revoke";
+const CALENDAR_EVENTS_ENDPOINT =
+  "https://www.googleapis.com/calendar/v3/calendars/primary/events";
 const SCOPES = "openid email https://www.googleapis.com/auth/calendar.events";
 
 function base64urlEncode(bytes) {
@@ -166,4 +168,72 @@ export async function loadCreds(kv, userId) {
 
 export async function deleteCreds(kv, userId) {
   await kv.delete(credsKey(userId));
+}
+
+// Exchange a stored refresh_token for a fresh access_token (tokens expire ~1h).
+export async function refreshAccessToken(
+  { refreshToken, clientId, clientSecret },
+  fetchImpl = fetch,
+) {
+  try {
+    const response = await fetchImpl(TOKEN_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        refresh_token: refreshToken,
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: "refresh_token",
+      }).toString(),
+    });
+    if (!response.ok) {
+      const detail =
+        typeof response.text === "function"
+          ? await response.text().catch(() => "")
+          : "";
+      return {
+        ok: false,
+        error: `google_refresh_${response.status}: ${detail}`,
+      };
+    }
+    return { ok: true, tokens: await response.json() };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+// Create an event on the user's primary Google Calendar. `event` is a Google
+// event body, e.g. { summary, description, start, end }.
+export async function createCalendarEvent(
+  accessToken,
+  event,
+  fetchImpl = fetch,
+) {
+  try {
+    const response = await fetchImpl(CALENDAR_EVENTS_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(event),
+    });
+    if (!response.ok) {
+      const detail =
+        typeof response.text === "function"
+          ? await response.text().catch(() => "")
+          : "";
+      return { ok: false, error: `google_event_${response.status}: ${detail}` };
+    }
+    const created = await response.json();
+    return { ok: true, id: created.id };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
 }

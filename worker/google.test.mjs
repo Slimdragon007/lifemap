@@ -1,10 +1,12 @@
 import { describe, expect, test, vi } from "vitest";
 import {
   buildAuthUrl,
+  createCalendarEvent,
   deleteCreds,
   exchangeCode,
   googleEmailFromIdToken,
   loadCreds,
+  refreshAccessToken,
   revokeToken,
   saveCreds,
   signState,
@@ -15,6 +17,7 @@ import {
   googleAuthUrlPayload,
   googleCallback,
   googleDisconnectPayload,
+  googlePushEventPayload,
   googleStatusPayload,
 } from "./lifemap-api.mjs";
 
@@ -283,5 +286,157 @@ describe("google endpoints", () => {
     });
     expect(result.body).toEqual({ ok: true });
     expect(await loadCreds(kv, "u1")).toBeNull();
+  });
+});
+
+describe("refreshAccessToken", () => {
+  test("returns a fresh access token", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ access_token: "fresh", expires_in: 3600 }),
+    });
+    const result = await refreshAccessToken(
+      { refreshToken: "r", clientId: "c", clientSecret: "s" },
+      fetchImpl,
+    );
+    expect(result).toEqual({
+      ok: true,
+      tokens: { access_token: "fresh", expires_in: 3600 },
+    });
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "https://oauth2.googleapis.com/token",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  test("returns an error when Google rejects the refresh", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: async () => "invalid_grant",
+    });
+    const result = await refreshAccessToken(
+      { refreshToken: "bad", clientId: "c", clientSecret: "s" },
+      fetchImpl,
+    );
+    expect(result.ok).toBe(false);
+  });
+});
+
+describe("createCalendarEvent", () => {
+  test("posts the event and returns its id", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: "evt_123" }),
+    });
+    const result = await createCalendarEvent(
+      "access",
+      {
+        summary: "Renew passport",
+        description: "Owner: You",
+        start: { date: "2026-07-12" },
+        end: { date: "2026-07-12" },
+      },
+      fetchImpl,
+    );
+    expect(result).toEqual({ ok: true, id: "evt_123" });
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ Authorization: "Bearer access" }),
+      }),
+    );
+  });
+
+  test("returns an error when Google rejects the event", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      text: async () => "unauthorized",
+    });
+    const result = await createCalendarEvent(
+      "bad",
+      { summary: "x" },
+      fetchImpl,
+    );
+    expect(result.ok).toBe(false);
+  });
+});
+
+describe("googlePushEventPayload", () => {
+  test("creates a Google event from a LifeMap event", async () => {
+    const kv = makeKv();
+    await saveCreds(kv, "u1", {
+      refresh_token: "r",
+      access_token: "a",
+      expiry: Math.floor(Date.now() / 1000) + 3600, // still valid
+      email: "you@example.com",
+    });
+    const fetchImpl = vi.fn(async (url) => {
+      if (String(url).includes("/auth/v1/user")) {
+        return { ok: true, json: async () => ({ id: "u1" }) };
+      }
+      if (String(url).includes("calendar/v3")) {
+        return { ok: true, json: async () => ({ id: "g_evt_1" }) };
+      }
+      return { ok: true, json: async () => ({}) };
+    });
+    const result = await googlePushEventPayload({
+      authHeader: "Bearer tok",
+      event: {
+        id: "e1",
+        title: "Renew passport",
+        date: "2026-07-12",
+        time: "10:30 AM",
+        owner: "You",
+        source: "Passport checklist",
+      },
+      env: gEnv,
+      kv,
+      fetchImpl,
+    });
+    expect(result.status).toBe(200);
+    expect(result.body).toEqual({ ok: true, id: "g_evt_1" });
+  });
+
+  test("401 when not authenticated", async () => {
+    const result = await googlePushEventPayload({
+      authHeader: "",
+      event: {
+        id: "e1",
+        title: "x",
+        date: "2026-07-12",
+        time: "",
+        owner: "",
+        source: "",
+      },
+      env: gEnv,
+      kv: makeKv(),
+      fetchImpl: vi.fn(async () => ({ ok: false, json: async () => ({}) })),
+    });
+    expect(result.status).toBe(401);
+  });
+
+  test("409 when the user is not connected to Google", async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ id: "u1" }),
+    }));
+    const result = await googlePushEventPayload({
+      authHeader: "Bearer tok",
+      event: {
+        id: "e1",
+        title: "x",
+        date: "2026-07-12",
+        time: "",
+        owner: "",
+        source: "",
+      },
+      env: gEnv,
+      kv: makeKv(),
+      fetchImpl,
+    });
+    expect(result.status).toBe(409);
   });
 });
