@@ -1,13 +1,12 @@
 :root {
   /* ================================================================= */
-  /* THE HOUSEHOLD LEDGER — the app's design language.                  */
-  /* LifeMap = your family's standing record: cool archival paper, ink, */
-  /* sage ruled lines, ONE saturated signal (oxblood = needs your sign- */
-  /* off) and a calm ledger-green for interactive/settled. Variable     */
-  /* NAMES are kept stable so every screen inherits the retheme at once.*/
+  /* THE LIFEMAP — calm "chief of staff for real life".                */
+  /* Cool blue + white lead; ONE clay-orange accent reserved for "this */
+  /* needs you". No green, ever (retired). Variable NAMES are kept      */
+  /* stable so every screen inherits the retheme at once.              */
   /* ================================================================= */
 
-  /* Type — Darker Grotesque display (ledger headers), Hanken body, mono data */
+  /* Type — Darker Grotesque display (headings), Hanken body, mono data */
   --font-ui:
     "Hanken Grotesque", ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -17,71 +16,72 @@
   --font-mono:
     "Fragment Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
 
-  /* Canvas — cool archival oatmeal (deliberately off warm cream) */
-  --color-canvas-warm: #f1f3ee;
-  --color-canvas-app: #f1f3ee;
-  --color-canvas-login: #f1f3ee;
-  --color-canvas-soft-blue: #eaeee7;
-  --color-canvas-soft-warm: #eaeee7;
+  /* Canvas — cool near-white */
+  --color-canvas-warm: #f2f6fc;
+  --color-canvas-app: #f2f6fc;
+  --color-canvas-login: #f2f6fc;
+  --color-canvas-soft-blue: #eaf1fb;
+  --color-canvas-soft-warm: #eaf1fb;
 
-  /* Surfaces — flat ledger stock, a hair lighter than the canvas */
-  --color-surface-glass: rgba(248, 250, 245, 0.86);
-  --color-surface-panel: #f8faf5;
-  --color-surface-panel-strong: #f8faf5;
-  --color-surface-command: #f8faf5;
-  --color-surface-command-soft: #f1f3ee;
-  --color-surface-nav: rgba(241, 243, 238, 0.92);
-  --color-surface-capture: #f8faf5;
-  --color-surface-row: #f8faf5;
-  --color-backdrop-capture: rgba(241, 243, 238, 0.55);
+  /* Surfaces — white cards/panels on the cool canvas */
+  --color-surface-glass: rgba(248, 251, 255, 0.86);
+  --color-surface-panel: #ffffff;
+  --color-surface-panel-strong: #ffffff;
+  --color-surface-command: #ffffff;
+  --color-surface-command-soft: #f2f6fc;
+  --color-surface-nav: rgba(255, 255, 255, 0.92);
+  --color-surface-capture: #ffffff;
+  --color-surface-row: #ffffff;
+  --color-backdrop-capture: rgba(248, 251, 255, 0.6);
 
-  /* Ink — fountain-pen: near-black with a green-blue undertone */
-  --color-text-primary: #1c2b2a;
-  --color-text-strong: #131f1e;
-  --color-text-secondary: #5e6b66;
-  /* Darkened from #93a099 (~2.4:1, failed WCAG AA) to ~4.5:1 on canvas/paper. */
-  --color-text-quiet: #62716a;
-  --color-text-inverse: #f8faf5;
+  /* Ink — cool slate */
+  --color-text-primary: #1c2733;
+  --color-text-strong: #141d27;
+  --color-text-secondary: #5a6775;
+  /* Quiet captions/reasons; faint placeholders one step lighter. */
+  --color-text-quiet: #7a8794;
+  --color-text-inverse: #f8fbfe;
 
-  /* Borders — sage ruled lines */
-  --color-border-subtle: #d4d8ce;
-  --color-border-strong: #c2c8bc;
-  --color-focus-ring: rgba(62, 95, 80, 0.34);
+  /* Borders — cool hairlines */
+  --color-border-subtle: #dde5ee;
+  --color-border-strong: #cfdae6;
+  --color-focus-ring: rgba(63, 134, 196, 0.34);
 
-  /* Accent — calm ledger-green for interactive (links, CTAs, active states) */
-  --color-accent-blue: #3e5f50;
-  --color-accent-blue-strong: #2f4a3e;
-  --color-accent-blue-soft: rgba(62, 95, 80, 0.12);
-  --color-accent-sky: #e3e9e1;
-  --color-accent-warm: #3e5f50;
-  --color-accent-warm-soft: rgba(62, 95, 80, 0.12);
-  --color-accent-clay: #3e5f50;
-  --color-accent-plum: #5e6b66;
-  --color-accent-sage: #4a6b5c;
-  --color-accent-amber: #9a7b3a;
-  --color-status-danger: #b23a2e;
+  /* Accent — primary blue for interactive (links, CTAs, active, lit). */
+  --color-accent-blue: #3f86c4;
+  --color-accent-blue-strong: #356f9e;
+  --color-accent-blue-soft: rgba(63, 134, 196, 0.12);
+  --color-accent-sky: #e2eef9;
+  /* Clay-orange = the single warm "needs you" signal. Use sparingly. */
+  --color-accent-warm: #d97757;
+  --color-accent-warm-soft: rgba(217, 119, 87, 0.12);
+  --color-accent-clay: #d97757;
+  --color-accent-plum: #5a6775;
+  --color-accent-sage: #4aa3c4;
+  --color-accent-amber: #c2603f;
+  --color-status-danger: #c2603f;
 
-  --color-action-ink: #1c2b2a;
+  --color-action-ink: #1c2733;
 
-  /* Gradients — flattened to a calm solid ledger-green CTA on ledger paper */
-  --gradient-action-primary: linear-gradient(180deg, #4a6f5d 0%, #3e5f50 100%);
-  --gradient-command-surface: linear-gradient(180deg, #f8faf5 0%, #f1f3ee 100%);
+  /* Gradients — primary blue CTA + lit nodes; white→canvas command surface */
+  --gradient-action-primary: linear-gradient(180deg, #5aa9e6 0%, #3f86c4 100%);
+  --gradient-command-surface: linear-gradient(180deg, #ffffff 0%, #f2f6fc 100%);
 
   --radius-control: 12px;
   --radius-panel: 16px;
   --radius-command: 18px;
   --radius-pill: 999px;
 
-  /* Shadows — softer, warm-neutral, less heavy */
-  --shadow-panel-soft: 0 8px 20px rgba(120, 90, 60, 0.06);
-  --shadow-panel: 0 16px 40px rgba(120, 90, 60, 0.09);
-  --shadow-command: 0 20px 50px rgba(120, 90, 60, 0.12);
-  --shadow-nav: 0 -2px 22px rgba(120, 90, 60, 0.07);
-  --shadow-control: 0 8px 18px rgba(207, 122, 82, 0.12);
-  --shadow-row: 0 6px 16px rgba(120, 90, 60, 0.05);
-  --shadow-row-hover: 0 10px 22px rgba(120, 90, 60, 0.08);
+  /* Shadows — soft, blue-tinted, low spread */
+  --shadow-panel-soft: 0 14px 30px -22px rgba(40, 90, 150, 0.3);
+  --shadow-panel: 0 14px 30px -20px rgba(40, 90, 150, 0.45);
+  --shadow-command: 0 24px 50px -34px rgba(40, 90, 150, 0.45);
+  --shadow-nav: 0 -2px 22px rgba(40, 90, 150, 0.1);
+  --shadow-control: 0 12px 26px -14px rgba(40, 90, 150, 0.5);
+  --shadow-row: 0 6px 16px rgba(40, 90, 150, 0.05);
+  --shadow-row-hover: 0 10px 22px rgba(40, 90, 150, 0.1);
 
-  /* Motion — the locked "Right-sized" spec */
+  /* Motion — the locked "Right-sized" spec (matches the handoff easing) */
   --motion-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
   --motion-press: 100ms;
@@ -89,26 +89,27 @@
   --motion-enter: 220ms;
   --motion-cap: 300ms;
 
-  /* Ledger semantics for the notebook/ledger components.
-     --accent  = calm interactive (links, CTAs, active filters, the spine)
-     --needs   = the oxblood "red pen": action-required / needs your sign-off ONLY
-     --filed   = ledger-green: settled / handled / saved */
-  --accent: #3e5f50;
-  --accent-soft: #4a6f5d;
-  --needs: #b23a2e;
-  --needs-soft: rgba(178, 58, 46, 0.12);
-  --filed: #4a6b5c;
-  --paper: #f1f3ee;
-  --paper-raised: #f8faf5;
-  --rule: #d4d8ce;
-  --warm-line: #d4d8ce;
-  --warm-ink: #1c2b2a;
-  --warm-ink-soft: #5e6b66;
-  --warm-ink-quiet: #62716a;
+  /* Map/notebook semantics.
+     --accent = primary blue (links, CTAs, active filters, the trunk/spine,
+                lit/saved/settled)
+     --needs  = clay-orange: action-required / needs your sign-off ONLY
+     --filed  = blue: settled / handled / saved (lit) */
+  --accent: #3f86c4;
+  --accent-soft: #5aa9e6;
+  --needs: #d97757;
+  --needs-soft: rgba(217, 119, 87, 0.12);
+  --filed: #3f86c4;
+  --paper: #f2f6fc;
+  --paper-raised: #ffffff;
+  --rule: #dde5ee;
+  --warm-line: #dde5ee;
+  --warm-ink: #1c2733;
+  --warm-ink-soft: #5a6775;
+  --warm-ink-quiet: #7a8794;
 
   /* Back-compat aliases for components that read --line / --ink-* directly. */
-  --line: #d4d8ce;
-  --ink: #1c2b2a;
-  --ink-soft: #5e6b66;
-  --ink-quiet: #62716a;
+  --line: #dde5ee;
+  --ink: #1c2733;
+  --ink-soft: #5a6775;
+  --ink-quiet: #7a8794;
 }
