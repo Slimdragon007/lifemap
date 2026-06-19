@@ -877,9 +877,6 @@ describe("LifeMap MVP app", () => {
     expect(
       screen.getByText("Sign the field trip permission slip"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Grounded in the school portal."),
-    ).toBeInTheDocument();
   });
 
   test("opens the full Daily Brief without rerunning AI", async () => {
@@ -890,7 +887,12 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "View full brief" }));
+    // The full brief opens from a "this week" item (the standalone "View full
+    // brief" link was retired from Today as AI-meta clutter).
+    await user.click(
+      screen.getByRole("button", { name: "Show 1 more this week" }),
+    );
+    await user.click(screen.getByRole("button", { name: /Parent signature/ }));
 
     const dialog = screen.getByRole("dialog", { name: "Daily Brief details" });
     expect(dialog).toBeInTheDocument();

@@ -91,8 +91,6 @@ function TodayView({
     })),
   ];
 
-  const waiting = brief.openLoops[0] ?? null;
-
   // "Your LifeMap" area tiles — kept on Today (Slim likes the icon tiles for
   // picking a capture area). Icons come from the shared mapping in lifeAreas.ts.
   const lifeAreas =
@@ -294,27 +292,7 @@ function TodayView({
           </div>
         </section>
 
-        {brief.groundingNote?.trim() ? (
-          <div className="lowstim-briefmeta">
-            <button
-              className="atlas-link-button"
-              type="button"
-              onClick={onOpenBrief}
-            >
-              View full brief
-              <ChevronRight size={14} />
-            </button>
-            <p className="grounding-note">{brief.groundingNote}</p>
-          </div>
-        ) : null}
-
-        {waiting ? (
-          <p className="lowstim-foot">
-            Waiting on <b>{waiting.label}</b> — {waiting.blockedBy}
-            <br />
-            Nothing else needs you today.
-          </p>
-        ) : brief.todaySummary?.trim() ? (
+        {brief.todaySummary?.trim() ? (
           <p className="lowstim-foot">Nothing else needs you today.</p>
         ) : null}
 
