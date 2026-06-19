@@ -75,6 +75,7 @@ import {
 } from "./supabaseClient";
 import TodayView from "./TodayView";
 import VaultView from "./VaultView";
+import EmptyState from "./empty-state";
 import {
   loadRemoteState,
   saveRemoteState,
@@ -1138,6 +1139,7 @@ function App() {
             recurringCareItems={collections.recurringCareItems}
             savedSuggestionIds={savedSuggestionIds}
             onDismissSuggestion={dismissSuggestion}
+            onOpenCapture={() => openCapture()}
             onSaveSuggestion={saveSuggestion}
             onSaveSuggestions={saveSuggestions}
           />
@@ -1151,6 +1153,7 @@ function App() {
             savedSuggestionIds={savedSuggestionIds}
             vaultItems={collections.vaultItems}
             onDismissSuggestion={dismissSuggestion}
+            onOpenCapture={() => openCapture()}
             onSaveSuggestion={saveSuggestion}
             onSaveSuggestions={saveSuggestions}
           />
@@ -1393,9 +1396,11 @@ function App() {
                   </div>
                 ))
               ) : (
-                <p className="notebook-empty">
-                  Drafts from the family map will appear here for approval.
-                </p>
+                <EmptyState
+                  actionLabel="Capture something"
+                  message="No drafts yet. Capture a message and I'll draft a reply for your OK."
+                  onAction={() => openCapture()}
+                />
               )}
             </div>
           </section>

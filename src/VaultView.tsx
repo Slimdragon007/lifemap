@@ -10,6 +10,7 @@ import {
 import type { LifeMapAnalysis } from "./lifemap";
 import type { ViewerIdentity } from "./viewer";
 import ModalBackdrop from "./modal-backdrop";
+import EmptyState from "./empty-state";
 
 const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
   { id: "all", label: "All" },
@@ -32,6 +33,7 @@ type VaultViewProps = {
   onSaveSuggestion: (id: string) => void;
   onSaveSuggestions: (ids: string[]) => void;
   onDismissSuggestion: (id: string) => void;
+  onOpenCapture: () => void;
 };
 
 type VaultFeedback = {
@@ -50,6 +52,7 @@ function VaultView({
   onSaveSuggestion,
   onSaveSuggestions,
   onDismissSuggestion,
+  onOpenCapture,
 }: VaultViewProps) {
   const [activeCategory, setActiveCategory] = useState<VaultCategory | "all">(
     "all",
@@ -184,9 +187,11 @@ function VaultView({
             );
           })
         ) : (
-          <p className="notebook-empty">
-            No family profiles yet. Capture family details to build them.
-          </p>
+          <EmptyState
+            actionLabel="Capture something"
+            message="No family profiles yet. Capture family details to build them."
+            onAction={onOpenCapture}
+          />
         )}
       </div>
 
@@ -247,9 +252,11 @@ function VaultView({
             />
           ))
         ) : (
-          <p className="notebook-empty">
-            No records yet. Captured documents will appear here.
-          </p>
+          <EmptyState
+            actionLabel="Capture something"
+            message="No records yet. Paste an ID, policy, or form and it files itself."
+            onAction={onOpenCapture}
+          />
         )}
       </div>
 
@@ -279,9 +286,11 @@ function VaultView({
               ))}
           </div>
         ) : (
-          <p className="notebook-empty">
-            Emergency basics appear once you add family profiles.
-          </p>
+          <EmptyState
+            actionLabel="Capture something"
+            message="Emergency basics appear once you add family profiles."
+            onAction={onOpenCapture}
+          />
         )}
       </section>
 
@@ -301,7 +310,11 @@ function VaultView({
           ))}
         </div>
       ) : (
-        <p className="notebook-empty">No recurring care loops yet.</p>
+        <EmptyState
+          actionLabel="Capture something"
+          message="No recurring care loops yet. Capture a routine and I'll track it."
+          onAction={onOpenCapture}
+        />
       )}
 
       {selectedVaultItem ? (

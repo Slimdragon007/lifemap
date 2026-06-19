@@ -40,6 +40,7 @@ const handlers = {
   onSaveSuggestion: vi.fn(),
   onSaveSuggestions: vi.fn(),
   onDismissSuggestion: vi.fn(),
+  onOpenCapture: vi.fn(),
 };
 
 describe("CalendarView de-demo", () => {

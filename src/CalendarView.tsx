@@ -8,6 +8,7 @@ import {
 } from "./familyOS";
 import type { LifeMapAnalysis } from "./lifemap";
 import GoogleConnection from "./GoogleConnection";
+import EmptyState from "./empty-state";
 import { getGoogleStatus, pushCalendarEvent } from "./api";
 import { getAccessToken } from "./supabaseClient";
 
@@ -22,6 +23,7 @@ type CalendarViewProps = {
   onSaveSuggestion: (id: string) => void;
   onSaveSuggestions: (ids: string[]) => void;
   onDismissSuggestion: (id: string) => void;
+  onOpenCapture: () => void;
 };
 
 function CalendarView({
@@ -33,6 +35,7 @@ function CalendarView({
   onSaveSuggestion,
   onSaveSuggestions,
   onDismissSuggestion,
+  onOpenCapture,
 }: CalendarViewProps) {
   const [activeLayers, setActiveLayers] = useState<Set<CalendarLayer>>(
     () => new Set(calendarLayers.map((layer) => layer.id)),
@@ -178,9 +181,11 @@ function CalendarView({
             />
           ))
         ) : (
-          <p className="notebook-empty">
-            No events yet. Captured dates will appear here.
-          </p>
+          <EmptyState
+            actionLabel="Capture something"
+            message="No events yet. Paste a school email or invite and dates land here."
+            onAction={onOpenCapture}
+          />
         )}
       </div>
 
@@ -201,7 +206,11 @@ function CalendarView({
             </div>
           ))
         ) : (
-          <p className="notebook-empty">No recurring loops yet.</p>
+          <EmptyState
+            actionLabel="Capture something"
+            message="No recurring loops yet. Capture a routine and I'll track it."
+            onAction={onOpenCapture}
+          />
         )}
       </div>
     </section>
