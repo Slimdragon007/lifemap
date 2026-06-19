@@ -134,8 +134,7 @@ function VaultView({
           Vault
         </h1>
         <p className="notebook-sub">
-          IDs, insurance, health, school, pets, and travel records. Sensitive
-          details stay hidden until you open a record.
+          Your family's records and emergency info, safe and findable.
         </p>
       </header>
 

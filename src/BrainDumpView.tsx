@@ -84,11 +84,10 @@ export function BrainDumpComposer({
           </span>
           <h1 id="inbox-title">Brain dump</h1>
           <p>
-            Paste screenshots, forms, emails, or brain dumps. LifeMap sorts
-            them into your calendar, vault, and approvals.
+            Paste anything messy; I'll turn it into tasks, dates, and drafts.
           </p>
           <span className="storage-note">
-            Messy is fine — no punctuation needed.
+            Messy is fine, no punctuation needed.
           </span>
         </div>
         <div className="status-strip" aria-label="Mental load summary">
@@ -124,8 +123,8 @@ export function BrainDumpComposer({
               className="primary-button"
               type="button"
               disabled={status === "loading" || dump.trim().length === 0}
-            onClick={handleClassify}
-          >
+              onClick={handleClassify}
+            >
               {status === "loading" ? (
                 <>
                   <span className="spinner" aria-hidden="true" />
@@ -139,7 +138,11 @@ export function BrainDumpComposer({
               )}
             </button>
             {totalItems > 0 && onReview ? (
-              <button className="secondary-button" type="button" onClick={onReview}>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={onReview}
+              >
                 Review items
               </button>
             ) : null}

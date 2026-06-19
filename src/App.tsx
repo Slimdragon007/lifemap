@@ -1342,8 +1342,7 @@ function App() {
                 Review
               </h1>
               <p className="notebook-sub">
-                Drafts and reminders wait here. Nothing sends without your
-                approval.
+                Anything waiting for your OK before it's done.
               </p>
             </header>
             {recordsLoadFailed ? (

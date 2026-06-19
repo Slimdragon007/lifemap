@@ -122,9 +122,7 @@ function CalendarView({
         <h1 id="calendar-title" className="notebook-title">
           Calendar
         </h1>
-        <p className="notebook-sub">
-          School, health, pets, meals, travel, and admin — one calm list.
-        </p>
+        <p className="notebook-sub">Everything time-bound, in one list.</p>
         <GoogleConnection />
       </header>
 
