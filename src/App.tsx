@@ -53,6 +53,7 @@ import BucketDetailView from "./BucketDetailView";
 import LaunchPlanView from "./LaunchPlanView";
 import GuidedSetupView from "./GuidedSetupView";
 import PrivacyView from "./PrivacyView";
+import HowItWorksView from "./how-it-works-view";
 import { useSession } from "./use-session";
 import { demoMode } from "./demoMode";
 import { viewerIdentity } from "./viewer";
@@ -210,6 +211,7 @@ type AppView =
   | "bucket"
   | "launchPlan"
   | "privacy"
+  | "howItWorks"
   | "onboarding";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
@@ -1408,6 +1410,8 @@ function App() {
           <LaunchPlanView onBack={() => setView("more")} />
         ) : view === "privacy" ? (
           <PrivacyView onBack={() => setView("more")} />
+        ) : view === "howItWorks" ? (
+          <HowItWorksView onBack={() => setView("more")} />
         ) : view === "setup" ? (
           <GuidedSetupView
             activeBucketIds={setupBucketIds}
@@ -1430,6 +1434,7 @@ function App() {
             onOpenLaunchPlan={() => setView("launchPlan")}
             onOpenApprovals={() => setView("review")}
             onOpenOnboarding={() => setView("onboarding")}
+            onOpenHowItWorks={() => setView("howItWorks")}
             onOpenPrivacy={() => setView("privacy")}
             onResetDemo={handleResetDemo}
             onSignOut={() => getSupabase().auth.signOut()}
@@ -1847,6 +1852,7 @@ function MoreView({
   onOpenLaunchPlan,
   onOpenApprovals,
   onOpenOnboarding,
+  onOpenHowItWorks,
   onOpenPrivacy,
   onResetDemo,
   onSignOut,
@@ -1859,6 +1865,7 @@ function MoreView({
   onOpenLaunchPlan: () => void;
   onOpenApprovals: () => void;
   onOpenOnboarding: () => void;
+  onOpenHowItWorks: () => void;
   onOpenPrivacy: () => void;
   onResetDemo: () => void;
   onSignOut: () => void;
@@ -1886,6 +1893,21 @@ function MoreView({
             <h2 id="more-start-title">Start here</h2>
             <p>Set up your real-life buckets before adding more tools.</p>
           </div>
+          <button
+            aria-label="Open how LifeMap works"
+            className="more-row"
+            type="button"
+            onClick={onOpenHowItWorks}
+          >
+            <span className="more-row-icon">
+              <Map size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>How LifeMap works</strong>
+              <span>The loop in three steps, plus what each tab is for.</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
           <button
             aria-label="Open guided setup"
             className="more-row"
