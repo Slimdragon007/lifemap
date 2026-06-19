@@ -31,6 +31,9 @@ const AREAS = [
 const TOTAL_STEPS = 5;
 
 function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
+  // Identity cover shown first: state what LifeMap is in one calm screen before
+  // the setup wizard. "Continue" drops into step 1; "Skip" exits the whole flow.
+  const [showIntro, setShowIntro] = useState(true);
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [people, setPeople] = useState<Set<string>>(new Set(["You"]));
@@ -56,6 +59,57 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
     onComplete({ name: name.trim(), areas: Array.from(areas) });
 
   const chosenAreas = areas.size > 0 ? Array.from(areas) : ["School", "Health"];
+
+  if (showIntro) {
+    return (
+      <main className="onboarding-shell">
+        <div className="ambient-field" aria-hidden="true" />
+        <section
+          className="onboarding-card"
+          aria-labelledby="onboarding-intro-title"
+        >
+          <header className="onboarding-head">
+            <span className="onboarding-mark">
+              <span className="onboarding-mark-tile" aria-hidden="true">
+                <MapIcon size={16} />
+              </span>
+              LifeMap
+            </span>
+          </header>
+          <div className="onboarding-body">
+            <h1 id="onboarding-intro-title">
+              LifeMap takes the chaos in your head and hands back your next few
+              moves, calmly.
+            </h1>
+            <p className="onboarding-lede">
+              Capture anything messy, let it get sorted, and see just the few
+              things that need you. Let&apos;s set up your map.
+            </p>
+          </div>
+          <footer className="onboarding-foot">
+            <span />
+            <div className="onboarding-foot-right">
+              <button
+                className="onboarding-text"
+                type="button"
+                onClick={onSkip}
+              >
+                Skip
+              </button>
+              <button
+                className="onboarding-primary"
+                type="button"
+                onClick={() => setShowIntro(false)}
+              >
+                Continue
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </footer>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="onboarding-shell">
@@ -88,7 +142,7 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
             <>
               <h1 id="onboarding-title">Let&apos;s set things down.</h1>
               <p className="onboarding-lede">
-                A calm home for the family-admin chaos. First — what should I
+                A calm home for the family-admin chaos. First, what should I
                 call you?
               </p>
               <label className="onboarding-field">
@@ -151,10 +205,11 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
 
           {step === 4 ? (
             <>
-              <h1 id="onboarding-title">Connect your calendar?</h1>
+              <h1 id="onboarding-title">Your calendar, soon</h1>
               <p className="onboarding-lede">
-                LifeMap can surface school, health, and travel dates in one calm
-                agenda. You can always do this later.
+                Calendar connect is coming soon. LifeMap will surface school,
+                health, and travel dates in one calm agenda. For now, capture
+                anything and it lands on your in-app calendar.
               </p>
               <div className="onboarding-actions-stack">
                 <button
@@ -162,15 +217,8 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
                   type="button"
                   onClick={next}
                 >
-                  Connect Google Calendar
+                  Continue
                   <ArrowRight size={16} />
-                </button>
-                <button
-                  className="onboarding-text"
-                  type="button"
-                  onClick={next}
-                >
-                  Not now
                 </button>
               </div>
             </>

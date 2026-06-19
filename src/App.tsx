@@ -53,18 +53,15 @@ import BucketDetailView from "./BucketDetailView";
 import LaunchPlanView from "./LaunchPlanView";
 import GuidedSetupView from "./GuidedSetupView";
 import PrivacyView from "./PrivacyView";
+import HowItWorksView from "./how-it-works-view";
 import { useSession } from "./use-session";
 import { demoMode } from "./demoMode";
 import { viewerIdentity } from "./viewer";
 import { sampleCollections } from "./sampleData";
-import {
-  buildCalendarEventsFromAnalysis,
-  buildVaultItemsFromAnalysis,
-} from "./familyOS";
+import { buildCalendarEventsFromAnalysis } from "./familyOS";
 import {
   loadFamilyCollections,
   upsertFamilyEvent,
-  upsertVaultItem,
   type FamilyCollections,
   type FamilyDataClient,
 } from "./family-data";
@@ -75,6 +72,8 @@ import {
 } from "./supabaseClient";
 import TodayView from "./TodayView";
 import VaultView from "./VaultView";
+import EmptyState from "./empty-state";
+import PayoffSummary from "./payoff-summary";
 import {
   loadRemoteState,
   saveRemoteState,
@@ -92,6 +91,7 @@ import {
   normalizeSetupProfile,
   recommendSetupBuckets,
   type SetupBucketId,
+  type SetupFocusArea,
   type SetupProfile,
 } from "./setupBuckets";
 
@@ -209,6 +209,7 @@ type AppView =
   | "bucket"
   | "launchPlan"
   | "privacy"
+  | "howItWorks"
   | "onboarding";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
@@ -218,6 +219,58 @@ type CaptureRoute = {
   buttonLabel: string;
   message: string;
 };
+
+// Initials for an onboarding-supplied display name (first letters of up to two
+// words), matching the email-derived style in viewer.ts.
+function initialsFromName(name: string): string {
+  const tokens = name.split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) {
+    return "";
+  }
+  if (tokens.length === 1) {
+    return tokens[0].slice(0, 2).toUpperCase();
+  }
+  return (tokens[0][0] + tokens[1][0]).toUpperCase();
+}
+
+// Turn the onboarding area chips into a real setup profile so the wizard's
+// choices actually seed buckets (not collected then discarded). "Work" has no
+// matching bucket, so it is intentionally ignored.
+function setupProfileFromOnboardingAreas(areas: string[]): SetupProfile {
+  const focusAreas: SetupFocusArea[] = [];
+  const addFocus = (focus: SetupFocusArea) => {
+    if (!focusAreas.includes(focus)) {
+      focusAreas.push(focus);
+    }
+  };
+  let travels = false;
+  let pets = 0;
+  for (const area of areas) {
+    switch (area) {
+      case "School":
+        addFocus("school");
+        break;
+      case "Health":
+        addFocus("health");
+        break;
+      case "Home":
+        addFocus("home");
+        break;
+      case "Bills & dates":
+        addFocus("money");
+        break;
+      case "Travel":
+        travels = true;
+        break;
+      case "Pets":
+        pets = 1;
+        break;
+      default:
+        break;
+    }
+  }
+  return { ...defaultSetupProfile, focusAreas, travels, pets };
+}
 
 function App() {
   const [initialState] = useState(() =>
@@ -247,6 +300,15 @@ function App() {
   const [setupBucketIds, setSetupBucketIds] = useState<SetupBucketId[]>(
     () => initialState.setupBucketIds ?? [],
   );
+  // The display name the user typed in onboarding (persisted separately from the
+  // Supabase session so it survives reloads and overrides the email-derived name).
+  const [displayName, setDisplayName] = useState<string>(() => {
+    try {
+      return window.localStorage.getItem("lifemap-display-name") ?? "";
+    } catch {
+      return "";
+    }
+  });
   const activeSetupBuckets = useMemo(() => {
     if (setupBucketIds.length === 0) {
       return [];
@@ -309,7 +371,14 @@ function App() {
     recovering,
     clearRecovery,
   } = useSession();
-  const identity = useMemo(() => viewerIdentity(session, demoMode), [session]);
+  const identity = useMemo(() => {
+    const base = viewerIdentity(session, demoMode);
+    const name = displayName.trim();
+    if (demoMode || !name) {
+      return base;
+    }
+    return { name, initials: initialsFromName(name) };
+  }, [session, displayName]);
   const samples = useMemo(() => sampleCollections(demoMode), []);
   // The sensitive family collections. In demo mode these are the local seeds;
   // in real mode they start empty and are loaded per-user from Supabase (RLS),
@@ -581,40 +650,18 @@ function App() {
   // per-user Supabase tables (RLS-enforced). The freshly-persisted row (with its
   // real uuid) joins the in-memory collection, and the ephemeral analysis
   // suggestion is removed from the review list so it doesn't double-render.
-  async function materializeSuggestions(ids: string[]) {
+  async function materializeSuggestions(ids: string[]): Promise<boolean> {
     if (!session) {
-      return;
+      return false;
     }
     const userId = session.user.id;
     const client = getSupabase() as unknown as FamilyDataClient;
-    // Derive the per-user encryption key BEFORE writing. Using the synchronous
-    // getFieldCrypto() here could return identity (no-op) crypto if a save fires
-    // before the key finishes loading — silently persisting plaintext sensitive
-    // fields. Awaiting guarantees real encryption at rest.
-    const crypto = await ensureFieldCrypto(session.access_token);
-    const vaultCandidates = buildVaultItemsFromAnalysis(map);
     const eventCandidates = buildCalendarEventsFromAnalysis(map);
     const persistedIds: string[] = [];
     let failed = false;
 
     for (const id of ids) {
-      if (id.startsWith("ai-vault-")) {
-        const candidate = vaultCandidates.find((item) => item.id === id);
-        if (!candidate) {
-          continue;
-        }
-        const result = await upsertVaultItem(userId, candidate, client, crypto);
-        if (result.ok) {
-          const saved = result.item;
-          setCollections((current) => ({
-            ...current,
-            vaultItems: [saved, ...current.vaultItems],
-          }));
-          persistedIds.push(id);
-        } else {
-          failed = true;
-        }
-      } else if (id.startsWith("ai-event-")) {
+      if (id.startsWith("ai-event-")) {
         const candidate = eventCandidates.find((event) => event.id === id);
         if (!candidate) {
           continue;
@@ -642,8 +689,9 @@ function App() {
       });
     }
     if (failed) {
-      setToastMessage("Couldn't save every record — try again.");
+      setToastMessage("Couldn't save every record. Try again.");
     }
+    return !failed;
   }
 
   // Show a toast that can carry an Undo action (5s, restores prior state).
@@ -784,6 +832,21 @@ function App() {
     setIsReviewOpen(false);
   }
 
+  // The payoff "Approve all" (after the user confirms): stage every draft/reminder
+  // for one-tap review and, for signed-in users, persist the calendar dates. Returns
+  // whether the persist actually succeeded so the payoff only shows the "off your
+  // plate" exhale on a real save. Drafts are NEVER auto-sent — sending stays the
+  // explicit one-tap in Review (handleSendDraft). Demo mode stages only (no DB).
+  async function approveAllFromCapture(): Promise<boolean> {
+    stageSelectedApprovals();
+    if (isSupabaseConfigured && session) {
+      return materializeSuggestions(
+        buildCalendarEventsFromAnalysis(map).map((event) => event.id),
+      );
+    }
+    return true;
+  }
+
   function loadSampleIntake(rawIntake: string) {
     setIntake(rawIntake);
     setCaptureRoute(undefined);
@@ -860,8 +923,26 @@ function App() {
     setSelectedPriority(undefined);
   }
 
-  // First-run onboarding: mark seen and drop the user into Today.
-  function completeOnboarding() {
+  // First-run onboarding: seed setup from the user's chosen areas + name (when
+  // they finish the wizard), mark seen, and drop the user into Today. Skipping
+  // passes no result, so nothing is seeded.
+  function completeOnboarding(result?: { name: string; areas: string[] }) {
+    if (result) {
+      const profile = setupProfileFromOnboardingAreas(result.areas);
+      setSetupProfile(profile);
+      setSetupBucketIds(
+        recommendSetupBuckets(profile).map((bucket) => bucket.id),
+      );
+      const name = result.name.trim();
+      if (name) {
+        setDisplayName(name);
+        try {
+          window.localStorage.setItem("lifemap-display-name", name);
+        } catch {
+          // Storage can be unavailable (private mode); name just won't persist.
+        }
+      }
+    }
     try {
       window.localStorage.setItem("lifemap-onboarded", "1");
     } catch {
@@ -945,7 +1026,7 @@ function App() {
   if (view === "onboarding") {
     return (
       <OnboardingView
-        onComplete={() => completeOnboarding()}
+        onComplete={(result) => completeOnboarding(result)}
         onSkip={() => completeOnboarding()}
       />
     );
@@ -1124,9 +1205,9 @@ function App() {
                 setAnalyzeError(undefined);
               }
             }}
+            onApproveAll={approveAllFromCapture}
             onLoadExample={loadSampleIntake}
             onOpenToday={() => setView("today")}
-            onOpenVault={() => setView("vault")}
             onReview={() => setView("review")}
             onRoute={followCaptureRoute}
           />
@@ -1138,21 +1219,16 @@ function App() {
             recurringCareItems={collections.recurringCareItems}
             savedSuggestionIds={savedSuggestionIds}
             onDismissSuggestion={dismissSuggestion}
+            onOpenCapture={() => openCapture()}
             onSaveSuggestion={saveSuggestion}
             onSaveSuggestions={saveSuggestions}
           />
         ) : view === "vault" ? (
           <VaultView
-            analysis={map}
-            dismissedSuggestionIds={dismissedSuggestionIds}
             familyMembers={collections.familyMembers}
             identity={identity}
-            recurringCareItems={collections.recurringCareItems}
-            savedSuggestionIds={savedSuggestionIds}
             vaultItems={collections.vaultItems}
-            onDismissSuggestion={dismissSuggestion}
-            onSaveSuggestion={saveSuggestion}
-            onSaveSuggestions={saveSuggestions}
+            onOpenCapture={() => openCapture()}
           />
         ) : view === "family" ? (
           <>
@@ -1342,8 +1418,7 @@ function App() {
                 Review
               </h1>
               <p className="notebook-sub">
-                Drafts and reminders wait here. Nothing sends without your
-                approval.
+                Anything waiting for your OK before it's done.
               </p>
             </header>
             {recordsLoadFailed ? (
@@ -1394,9 +1469,11 @@ function App() {
                   </div>
                 ))
               ) : (
-                <p className="notebook-empty">
-                  Drafts from the family map will appear here for approval.
-                </p>
+                <EmptyState
+                  actionLabel="Capture something"
+                  message="No drafts yet. Capture a message and I'll draft a reply for your OK."
+                  onAction={() => openCapture()}
+                />
               )}
             </div>
           </section>
@@ -1404,6 +1481,8 @@ function App() {
           <LaunchPlanView onBack={() => setView("more")} />
         ) : view === "privacy" ? (
           <PrivacyView onBack={() => setView("more")} />
+        ) : view === "howItWorks" ? (
+          <HowItWorksView onBack={() => setView("more")} />
         ) : view === "setup" ? (
           <GuidedSetupView
             activeBucketIds={setupBucketIds}
@@ -1426,6 +1505,7 @@ function App() {
             onOpenLaunchPlan={() => setView("launchPlan")}
             onOpenApprovals={() => setView("review")}
             onOpenOnboarding={() => setView("onboarding")}
+            onOpenHowItWorks={() => setView("howItWorks")}
             onOpenPrivacy={() => setView("privacy")}
             onResetDemo={handleResetDemo}
             onSignOut={() => getSupabase().auth.signOut()}
@@ -1496,11 +1576,11 @@ function CaptureWorkspace({
   intake,
   map,
   onAnalyze,
+  onApproveAll,
   onClose,
   onIntakeChange,
   onLoadExample,
   onOpenToday,
-  onOpenVault,
   onReview,
   onRoute,
 }: {
@@ -1511,11 +1591,11 @@ function CaptureWorkspace({
   intake: string;
   map: LifeMapAnalysis;
   onAnalyze: () => void;
+  onApproveAll: () => Promise<boolean>;
   onClose: () => void;
   onIntakeChange: (intake: string) => void;
   onLoadExample: (rawIntake: string) => void;
   onOpenToday: () => void;
-  onOpenVault: () => void;
   onReview: () => void;
   onRoute: () => void;
 }) {
@@ -1584,50 +1664,12 @@ function CaptureWorkspace({
         ) : null}
 
         {analyzeStatus === "success" ? (
-          <div className="chat-bubble ai">
-            <span className="chat-avatar" aria-hidden="true">
-              <Sparkles size={14} />
-            </span>
-            <div className="capture-result">
-              <span className="capture-result-eyebrow">
-                Here&apos;s what I pulled out
-              </span>
-              {map.nextActions.length > 0 ? (
-                <div className="capture-result-group">
-                  <span className="capture-result-label">
-                    {map.nextActions.length}{" "}
-                    {pluralize("task", map.nextActions.length)}
-                  </span>
-                  <ul className="capture-result-list">
-                    {map.nextActions.slice(0, 4).map((action) => (
-                      <li key={action.id}>{action.label}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              {map.missingInfo.length > 0 ? (
-                <div className="capture-result-group">
-                  <span className="capture-result-label">
-                    {map.missingInfo.length} missing
-                  </span>
-                  <div className="capture-pills">
-                    {map.missingInfo.slice(0, 4).map((info) => (
-                      <span className="capture-pill" key={info.label}>
-                        {info.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-              {map.draftMessages.length > 0 ? (
-                <p className="capture-result-foot">
-                  {map.draftMessages.length}{" "}
-                  {pluralize("reminder", map.draftMessages.length)} staged for
-                  your OK.
-                </p>
-              ) : null}
-            </div>
-          </div>
+          <PayoffSummary
+            map={map}
+            onApproveAll={onApproveAll}
+            onDone={onOpenToday}
+            onTweak={onReview}
+          />
         ) : null}
 
         {analyzeStatus === "fallback" || analyzeStatus === "error" ? (
@@ -1642,17 +1684,6 @@ function CaptureWorkspace({
               onRetry={onAnalyze}
             />
           </div>
-        ) : null}
-
-        {analyzeStatus === "success" ? (
-          <button
-            className="capture-grew-chip"
-            type="button"
-            onClick={onOpenToday}
-          >
-            Your map grew — see it on Today
-            <ChevronRight size={14} />
-          </button>
         ) : null}
       </div>
 
@@ -1687,44 +1718,12 @@ function CaptureWorkspace({
         <p className="capture-route-note">{captureRoute.message}</p>
       ) : null}
 
-      {analyzeStatus === "success" ? (
+      {analyzeStatus === "success" && captureRoute ? (
         <div className="capture-actions-row">
-          {captureRoute ? (
-            <button className="notebook-link" type="button" onClick={onRoute}>
-              {captureRoute.buttonLabel}
-            </button>
-          ) : null}
-          <button className="notebook-link" type="button" onClick={onReview}>
-            Review drafts
+          <button className="notebook-link" type="button" onClick={onRoute}>
+            {captureRoute.buttonLabel}
           </button>
         </div>
-      ) : null}
-
-      {analyzeStatus === "success" ? (
-        <section aria-labelledby="capture-routing-title">
-          <h2 className="notebook-section-title" id="capture-routing-title">
-            Route this map
-          </h2>
-          <div className="notebook-route-actions">
-            <button
-              className="notebook-link"
-              type="button"
-              onClick={onOpenToday}
-            >
-              Go to Today
-            </button>
-            <button
-              className="notebook-link"
-              type="button"
-              onClick={onOpenVault}
-            >
-              Go to Vault
-            </button>
-            <button className="notebook-link" type="button" onClick={onReview}>
-              Review approvals
-            </button>
-          </div>
-        </section>
       ) : null}
 
       <section aria-labelledby="capture-type-title">
@@ -1843,6 +1842,7 @@ function MoreView({
   onOpenLaunchPlan,
   onOpenApprovals,
   onOpenOnboarding,
+  onOpenHowItWorks,
   onOpenPrivacy,
   onResetDemo,
   onSignOut,
@@ -1855,6 +1855,7 @@ function MoreView({
   onOpenLaunchPlan: () => void;
   onOpenApprovals: () => void;
   onOpenOnboarding: () => void;
+  onOpenHowItWorks: () => void;
   onOpenPrivacy: () => void;
   onResetDemo: () => void;
   onSignOut: () => void;
@@ -1882,6 +1883,21 @@ function MoreView({
             <h2 id="more-start-title">Start here</h2>
             <p>Set up your real-life buckets before adding more tools.</p>
           </div>
+          <button
+            aria-label="Open how LifeMap works"
+            className="more-row"
+            type="button"
+            onClick={onOpenHowItWorks}
+          >
+            <span className="more-row-icon">
+              <Map size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>How LifeMap works</strong>
+              <span>The loop in three steps, plus what each tab is for.</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
           <button
             aria-label="Open guided setup"
             className="more-row"

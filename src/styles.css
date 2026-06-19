@@ -8023,6 +8023,235 @@ button.notebook-row:active {
   color: var(--ink-quiet, #b39a82);
 }
 
+/* Empty-state CTA — a calm next action so no list dead-ends. The .notebook-empty
+   line carries the message; this is the quiet pill that routes to Capture. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2, 8px);
+  padding: var(--space-3, 12px) var(--space-1, 4px) var(--space-2, 8px);
+}
+
+.empty-state .notebook-empty {
+  padding: 0;
+}
+
+.empty-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--accent, #3f86c4);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--accent-soft, #5aa9e6);
+  background: var(--color-accent-blue-soft, rgba(63, 134, 196, 0.12));
+  color: var(--accent-strong, #356f9e);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background var(--motion-state, 140ms) var(--ease-out, ease),
+    transform var(--motion-press, 100ms) var(--ease-out, ease);
+}
+
+.empty-cta:hover {
+  background: var(--color-accent-blue-soft, rgba(63, 134, 196, 0.18));
+}
+
+.empty-cta:active {
+  transform: scale(0.98);
+}
+
+/* Payoff card — the "done for you" moment after a dump is analyzed. Calm and
+   plan-forward (not a reward); leads with what's handled, one approve, then a
+   quiet exhale. Reuses cool-blue tokens + spacing scale. */
+.payoff {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  padding: var(--space-5, 20px);
+  background: var(--paper-raised, #ffffff);
+  border: 1px solid var(--rule, #dde5ee);
+  border-radius: var(--radius-panel, 16px);
+  box-shadow: var(--shadow-panel-soft);
+}
+
+.payoff-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.payoff-spark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--color-accent-blue-soft, rgba(63, 134, 196, 0.12));
+  color: var(--accent, #3f86c4);
+}
+
+.payoff-head h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: var(--ink, #1c2733);
+}
+
+.payoff-groups {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+
+.payoff-group {
+  display: flex;
+  gap: var(--space-3, 12px);
+  align-items: flex-start;
+}
+
+.payoff-group-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--paper, #f2f6fc);
+  color: var(--accent, #3f86c4);
+}
+
+.payoff-group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.payoff-group-label {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink, #1c2733);
+}
+
+.payoff-group-note {
+  font-weight: 500;
+  color: var(--ink-quiet, #7a8794);
+}
+
+.payoff-group-items {
+  font-size: 13px;
+  color: var(--ink-soft, #5a6775);
+}
+
+.payoff-missing {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-quiet, #7a8794);
+}
+
+.payoff-confirm-line {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-soft, #56616c);
+}
+
+.payoff-error {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--danger, #a23b3b);
+}
+
+.payoff-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  margin-top: var(--space-1, 4px);
+}
+
+.payoff-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--gradient-action-primary, #3f86c4);
+  color: #ffffff;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-control);
+  transition: transform var(--motion-press, 100ms) var(--ease-out, ease);
+}
+
+.payoff-primary:active {
+  transform: scale(0.98);
+}
+
+.payoff-primary:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.payoff-tweak {
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink-quiet, #7a8794);
+  cursor: pointer;
+}
+
+.payoff-tweak:hover {
+  color: var(--accent, #3f86c4);
+}
+
+.payoff-empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft, #5a6775);
+}
+
+/* Exhale state — the calm body-scan beat after Approve all. */
+.payoff-exhaled {
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-6, 24px) var(--space-5, 20px);
+}
+
+.payoff-check {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--color-accent-blue-soft, rgba(63, 134, 196, 0.12));
+  color: var(--accent, #3f86c4);
+}
+
+.payoff-exhaled h2 {
+  margin: 0;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  color: var(--ink, #1c2733);
+}
+
+.payoff-exhaled p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft, #5a6775);
+}
+
 .notebook-showmore {
   display: flex;
   align-items: center;
