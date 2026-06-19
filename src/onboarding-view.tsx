@@ -205,10 +205,11 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
 
           {step === 4 ? (
             <>
-              <h1 id="onboarding-title">Connect your calendar?</h1>
+              <h1 id="onboarding-title">Your calendar, soon</h1>
               <p className="onboarding-lede">
-                LifeMap can surface school, health, and travel dates in one calm
-                agenda. You can always do this later.
+                Calendar connect is coming soon. LifeMap will surface school,
+                health, and travel dates in one calm agenda. For now, capture
+                anything and it lands on your in-app calendar.
               </p>
               <div className="onboarding-actions-stack">
                 <button
@@ -216,15 +217,8 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
                   type="button"
                   onClick={next}
                 >
-                  Connect Google Calendar
+                  Continue
                   <ArrowRight size={16} />
-                </button>
-                <button
-                  className="onboarding-text"
-                  type="button"
-                  onClick={next}
-                >
-                  Not now
                 </button>
               </div>
             </>

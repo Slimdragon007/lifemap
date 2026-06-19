@@ -7,7 +7,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { LifeMapAnalysis } from "./lifemap";
 
 // The payoff moment: right after a dump is analyzed, show what was PREPARED as a
@@ -49,6 +49,13 @@ function PayoffSummary({
   onDone,
 }: PayoffSummaryProps) {
   const [stage, setStage] = useState<PayoffStage>("summary");
+
+  // Reset to the summary whenever a fresh analysis arrives (new map reference),
+  // so a prior exhale/error never leaks into the next dump even if the component
+  // stays mounted through a success -> success transition.
+  useEffect(() => {
+    setStage("summary");
+  }, [map]);
 
   const groupCandidates: Array<PayoffGroup | null> = [
     map.draftMessages.length > 0

@@ -91,6 +91,7 @@ import {
   normalizeSetupProfile,
   recommendSetupBuckets,
   type SetupBucketId,
+  type SetupFocusArea,
   type SetupProfile,
 } from "./setupBuckets";
 
@@ -219,6 +220,58 @@ type CaptureRoute = {
   message: string;
 };
 
+// Initials for an onboarding-supplied display name (first letters of up to two
+// words), matching the email-derived style in viewer.ts.
+function initialsFromName(name: string): string {
+  const tokens = name.split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) {
+    return "";
+  }
+  if (tokens.length === 1) {
+    return tokens[0].slice(0, 2).toUpperCase();
+  }
+  return (tokens[0][0] + tokens[1][0]).toUpperCase();
+}
+
+// Turn the onboarding area chips into a real setup profile so the wizard's
+// choices actually seed buckets (not collected then discarded). "Work" has no
+// matching bucket, so it is intentionally ignored.
+function setupProfileFromOnboardingAreas(areas: string[]): SetupProfile {
+  const focusAreas: SetupFocusArea[] = [];
+  const addFocus = (focus: SetupFocusArea) => {
+    if (!focusAreas.includes(focus)) {
+      focusAreas.push(focus);
+    }
+  };
+  let travels = false;
+  let pets = 0;
+  for (const area of areas) {
+    switch (area) {
+      case "School":
+        addFocus("school");
+        break;
+      case "Health":
+        addFocus("health");
+        break;
+      case "Home":
+        addFocus("home");
+        break;
+      case "Bills & dates":
+        addFocus("money");
+        break;
+      case "Travel":
+        travels = true;
+        break;
+      case "Pets":
+        pets = 1;
+        break;
+      default:
+        break;
+    }
+  }
+  return { ...defaultSetupProfile, focusAreas, travels, pets };
+}
+
 function App() {
   const [initialState] = useState(() =>
     initialAppState({ demoMode, stored: loadStoredDemoState() }),
@@ -247,6 +300,15 @@ function App() {
   const [setupBucketIds, setSetupBucketIds] = useState<SetupBucketId[]>(
     () => initialState.setupBucketIds ?? [],
   );
+  // The display name the user typed in onboarding (persisted separately from the
+  // Supabase session so it survives reloads and overrides the email-derived name).
+  const [displayName, setDisplayName] = useState<string>(() => {
+    try {
+      return window.localStorage.getItem("lifemap-display-name") ?? "";
+    } catch {
+      return "";
+    }
+  });
   const activeSetupBuckets = useMemo(() => {
     if (setupBucketIds.length === 0) {
       return [];
@@ -309,7 +371,14 @@ function App() {
     recovering,
     clearRecovery,
   } = useSession();
-  const identity = useMemo(() => viewerIdentity(session, demoMode), [session]);
+  const identity = useMemo(() => {
+    const base = viewerIdentity(session, demoMode);
+    const name = displayName.trim();
+    if (demoMode || !name) {
+      return base;
+    }
+    return { name, initials: initialsFromName(name) };
+  }, [session, displayName]);
   const samples = useMemo(() => sampleCollections(demoMode), []);
   // The sensitive family collections. In demo mode these are the local seeds;
   // in real mode they start empty and are loaded per-user from Supabase (RLS),
@@ -854,8 +923,26 @@ function App() {
     setSelectedPriority(undefined);
   }
 
-  // First-run onboarding: mark seen and drop the user into Today.
-  function completeOnboarding() {
+  // First-run onboarding: seed setup from the user's chosen areas + name (when
+  // they finish the wizard), mark seen, and drop the user into Today. Skipping
+  // passes no result, so nothing is seeded.
+  function completeOnboarding(result?: { name: string; areas: string[] }) {
+    if (result) {
+      const profile = setupProfileFromOnboardingAreas(result.areas);
+      setSetupProfile(profile);
+      setSetupBucketIds(
+        recommendSetupBuckets(profile).map((bucket) => bucket.id),
+      );
+      const name = result.name.trim();
+      if (name) {
+        setDisplayName(name);
+        try {
+          window.localStorage.setItem("lifemap-display-name", name);
+        } catch {
+          // Storage can be unavailable (private mode); name just won't persist.
+        }
+      }
+    }
     try {
       window.localStorage.setItem("lifemap-onboarded", "1");
     } catch {
@@ -939,7 +1026,7 @@ function App() {
   if (view === "onboarding") {
     return (
       <OnboardingView
-        onComplete={() => completeOnboarding()}
+        onComplete={(result) => completeOnboarding(result)}
         onSkip={() => completeOnboarding()}
       />
     );
