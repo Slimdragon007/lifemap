@@ -3329,6 +3329,52 @@ button.nav-item {
   padding-bottom: calc(112px + env(safe-area-inset-bottom));
 }
 
+/* ================================================================= *
+ * iOS-stable app shell — keep the bottom nav pinned like a native app.
+ *
+ * Root cause of the long-standing "nav slides up and down while you
+ * scroll" bug: when the page DOCUMENT is the scroller, mobile Safari
+ * animates its address bar in/out on every scroll, which resizes the
+ * viewport and shoves any bottom-anchored fixed bar with it. No amount
+ * of tweaking `position: fixed` fixes that — the document scroll itself
+ * is the trigger.
+ *
+ * The cure (how native shells / Instagram avoid it): stop the document
+ * from scrolling and scroll an INNER pane instead. With the body locked,
+ * Safari leaves its chrome alone, so the fixed nav truly stays put.
+ * Scoped to the phone layout (<=900px); the desktop grid is untouched.
+ * ================================================================= */
+@media (max-width: 900px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden; /* document no longer scrolls */
+    overscroll-behavior: none;
+  }
+
+  #root {
+    height: 100%;
+  }
+
+  /* The single-column app views become the scroll container. The nav is a
+     fixed child and escapes this scroller to anchor to the viewport. */
+  .app-shell.view-today,
+  .app-shell.view-capture,
+  .app-shell.view-calendar,
+  .app-shell.view-vault,
+  .app-shell.view-review,
+  .app-shell.view-more,
+  .app-shell.view-setup,
+  .app-shell.view-bucket,
+  .app-shell.view-family {
+    min-height: 0;
+    height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain; /* no rubber-band past the ends */
+  }
+}
+
 .app-nav-shell {
   position: fixed;
   top: auto;
