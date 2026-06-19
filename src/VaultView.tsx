@@ -254,35 +254,37 @@ function VaultView({
         )}
       </div>
 
-      <h2 className="notebook-section-title">Emergency view</h2>
-      {familyMembers.length > 0 ? (
-        <div className="notebook-list">
-          <div className="notebook-row entry">
-            <span className="notebook-when">Contact</span>
-            <span className="notebook-row-main">
-              <span className="notebook-row-title">Primary contact</span>
-              <span className="notebook-row-sub">{identity.name}</span>
-            </span>
-          </div>
-          {familyMembers
-            .filter((member) => member.careNotes.length > 0)
-            .map((member) => (
-              <div className="notebook-row entry" key={member.id}>
-                <span className="notebook-when">{member.role}</span>
-                <span className="notebook-row-main">
-                  <span className="notebook-row-title">{member.name}</span>
-                  <span className="notebook-row-sub">
-                    {member.careNotes.join(" · ")}
+      <section className="emergency-panel" aria-label="Emergency view">
+        <h2 className="notebook-section-title">Emergency view</h2>
+        {familyMembers.length > 0 ? (
+          <div className="notebook-list">
+            <div className="notebook-row entry">
+              <span className="notebook-when">Contact</span>
+              <span className="notebook-row-main">
+                <span className="notebook-row-title">Primary contact</span>
+                <span className="notebook-row-sub">{identity.name}</span>
+              </span>
+            </div>
+            {familyMembers
+              .filter((member) => member.careNotes.length > 0)
+              .map((member) => (
+                <div className="notebook-row entry" key={member.id}>
+                  <span className="notebook-when">{member.role}</span>
+                  <span className="notebook-row-main">
+                    <span className="notebook-row-title">{member.name}</span>
+                    <span className="notebook-row-sub">
+                      {member.careNotes.join(" · ")}
+                    </span>
                   </span>
-                </span>
-              </div>
-            ))}
-        </div>
-      ) : (
-        <p className="notebook-empty">
-          Emergency basics appear once you add family profiles.
-        </p>
-      )}
+                </div>
+              ))}
+          </div>
+        ) : (
+          <p className="notebook-empty">
+            Emergency basics appear once you add family profiles.
+          </p>
+        )}
+      </section>
 
       <h2 className="notebook-section-title">Care loops</h2>
       {recurringCareItems.length > 0 ? (

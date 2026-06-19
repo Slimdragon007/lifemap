@@ -3329,6 +3329,52 @@ button.nav-item {
   padding-bottom: calc(112px + env(safe-area-inset-bottom));
 }
 
+/* ================================================================= *
+ * iOS-stable app shell — keep the bottom nav pinned like a native app.
+ *
+ * Root cause of the long-standing "nav slides up and down while you
+ * scroll" bug: when the page DOCUMENT is the scroller, mobile Safari
+ * animates its address bar in/out on every scroll, which resizes the
+ * viewport and shoves any bottom-anchored fixed bar with it. No amount
+ * of tweaking `position: fixed` fixes that — the document scroll itself
+ * is the trigger.
+ *
+ * The cure (how native shells / Instagram avoid it): stop the document
+ * from scrolling and scroll an INNER pane instead. With the body locked,
+ * Safari leaves its chrome alone, so the fixed nav truly stays put.
+ * Scoped to the phone layout (<=900px); the desktop grid is untouched.
+ * ================================================================= */
+@media (max-width: 900px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden; /* document no longer scrolls */
+    overscroll-behavior: none;
+  }
+
+  #root {
+    height: 100%;
+  }
+
+  /* The single-column app views become the scroll container. The nav is a
+     fixed child and escapes this scroller to anchor to the viewport. */
+  .app-shell.view-today,
+  .app-shell.view-capture,
+  .app-shell.view-calendar,
+  .app-shell.view-vault,
+  .app-shell.view-review,
+  .app-shell.view-more,
+  .app-shell.view-setup,
+  .app-shell.view-bucket,
+  .app-shell.view-family {
+    min-height: 0;
+    height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain; /* no rubber-band past the ends */
+  }
+}
+
 .app-nav-shell {
   position: fixed;
   top: auto;
@@ -7801,12 +7847,43 @@ body {
 
 /* Section label between lists (e.g. "Recurring loops"). */
 .notebook-section-title {
-  margin: 34px 0 4px;
+  margin: var(--space-section) 0 var(--space-1);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-quiet, #b39a82);
+}
+
+/* The first section on a screen shouldn't carry the between-sections gap —
+   that dead top margin is part of what made screens read as floating/rough. */
+.notebook-section-title:first-child {
+  margin-top: 0;
+}
+
+/* Emergency view — the one block you need to find fast. Lifted out of the flat
+   stack into a calm raised panel with a quiet clay edge (the "needs you"
+   signal), so it's instantly distinct from the other record sections without
+   shouting. */
+.emergency-panel {
+  margin-top: var(--space-section);
+  padding: var(--space-4) var(--space-4) var(--space-2);
+  background: var(--paper-raised, #ffffff);
+  border: 1px solid var(--rule, #dde5ee);
+  border-left: 3px solid var(--needs, #d97757);
+  border-radius: var(--radius-panel, 16px);
+  box-shadow: var(--shadow-panel-soft);
+}
+
+/* Inside the panel the title shouldn't add the between-sections gap (the panel
+   margin already separates it), and the last row's hairline would float above
+   the panel padding — drop it. */
+.emergency-panel .notebook-section-title {
+  margin-top: 0;
+}
+
+.emergency-panel .notebook-row:last-child {
+  border-bottom: 0;
 }
 
 /* Quiet text toggles replacing colored filter chips. */
