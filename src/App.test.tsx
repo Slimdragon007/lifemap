@@ -532,7 +532,9 @@ describe("LifeMap MVP app", () => {
       screen.queryByRole("heading", { name: "Ask LifeMap AI" }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
-    expect(screen.getByText("Parent signature")).toBeInTheDocument();
+    // Vault is records-only now; analysis gaps no longer appear here.
+    expect(screen.getByText("Documents & records")).toBeInTheDocument();
+    expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
   });
 
   test("uses real app tabs for the review queue", async () => {
@@ -742,7 +744,7 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
   });
 
-  test("projects current AI analysis into Calendar and Vault", async () => {
+  test("projects current AI analysis into Calendar; Vault stays records-only", async () => {
     const user = userEvent.setup();
     saveStoredDemoState({
       isLoggedIn: true,
@@ -764,52 +766,12 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Vault" }));
 
     expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
-    expect(screen.getByText("Parent signature")).toBeInTheDocument();
-    expect(screen.getAllByText("Needs review").length).toBeGreaterThan(0);
-    await user.click(
-      screen.getByRole("button", { name: "Open details for Parent signature" }),
-    );
-    const detailDialog = screen.getByRole("dialog", {
-      name: "Parent signature",
-    });
-    await user.click(
-      within(detailDialog).getByRole("button", { name: "Reveal details" }),
-    );
-    expect(
-      within(detailDialog).getByText("The school needs the signed form."),
-    ).toBeInTheDocument();
-    await user.click(
-      within(detailDialog).getByRole("button", { name: "Close" }),
-    );
     expect(screen.getByText("Documents & records")).toBeInTheDocument();
+    // The "Parent signature" gap belongs on Calendar, not as a Vault record.
+    expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
   });
 
-  test("confirms when a vault suggestion is saved", async () => {
-    const user = userEvent.setup();
-    saveStoredDemoState({
-      isLoggedIn: true,
-      intake: "stored school note",
-      analysis: aiAnalysis,
-      disabledApprovalIds: [],
-    });
-
-    render(<App />);
-
-    await user.click(screen.getByRole("button", { name: "Vault" }));
-    await user.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Saved Parent signature to Vault.",
-    );
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Private details stay hidden until opened.",
-    );
-    expect(
-      screen.queryByRole("button", { name: "Save" }),
-    ).not.toBeInTheDocument();
-  });
-
-  test("keeps AI suggestions visible until the user saves or dismisses them", async () => {
+  test("keeps Calendar AI suggestions until saved; Vault stays records-only", async () => {
     const user = userEvent.setup();
     saveStoredDemoState({
       isLoggedIn: true,
@@ -830,23 +792,12 @@ describe("LifeMap MVP app", () => {
     ).not.toBeInTheDocument();
 
     firstRender.unmount();
-    const secondRender = render(<App />);
+    render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Calendar" }));
     expect(screen.getByText("Saved to LifeMap")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Vault" }));
-    expect(screen.getByText("Parent signature")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Dismiss" }));
-    // Dismiss applies immediately and offers an Undo toast (never a confirm).
-    expect(screen.getByText("Dismissed.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
-    expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
-    expect(screen.getByText("Documents & records")).toBeInTheDocument();
-
-    secondRender.unmount();
-    render(<App />);
-
+    // Vault never carries the analysis gap as a record.
     await user.click(screen.getByRole("button", { name: "Vault" }));
     expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
     expect(screen.getByText("Documents & records")).toBeInTheDocument();

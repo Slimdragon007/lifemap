@@ -3,11 +3,9 @@ import { useMemo, useState } from "react";
 import {
   buildVaultItemsFromAnalysis,
   type FamilyMember,
-  type RecurringCareItem,
   type VaultCategory,
   type VaultItem,
 } from "./familyOS";
-import type { LifeMapAnalysis } from "./lifemap";
 import type { ViewerIdentity } from "./viewer";
 import ModalBackdrop from "./modal-backdrop";
 import EmptyState from "./empty-state";
@@ -23,10 +21,8 @@ const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
 ];
 
 type VaultViewProps = {
-  analysis: LifeMapAnalysis;
   familyMembers: FamilyMember[];
   vaultItems: VaultItem[];
-  recurringCareItems: RecurringCareItem[];
   identity: ViewerIdentity;
   savedSuggestionIds: Set<string>;
   dismissedSuggestionIds: Set<string>;
@@ -36,16 +32,9 @@ type VaultViewProps = {
   onOpenCapture: () => void;
 };
 
-type VaultFeedback = {
-  title: string;
-  body: string;
-};
-
 function VaultView({
-  analysis,
   familyMembers,
   vaultItems,
-  recurringCareItems,
   identity,
   savedSuggestionIds,
   dismissedSuggestionIds,
@@ -62,11 +51,8 @@ function VaultView({
   );
   const [selectedVaultItem, setSelectedVaultItem] = useState<VaultItem>();
   const [isSensitiveVisible, setIsSensitiveVisible] = useState(false);
-  const [feedback, setFeedback] = useState<VaultFeedback>();
-  const analysisItems = useMemo(
-    () => buildVaultItemsFromAnalysis(analysis),
-    [analysis],
-  );
+  const [feedback, setFeedback] = useState<string>();
+  const analysisItems = useMemo(() => buildVaultItemsFromAnalysis(), []);
   const visibleAnalysisItems = useMemo(
     () => analysisItems.filter((item) => !dismissedSuggestionIds.has(item.id)),
     [analysisItems, dismissedSuggestionIds],
@@ -106,28 +92,21 @@ function VaultView({
 
   function saveSuggestion(item: VaultItem) {
     onSaveSuggestion(item.id);
-    setFeedback({
-      title: `Saved ${item.title} to Vault.`,
-      body: "Private details stay hidden until opened.",
-    });
+    setFeedback(`Saved ${item.title} to Vault.`);
   }
 
   function saveAllSuggestions() {
     onSaveSuggestions(pendingAnalysisItems.map((item) => item.id));
-    setFeedback({
-      title: `Saved ${pendingAnalysisItems.length} ${
+    setFeedback(
+      `Saved ${pendingAnalysisItems.length} ${
         pendingAnalysisItems.length === 1 ? "record" : "records"
       } to Vault.`,
-      body: "They now live in the household source of truth.",
-    });
+    );
   }
 
   function dismissSuggestion(item: VaultItem) {
     onDismissSuggestion(item.id);
-    setFeedback({
-      title: "Suggestion dismissed.",
-      body: "LifeMap will keep it out of your household source of truth.",
-    });
+    setFeedback("Suggestion dismissed.");
   }
 
   return (
@@ -216,8 +195,7 @@ function VaultView({
 
       {feedback ? (
         <p className="notebook-note" role="status">
-          <strong>{feedback.title}</strong>
-          {feedback.body}
+          {feedback}
         </p>
       ) : null}
 
@@ -293,29 +271,6 @@ function VaultView({
           />
         )}
       </section>
-
-      <h2 className="notebook-section-title">Care loops</h2>
-      {recurringCareItems.length > 0 ? (
-        <div className="notebook-list">
-          {recurringCareItems.slice(0, 3).map((item) => (
-            <div className="notebook-row entry" key={item.id}>
-              <span className="notebook-when">
-                {formatShortDate(item.nextDue)}
-              </span>
-              <span className="notebook-row-main">
-                <span className="notebook-row-title">{item.title}</span>
-                <span className="notebook-row-sub">{item.cadence}</span>
-              </span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <EmptyState
-          actionLabel="Capture something"
-          message="No recurring care loops yet. Capture a routine and I'll track it."
-          onAction={onOpenCapture}
-        />
-      )}
 
       {selectedVaultItem ? (
         <VaultDetailDialog

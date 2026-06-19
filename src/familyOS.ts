@@ -277,17 +277,12 @@ export function buildCalendarEventsFromAnalysis(
   }));
 }
 
-export function buildVaultItemsFromAnalysis(
-  analysis: LifeMapAnalysis,
-): VaultItem[] {
-  return analysis.missingInfo.map((item) => ({
-    id: `ai-vault-${item.id}`,
-    title: item.label,
-    category: inferVaultCategory(`${item.label} ${item.reason}`),
-    owner: inferOwner(`${item.label} ${item.reason} ${item.sourceQuote}`),
-    status: "Needs update",
-    detail: item.reason,
-  }));
+export function buildVaultItemsFromAnalysis(): VaultItem[] {
+  // missingInfo describes gaps (e.g. "Parent signature"), not documents, so it
+  // must not masquerade as Vault records — that made the list read as random.
+  // The Vault shows genuine saved records only; real document extraction can be
+  // re-sourced here later from actual files, not from gaps.
+  return [];
 }
 
 function inferCalendarLayer(text: string): CalendarLayer {
@@ -312,30 +307,6 @@ function inferCalendarLayer(text: string): CalendarLayer {
   }
 
   return "admin";
-}
-
-function inferVaultCategory(text: string): VaultCategory {
-  if (/passport|license|birth certificate|id\b|ids\b/i.test(text)) {
-    return "identity";
-  }
-
-  if (/insurance|claim|group number|policy/i.test(text)) {
-    return "insurance";
-  }
-
-  if (/medical|doctor|vaccine|immunization|dental|health|allergy|record/i.test(text)) {
-    return "health";
-  }
-
-  if (/pet|vet|rabies|dog|cat|boarding/i.test(text)) {
-    return "pet";
-  }
-
-  if (/travel|flight|trip|hotel/i.test(text)) {
-    return "travel";
-  }
-
-  return "school";
 }
 
 function inferOwner(text: string): string {

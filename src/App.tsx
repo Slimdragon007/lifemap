@@ -595,7 +595,7 @@ function App() {
     // before the key finishes loading — silently persisting plaintext sensitive
     // fields. Awaiting guarantees real encryption at rest.
     const crypto = await ensureFieldCrypto(session.access_token);
-    const vaultCandidates = buildVaultItemsFromAnalysis(map);
+    const vaultCandidates = buildVaultItemsFromAnalysis();
     const eventCandidates = buildCalendarEventsFromAnalysis(map);
     const persistedIds: string[] = [];
     let failed = false;
@@ -1147,11 +1147,9 @@ function App() {
           />
         ) : view === "vault" ? (
           <VaultView
-            analysis={map}
             dismissedSuggestionIds={dismissedSuggestionIds}
             familyMembers={collections.familyMembers}
             identity={identity}
-            recurringCareItems={collections.recurringCareItems}
             savedSuggestionIds={savedSuggestionIds}
             vaultItems={collections.vaultItems}
             onDismissSuggestion={dismissSuggestion}
