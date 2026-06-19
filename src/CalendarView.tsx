@@ -164,6 +164,7 @@ function CalendarView({
         ))}
       </div>
 
+      <h2 className="notebook-section-title">Schedule</h2>
       <div className="notebook-list">
         {visibleEvents.length > 0 ? (
           visibleEvents.map((event) => (
