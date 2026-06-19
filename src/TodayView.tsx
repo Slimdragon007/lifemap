@@ -153,6 +153,9 @@ function TodayView({
           <div>
             <h1 id="today-title">Today</h1>
             <p>{todayDate}</p>
+            <p className="notebook-sub">
+              Your calm summary. Just the few things that need you.
+            </p>
           </div>
         </div>
       </header>
