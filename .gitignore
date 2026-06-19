@@ -6,6 +6,7 @@ dist/
 worker/.dev.vars
 *.log
 supabase/.temp/
+.worktrees/
 
 # Playwright E2E
 /test-results/
