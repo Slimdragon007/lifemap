@@ -581,9 +581,11 @@ describe("LifeMap MVP app", () => {
     );
 
     expect(
-      await screen.findByText("Here's what I pulled out"),
+      await within(capture as HTMLElement).findByRole("heading", {
+        name: /what I handled/i,
+      }),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Review drafts" }));
+    await user.click(screen.getByRole("button", { name: "tweak" }));
 
     expect(
       screen.queryByRole("heading", { name: "Ask LifeMap AI" }),
@@ -677,10 +679,10 @@ describe("LifeMap MVP app", () => {
     );
 
     expect(
-      await within(capture).findByRole("heading", { name: "Route this map" }),
+      await within(capture).findByRole("heading", { name: /what I handled/i }),
     ).toBeInTheDocument();
     expect(
-      within(capture).getByRole("button", { name: "Review drafts" }),
+      within(capture).getByRole("button", { name: "Approve all" }),
     ).toBeInTheDocument();
   });
 
@@ -711,37 +713,24 @@ describe("LifeMap MVP app", () => {
 
     expect(
       await within(capture as HTMLElement).findByRole("heading", {
-        name: "Route this map",
+        name: /what I handled/i,
       }),
     ).toBeInTheDocument();
-    expect(
-      within(capture as HTMLElement).getByRole("button", {
-        name: "Go to Today",
-      }),
-    ).toBeInTheDocument();
-    expect(
-      within(capture as HTMLElement).getByRole("button", {
-        name: "Go to Vault",
-      }),
-    ).toBeInTheDocument();
-    expect(
-      within(capture as HTMLElement).getByRole("button", {
-        name: "Review approvals",
-      }),
-    ).toBeInTheDocument();
-    expect(
-      within(capture as HTMLElement).queryByText(
-        "Today gets the top priorities.",
-      ),
-    ).not.toBeInTheDocument();
 
     await user.click(
       within(capture as HTMLElement).getByRole("button", {
-        name: "Go to Vault",
+        name: "Approve all",
       }),
     );
+    expect(
+      within(capture as HTMLElement).getByText(/off your plate/i),
+    ).toBeInTheDocument();
 
-    expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
+    await user.click(
+      within(capture as HTMLElement).getByRole("button", { name: "Done" }),
+    );
+
+    expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
   });
 
   test("projects current AI analysis into Calendar; Vault stays records-only", async () => {

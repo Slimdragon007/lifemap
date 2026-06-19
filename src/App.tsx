@@ -77,6 +77,7 @@ import {
 import TodayView from "./TodayView";
 import VaultView from "./VaultView";
 import EmptyState from "./empty-state";
+import PayoffSummary from "./payoff-summary";
 import {
   loadRemoteState,
   saveRemoteState,
@@ -787,6 +788,18 @@ function App() {
     setIsReviewOpen(false);
   }
 
+  // The payoff "Approve all": stage every draft/reminder for one-tap review and,
+  // for signed-in users, persist the calendar dates. Drafts are NEVER auto-sent —
+  // sending stays the explicit one-tap in Review (handleSendDraft).
+  function approveAllFromCapture() {
+    stageSelectedApprovals();
+    if (isSupabaseConfigured && session) {
+      void materializeSuggestions(
+        buildCalendarEventsFromAnalysis(map).map((event) => event.id),
+      );
+    }
+  }
+
   function loadSampleIntake(rawIntake: string) {
     setIntake(rawIntake);
     setCaptureRoute(undefined);
@@ -1127,9 +1140,9 @@ function App() {
                 setAnalyzeError(undefined);
               }
             }}
+            onApproveAll={approveAllFromCapture}
             onLoadExample={loadSampleIntake}
             onOpenToday={() => setView("today")}
-            onOpenVault={() => setView("vault")}
             onReview={() => setView("review")}
             onRoute={followCaptureRoute}
           />
@@ -1503,11 +1516,11 @@ function CaptureWorkspace({
   intake,
   map,
   onAnalyze,
+  onApproveAll,
   onClose,
   onIntakeChange,
   onLoadExample,
   onOpenToday,
-  onOpenVault,
   onReview,
   onRoute,
 }: {
@@ -1518,11 +1531,11 @@ function CaptureWorkspace({
   intake: string;
   map: LifeMapAnalysis;
   onAnalyze: () => void;
+  onApproveAll: () => void;
   onClose: () => void;
   onIntakeChange: (intake: string) => void;
   onLoadExample: (rawIntake: string) => void;
   onOpenToday: () => void;
-  onOpenVault: () => void;
   onReview: () => void;
   onRoute: () => void;
 }) {
@@ -1591,50 +1604,12 @@ function CaptureWorkspace({
         ) : null}
 
         {analyzeStatus === "success" ? (
-          <div className="chat-bubble ai">
-            <span className="chat-avatar" aria-hidden="true">
-              <Sparkles size={14} />
-            </span>
-            <div className="capture-result">
-              <span className="capture-result-eyebrow">
-                Here&apos;s what I pulled out
-              </span>
-              {map.nextActions.length > 0 ? (
-                <div className="capture-result-group">
-                  <span className="capture-result-label">
-                    {map.nextActions.length}{" "}
-                    {pluralize("task", map.nextActions.length)}
-                  </span>
-                  <ul className="capture-result-list">
-                    {map.nextActions.slice(0, 4).map((action) => (
-                      <li key={action.id}>{action.label}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              {map.missingInfo.length > 0 ? (
-                <div className="capture-result-group">
-                  <span className="capture-result-label">
-                    {map.missingInfo.length} missing
-                  </span>
-                  <div className="capture-pills">
-                    {map.missingInfo.slice(0, 4).map((info) => (
-                      <span className="capture-pill" key={info.label}>
-                        {info.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-              {map.draftMessages.length > 0 ? (
-                <p className="capture-result-foot">
-                  {map.draftMessages.length}{" "}
-                  {pluralize("reminder", map.draftMessages.length)} staged for
-                  your OK.
-                </p>
-              ) : null}
-            </div>
-          </div>
+          <PayoffSummary
+            map={map}
+            onApproveAll={onApproveAll}
+            onDone={onOpenToday}
+            onTweak={onReview}
+          />
         ) : null}
 
         {analyzeStatus === "fallback" || analyzeStatus === "error" ? (
@@ -1649,17 +1624,6 @@ function CaptureWorkspace({
               onRetry={onAnalyze}
             />
           </div>
-        ) : null}
-
-        {analyzeStatus === "success" ? (
-          <button
-            className="capture-grew-chip"
-            type="button"
-            onClick={onOpenToday}
-          >
-            Your map grew — see it on Today
-            <ChevronRight size={14} />
-          </button>
         ) : null}
       </div>
 
@@ -1694,44 +1658,12 @@ function CaptureWorkspace({
         <p className="capture-route-note">{captureRoute.message}</p>
       ) : null}
 
-      {analyzeStatus === "success" ? (
+      {analyzeStatus === "success" && captureRoute ? (
         <div className="capture-actions-row">
-          {captureRoute ? (
-            <button className="notebook-link" type="button" onClick={onRoute}>
-              {captureRoute.buttonLabel}
-            </button>
-          ) : null}
-          <button className="notebook-link" type="button" onClick={onReview}>
-            Review drafts
+          <button className="notebook-link" type="button" onClick={onRoute}>
+            {captureRoute.buttonLabel}
           </button>
         </div>
-      ) : null}
-
-      {analyzeStatus === "success" ? (
-        <section aria-labelledby="capture-routing-title">
-          <h2 className="notebook-section-title" id="capture-routing-title">
-            Route this map
-          </h2>
-          <div className="notebook-route-actions">
-            <button
-              className="notebook-link"
-              type="button"
-              onClick={onOpenToday}
-            >
-              Go to Today
-            </button>
-            <button
-              className="notebook-link"
-              type="button"
-              onClick={onOpenVault}
-            >
-              Go to Vault
-            </button>
-            <button className="notebook-link" type="button" onClick={onReview}>
-              Review approvals
-            </button>
-          </div>
-        </section>
       ) : null}
 
       <section aria-labelledby="capture-type-title">
