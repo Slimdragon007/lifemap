@@ -277,14 +277,6 @@ export function buildCalendarEventsFromAnalysis(
   }));
 }
 
-export function buildVaultItemsFromAnalysis(): VaultItem[] {
-  // missingInfo describes gaps (e.g. "Parent signature"), not documents, so it
-  // must not masquerade as Vault records — that made the list read as random.
-  // The Vault shows genuine saved records only; real document extraction can be
-  // re-sourced here later from actual files, not from gaps.
-  return [];
-}
-
 function inferCalendarLayer(text: string): CalendarLayer {
   if (/school|teacher|field trip|permission|lunch|camp/i.test(text)) {
     return "school";

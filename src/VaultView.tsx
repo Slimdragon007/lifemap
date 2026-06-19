@@ -1,7 +1,6 @@
 import { CheckCircle2, ChevronDown, Eye, LockKeyhole } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
-  buildVaultItemsFromAnalysis,
   type FamilyMember,
   type VaultCategory,
   type VaultItem,
@@ -24,11 +23,6 @@ type VaultViewProps = {
   familyMembers: FamilyMember[];
   vaultItems: VaultItem[];
   identity: ViewerIdentity;
-  savedSuggestionIds: Set<string>;
-  dismissedSuggestionIds: Set<string>;
-  onSaveSuggestion: (id: string) => void;
-  onSaveSuggestions: (ids: string[]) => void;
-  onDismissSuggestion: (id: string) => void;
   onOpenCapture: () => void;
 };
 
@@ -36,11 +30,6 @@ function VaultView({
   familyMembers,
   vaultItems,
   identity,
-  savedSuggestionIds,
-  dismissedSuggestionIds,
-  onSaveSuggestion,
-  onSaveSuggestions,
-  onDismissSuggestion,
   onOpenCapture,
 }: VaultViewProps) {
   const [activeCategory, setActiveCategory] = useState<VaultCategory | "all">(
@@ -51,27 +40,12 @@ function VaultView({
   );
   const [selectedVaultItem, setSelectedVaultItem] = useState<VaultItem>();
   const [isSensitiveVisible, setIsSensitiveVisible] = useState(false);
-  const [feedback, setFeedback] = useState<string>();
-  const analysisItems = useMemo(() => buildVaultItemsFromAnalysis(), []);
-  const visibleAnalysisItems = useMemo(
-    () => analysisItems.filter((item) => !dismissedSuggestionIds.has(item.id)),
-    [analysisItems, dismissedSuggestionIds],
-  );
-  const pendingAnalysisItems = useMemo(
-    () =>
-      visibleAnalysisItems.filter((item) => !savedSuggestionIds.has(item.id)),
-    [savedSuggestionIds, visibleAnalysisItems],
-  );
-  const allItems = useMemo(
-    () => [...visibleAnalysisItems, ...vaultItems],
-    [visibleAnalysisItems, vaultItems],
-  );
   const visibleItems = useMemo(
     () =>
       activeCategory === "all"
-        ? allItems
-        : allItems.filter((item) => item.category === activeCategory),
-    [activeCategory, allItems],
+        ? vaultItems
+        : vaultItems.filter((item) => item.category === activeCategory),
+    [activeCategory, vaultItems],
   );
   function toggleProfile(id: string) {
     setExpandedProfileIds((current) => {
@@ -88,25 +62,6 @@ function VaultView({
   function openVaultItem(item: VaultItem) {
     setSelectedVaultItem(item);
     setIsSensitiveVisible(false);
-  }
-
-  function saveSuggestion(item: VaultItem) {
-    onSaveSuggestion(item.id);
-    setFeedback(`Saved ${item.title} to Vault.`);
-  }
-
-  function saveAllSuggestions() {
-    onSaveSuggestions(pendingAnalysisItems.map((item) => item.id));
-    setFeedback(
-      `Saved ${pendingAnalysisItems.length} ${
-        pendingAnalysisItems.length === 1 ? "record" : "records"
-      } to Vault.`,
-    );
-  }
-
-  function dismissSuggestion(item: VaultItem) {
-    onDismissSuggestion(item.id);
-    setFeedback("Suggestion dismissed.");
   }
 
   return (
@@ -176,29 +131,6 @@ function VaultView({
 
       <h2 className="notebook-section-title">Documents &amp; records</h2>
 
-      {pendingAnalysisItems.length > 0 ? (
-        <div className="notebook-callout" aria-label="Vault suggestions">
-          <span>
-            LifeMap found {pendingAnalysisItems.length} vault{" "}
-            {pendingAnalysisItems.length === 1 ? "record" : "records"} to
-            review.
-          </span>
-          <button
-            className="notebook-link"
-            type="button"
-            onClick={saveAllSuggestions}
-          >
-            Save all
-          </button>
-        </div>
-      ) : null}
-
-      {feedback ? (
-        <p className="notebook-note" role="status">
-          {feedback}
-        </p>
-      ) : null}
-
       <div className="notebook-filters" aria-label="Vault categories">
         {vaultFilters.map((filter) => (
           <button
@@ -221,12 +153,9 @@ function VaultView({
         {visibleItems.length > 0 ? (
           visibleItems.map((item) => (
             <VaultRow
-              isSaved={savedSuggestionIds.has(item.id)}
               item={item}
               key={item.id}
-              onDismissSuggestion={() => dismissSuggestion(item)}
               onOpenDetails={() => openVaultItem(item)}
-              onSaveSuggestion={() => saveSuggestion(item)}
             />
           ))
         ) : (
@@ -286,57 +215,14 @@ function VaultView({
 
 function VaultRow({
   item,
-  isSaved,
-  onSaveSuggestion,
-  onDismissSuggestion,
   onOpenDetails,
 }: {
   item: VaultItem;
-  isSaved: boolean;
-  onSaveSuggestion: () => void;
-  onDismissSuggestion: () => void;
   onOpenDetails: () => void;
 }) {
-  const isGenerated = item.id.startsWith("ai-vault-");
-  const pending = isGenerated && !isSaved;
   const sub = `${item.owner}${
     item.renewalDate ? ` · review by ${formatShortDate(item.renewalDate)}` : ""
   }`;
-
-  if (pending) {
-    return (
-      <div className="notebook-row entry pending">
-        <span className="notebook-when">{item.category}</span>
-        <button
-          aria-label={`Open details for ${item.title}`}
-          className="notebook-row-main notebook-row-open"
-          type="button"
-          onClick={onOpenDetails}
-        >
-          <span className="notebook-notch" aria-hidden="true" />
-          <span className="notebook-row-title">{item.title}</span>
-          <span className="notebook-row-sub">{sub}</span>
-        </button>
-        <span className="notebook-row-actions">
-          <span className="notebook-tag">Needs review</span>
-          <button
-            className="notebook-link"
-            type="button"
-            onClick={onSaveSuggestion}
-          >
-            Save
-          </button>
-          <button
-            className="notebook-link quiet"
-            type="button"
-            onClick={onDismissSuggestion}
-          >
-            Dismiss
-          </button>
-        </span>
-      </div>
-    );
-  }
 
   return (
     <button

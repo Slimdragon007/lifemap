@@ -4,9 +4,6 @@ import VaultView from "./VaultView";
 import { familyMembers, vaultItems } from "./familyOS";
 
 const handlers = {
-  onSaveSuggestion: vi.fn(),
-  onSaveSuggestions: vi.fn(),
-  onDismissSuggestion: vi.fn(),
   onOpenCapture: vi.fn(),
 };
 
@@ -14,10 +11,8 @@ describe("VaultView de-demo", () => {
   test("a real viewer sees no demo people and gets empty states", () => {
     render(
       <VaultView
-        dismissedSuggestionIds={new Set()}
         familyMembers={[]}
         identity={{ name: "m.haslim", initials: "MH" }}
-        savedSuggestionIds={new Set()}
         vaultItems={[]}
         {...handlers}
       />,
@@ -35,10 +30,8 @@ describe("VaultView de-demo", () => {
   test("demo mode still renders the sample family and emergency contact", () => {
     render(
       <VaultView
-        dismissedSuggestionIds={new Set()}
         familyMembers={familyMembers}
         identity={{ name: "Alex Kim", initials: "AK" }}
-        savedSuggestionIds={new Set()}
         vaultItems={vaultItems}
         {...handlers}
       />,
