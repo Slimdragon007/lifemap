@@ -142,7 +142,7 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
             <>
               <h1 id="onboarding-title">Let&apos;s set things down.</h1>
               <p className="onboarding-lede">
-                A calm home for the family-admin chaos. First — what should I
+                A calm home for the family-admin chaos. First, what should I
                 call you?
               </p>
               <label className="onboarding-field">

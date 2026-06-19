@@ -582,7 +582,7 @@ describe("LifeMap MVP app", () => {
 
     expect(
       await within(capture as HTMLElement).findByRole("heading", {
-        name: /what I handled/i,
+        name: /got ready/i,
       }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "tweak" }));
@@ -679,7 +679,7 @@ describe("LifeMap MVP app", () => {
     );
 
     expect(
-      await within(capture).findByRole("heading", { name: /what I handled/i }),
+      await within(capture).findByRole("heading", { name: /got ready/i }),
     ).toBeInTheDocument();
     expect(
       within(capture).getByRole("button", { name: "Approve all" }),
@@ -713,7 +713,7 @@ describe("LifeMap MVP app", () => {
 
     expect(
       await within(capture as HTMLElement).findByRole("heading", {
-        name: /what I handled/i,
+        name: /got ready/i,
       }),
     ).toBeInTheDocument();
 
@@ -722,8 +722,12 @@ describe("LifeMap MVP app", () => {
         name: "Approve all",
       }),
     );
+    // Confirm-first: Approve all opens a quick confirm, not an instant exhale.
+    await user.click(
+      within(capture as HTMLElement).getByRole("button", { name: "Confirm" }),
+    );
     expect(
-      within(capture as HTMLElement).getByText(/off your plate/i),
+      await within(capture as HTMLElement).findByText(/off your plate/i),
     ).toBeInTheDocument();
 
     await user.click(

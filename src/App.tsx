@@ -585,9 +585,9 @@ function App() {
   // per-user Supabase tables (RLS-enforced). The freshly-persisted row (with its
   // real uuid) joins the in-memory collection, and the ephemeral analysis
   // suggestion is removed from the review list so it doesn't double-render.
-  async function materializeSuggestions(ids: string[]) {
+  async function materializeSuggestions(ids: string[]): Promise<boolean> {
     if (!session) {
-      return;
+      return false;
     }
     const userId = session.user.id;
     const client = getSupabase() as unknown as FamilyDataClient;
@@ -646,8 +646,9 @@ function App() {
       });
     }
     if (failed) {
-      setToastMessage("Couldn't save every record — try again.");
+      setToastMessage("Couldn't save every record. Try again.");
     }
+    return !failed;
   }
 
   // Show a toast that can carry an Undo action (5s, restores prior state).
@@ -788,16 +789,19 @@ function App() {
     setIsReviewOpen(false);
   }
 
-  // The payoff "Approve all": stage every draft/reminder for one-tap review and,
-  // for signed-in users, persist the calendar dates. Drafts are NEVER auto-sent —
-  // sending stays the explicit one-tap in Review (handleSendDraft).
-  function approveAllFromCapture() {
+  // The payoff "Approve all" (after the user confirms): stage every draft/reminder
+  // for one-tap review and, for signed-in users, persist the calendar dates. Returns
+  // whether the persist actually succeeded so the payoff only shows the "off your
+  // plate" exhale on a real save. Drafts are NEVER auto-sent — sending stays the
+  // explicit one-tap in Review (handleSendDraft). Demo mode stages only (no DB).
+  async function approveAllFromCapture(): Promise<boolean> {
     stageSelectedApprovals();
     if (isSupabaseConfigured && session) {
-      void materializeSuggestions(
+      return materializeSuggestions(
         buildCalendarEventsFromAnalysis(map).map((event) => event.id),
       );
     }
+    return true;
   }
 
   function loadSampleIntake(rawIntake: string) {
@@ -1531,7 +1535,7 @@ function CaptureWorkspace({
   intake: string;
   map: LifeMapAnalysis;
   onAnalyze: () => void;
-  onApproveAll: () => void;
+  onApproveAll: () => Promise<boolean>;
   onClose: () => void;
   onIntakeChange: (intake: string) => void;
   onLoadExample: (rawIntake: string) => void;
