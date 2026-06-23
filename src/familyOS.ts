@@ -309,6 +309,47 @@ function inferOwner(text: string): string {
   return "Family";
 }
 
+function inferVaultCategory(text: string): VaultCategory {
+  if (/passport|license|birth certificate|id\b|ids\b/i.test(text)) {
+    return "identity";
+  }
+
+  if (/insurance|claim|group number|policy/i.test(text)) {
+    return "insurance";
+  }
+
+  if (
+    /medical|doctor|vaccine|immunization|dental|health|allergy|record/i.test(
+      text,
+    )
+  ) {
+    return "health";
+  }
+
+  if (/pet|vet|rabies|dog|cat|boarding/i.test(text)) {
+    return "pet";
+  }
+
+  if (/travel|flight|trip|hotel/i.test(text)) {
+    return "travel";
+  }
+
+  return "school";
+}
+
+export function buildVaultItemsFromAnalysis(
+  analysis: LifeMapAnalysis,
+): VaultItem[] {
+  return analysis.missingInfo.map((item) => ({
+    id: `ai-vault-${item.id}`,
+    title: item.label,
+    category: inferVaultCategory(`${item.label} ${item.reason}`),
+    owner: inferOwner(`${item.label} ${item.reason} ${item.sourceQuote}`),
+    status: "Needs update",
+    detail: item.reason,
+  }));
+}
+
 function buildPrepNote(analysis: LifeMapAnalysis): string | undefined {
   const labels = analysis.missingInfo
     .slice(0, 2)

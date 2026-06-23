@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>LifeMap Field Kit Prototype</title>
+    <link rel="stylesheet" href="./lifemap-style-tokens.css" />
+    <style>
+      body.mode-field {
+        background:
+          linear-gradient(90deg, rgba(128, 93, 65, 0.08) 0 1px, transparent 1px),
+          linear-gradient(180deg, var(--lm-canvas) 0%, #f6eadb 100%);
+        background-size: 24px 24px, auto;
+      }
+
+      .mode-field .phone {
+        background:
+          linear-gradient(90deg, rgba(128, 93, 65, 0.08) 0 1px, transparent 1px),
+          linear-gradient(180deg, var(--lm-canvas) 0%, #fffdf7 100%);
+        background-size: 24px 24px, auto;
+      }
+
+      .field-title {
+        font-family: var(--lm-font-display);
+        font-size: 48px;
+        line-height: 0.95;
+      }
+
+      .stamp {
+        display: inline-flex;
+        border: 1px dashed color-mix(in srgb, var(--lm-warm) 70%, transparent);
+        border-radius: 10px;
+        color: var(--lm-warm);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.12em;
+        padding: 7px 9px;
+        text-transform: uppercase;
+        transform: rotate(-3deg);
+      }
+
+      .paper-card {
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 253, 247, 0.92)),
+          repeating-linear-gradient(180deg, transparent 0 27px, rgba(128, 93, 65, 0.1) 28px);
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .field-card {
+        min-height: 150px;
+        border: 1px solid var(--lm-line);
+        border-radius: 18px;
+        background: var(--lm-surface-glass);
+        padding: 13px;
+        box-shadow: var(--lm-shadow-soft);
+      }
+
+      .field-card h2 {
+        margin: 0;
+        font-size: 19px;
+        line-height: 1.05;
+      }
+
+      .field-card p {
+        margin: 5px 0 0;
+        color: var(--lm-muted);
+        font-size: 12px;
+      }
+
+      .checks {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+        color: var(--lm-muted);
+        font-size: 12px;
+      }
+
+      .checks label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .checks input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--lm-warm);
+      }
+
+      .field-nav {
+        grid-template-columns: 1fr 1fr 64px 1fr 1fr;
+      }
+
+      .field-plus {
+        display: grid;
+        place-items: center;
+        min-height: 52px;
+        border-radius: 999px;
+        background: var(--lm-surface);
+        color: var(--lm-primary);
+        box-shadow: var(--lm-shadow-soft);
+      }
+    </style>
+  </head>
+  <body class="mode-field">
+    <main class="prototype-page">
+      <section class="phone" aria-label="LifeMap warm field kit prototype">
+        <div class="screen">
+          <header class="topbar">
+            <button class="icon-btn" type="button" aria-label="Open notebook menu">
+              <svg viewBox="0 0 24 24" width="21" height="21" fill="none">
+                <path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+            <div class="brandline" style="text-align:center">
+              <strong>San Diego Trip Pack</strong>
+              <span>paper trail for real life</span>
+            </div>
+            <button class="icon-btn" type="button" aria-label="Scan record">
+              <svg viewBox="0 0 24 24" width="21" height="21" fill="none">
+                <path d="M7 3H5a2 2 0 0 0-2 2v2M17 3h2a2 2 0 0 1 2 2v2M7 21H5a2 2 0 0 1-2-2v-2M17 21h2a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </header>
+
+          <section class="hero">
+            <span class="stamp">Trip pack</span>
+            <h1 class="field-title" style="margin-top: 12px">San Diego</h1>
+            <p>Jun 20 to Jun 24. Curated, private, and hard to forget.</p>
+          </section>
+
+          <div class="stack">
+            <section class="panel paper-card">
+              <p style="margin:0;color:var(--lm-text);font-size:14px;line-height:1.48">
+                San Diego Friday. Camp medical form, dog vaccine proof, passport numbers, reward points, sunscreen rules, and the things I usually forget.
+              </p>
+            </section>
+
+            <section class="panel paper-card">
+              <div class="label">Next move</div>
+              <div class="between" style="align-items:flex-start;margin-top:12px">
+                <div>
+                  <h2 style="margin:0;font-size:21px;line-height:1.05">Confirm Casey's MCV4 date</h2>
+                  <p style="margin:6px 0 0;color:var(--lm-muted);font-size:12px">Unlocks camp form and keeps boarding docs current.</p>
+                </div>
+                <button class="soft-action" type="button" data-stamp>Stamp done</button>
+              </div>
+              <div class="between" style="margin-top: 12px">
+                <span class="pill">2 min</span>
+                <span class="pill warm">high impact</span>
+              </div>
+            </section>
+
+            <div class="field-grid">
+              <section class="field-card">
+                <h2>Packing List</h2>
+                <p>18 items</p>
+                <div class="checks">
+                  <label><input type="checkbox" checked /> clothes</label>
+                  <label><input type="checkbox" checked /> health</label>
+                  <label><input type="checkbox" /> electronics</label>
+                  <label><input type="checkbox" /> snacks</label>
+                </div>
+              </section>
+              <section class="field-card">
+                <h2>Camp Forms</h2>
+                <p>2 needed</p>
+                <div class="checks">
+                  <label><input type="checkbox" /> medical form</label>
+                  <label><input type="checkbox" /> vaccine PDF</label>
+                </div>
+                <span class="pill warm" style="margin-top: 12px">due Jun 10</span>
+              </section>
+              <section class="field-card">
+                <h2>Travel Docs</h2>
+                <p>Private until opened.</p>
+                <button class="soft-action" type="button" data-reveal="field-secret" style="margin-top: 12px">Reveal</button>
+                <div id="field-secret" class="hidden-detail">Reward number and passport values remain masked by default.</div>
+              </section>
+              <section class="field-card">
+                <h2>Notes</h2>
+                <p>Hotel check-in 4:00 PM.</p>
+                <p style="color:var(--lm-warm)">Milo meds AM and PM.</p>
+              </section>
+            </div>
+
+            <section class="panel" style="background:var(--lm-warm-soft);border-color:color-mix(in srgb,var(--lm-warm) 28%, transparent)">
+              <div class="between">
+                <div>
+                  <strong>Approval required</strong>
+                  <p style="margin:4px 0 0;color:var(--lm-muted);font-size:12px">Nothing is sent or saved without you.</p>
+                </div>
+                <span class="pill warm">2</span>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <nav class="nav field-nav" aria-label="Field kit navigation">
+          <button class="active" type="button">Notes</button>
+          <button type="button">Lists</button>
+          <button class="field-plus" type="button" aria-label="Add note">+</button>
+          <button type="button">Trips</button>
+          <button type="button">Vault</button>
+        </nav>
+      </section>
+    </main>
+    <script>
+      document.querySelector("[data-stamp]")?.addEventListener("click", (event) => {
+        event.currentTarget.textContent = "Stamped";
+      });
+      document.querySelector("[data-reveal]")?.addEventListener("click", (event) => {
+        const target = document.getElementById(event.currentTarget.dataset.reveal);
+        target?.classList.toggle("show");
+      });
+    </script>
+  </body>
+</html>

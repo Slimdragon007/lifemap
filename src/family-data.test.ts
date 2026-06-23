@@ -95,21 +95,25 @@ describe("family-data RLS-scoped persistence", () => {
   });
 
   test("omits a temp client id on insert so Postgres mints the uuid", async () => {
-    const upsert = vi.fn(() => ({
-      select: () => ({
-        maybeSingle: async () => ({
-          data: {
-            id: UUID,
-            title: "MCV4 record",
-            category: "health",
-            owner: "Casey",
-            status: "Needs update",
-            detail: "Waiting on PDF",
-          },
-          error: null,
+    const upsert = vi.fn((payload: unknown, options?: unknown) => {
+      void payload;
+      void options;
+      return {
+        select: () => ({
+          maybeSingle: async () => ({
+            data: {
+              id: UUID,
+              title: "MCV4 record",
+              category: "health",
+              owner: "Casey",
+              status: "Needs update",
+              detail: "Waiting on PDF",
+            },
+            error: null,
+          }),
         }),
-      }),
-    }));
+      };
+    });
     const client: FamilyDataClient = {
       from: () => ({ select: vi.fn(), upsert, delete: vi.fn() }),
     };
@@ -139,21 +143,25 @@ describe("family-data RLS-scoped persistence", () => {
   });
 
   test("keeps a real uuid id on update", async () => {
-    const upsert = vi.fn(() => ({
-      select: () => ({
-        maybeSingle: async () => ({
-          data: {
-            id: UUID,
-            title: "x",
-            category: "identity",
-            owner: "",
-            status: "Current",
-            detail: "",
-          },
-          error: null,
+    const upsert = vi.fn((payload: unknown, options?: unknown) => {
+      void payload;
+      void options;
+      return {
+        select: () => ({
+          maybeSingle: async () => ({
+            data: {
+              id: UUID,
+              title: "x",
+              category: "identity",
+              owner: "",
+              status: "Current",
+              detail: "",
+            },
+            error: null,
+          }),
         }),
-      }),
-    }));
+      };
+    });
     const client: FamilyDataClient = {
       from: () => ({ select: vi.fn(), upsert, delete: vi.fn() }),
     };

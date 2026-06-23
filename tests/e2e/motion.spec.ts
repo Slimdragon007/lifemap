@@ -77,7 +77,7 @@ test.describe("low-stim motion spec", () => {
     page,
   }) => {
     await enterApp(page);
-    const card = page.locator(".atlas-priority-card").first();
+    const card = page.locator(".atlas-task-card").first();
     await expect(card).toBeVisible();
     const { dur, prop } = await card.evaluate((el) => {
       const cs = getComputedStyle(el);
@@ -92,7 +92,7 @@ test.describe("low-stim motion spec", () => {
     page,
   }) => {
     await enterApp(page);
-    const card = page.locator(".atlas-priority-card").first();
+    const card = page.locator(".atlas-task-card").first();
     await expect(card).toBeVisible();
     // hover() scrolls into view + waits for actionability, so the pointer
     // reliably lands on the card and engages :active on mouse down.
@@ -111,7 +111,7 @@ test.describe("low-stim motion spec", () => {
   }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await enterApp(page);
-    const card = page.locator(".atlas-priority-card").first();
+    const card = page.locator(".atlas-task-card").first();
     await expect(card).toBeVisible();
     await card.scrollIntoViewIfNeeded();
     await card.hover();

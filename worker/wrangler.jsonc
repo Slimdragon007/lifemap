@@ -1,6 +1,7 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "lifemap-api",
+  "tail_consumers": [{ "service": "ops-tail" }],
   "main": "lifemap-api.mjs",
   "compatibility_date": "2026-06-13",
   "vars": {

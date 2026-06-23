@@ -59,7 +59,10 @@ import { useSession } from "./use-session";
 import { demoMode } from "./demoMode";
 import { viewerIdentity } from "./viewer";
 import { sampleCollections } from "./sampleData";
-import { buildCalendarEventsFromAnalysis } from "./familyOS";
+import {
+  buildCalendarEventsFromAnalysis,
+  buildVaultItemsFromAnalysis,
+} from "./familyOS";
 import {
   loadFamilyCollections,
   upsertFamilyEvent,
@@ -74,7 +77,6 @@ import {
 import TodayView from "./TodayView";
 import VaultView from "./VaultView";
 import EmptyState from "./empty-state";
-import PayoffSummary from "./payoff-summary";
 import {
   loadRemoteState,
   saveRemoteState,
@@ -833,21 +835,6 @@ function App() {
     setIsReviewOpen(false);
   }
 
-  // The payoff "Approve all" (after the user confirms): stage every draft/reminder
-  // for one-tap review and, for signed-in users, persist the calendar dates. Returns
-  // whether the persist actually succeeded so the payoff only shows the "off your
-  // plate" exhale on a real save. Drafts are NEVER auto-sent — sending stays the
-  // explicit one-tap in Review (handleSendDraft). Demo mode stages only (no DB).
-  async function approveAllFromCapture(): Promise<boolean> {
-    stageSelectedApprovals();
-    if (isSupabaseConfigured && session) {
-      return materializeSuggestions(
-        buildCalendarEventsFromAnalysis(map).map((event) => event.id),
-      );
-    }
-    return true;
-  }
-
   function loadSampleIntake(rawIntake: string) {
     setIntake(rawIntake);
     setCaptureRoute(undefined);
@@ -1210,9 +1197,10 @@ function App() {
                 setAnalyzeError(undefined);
               }
             }}
-            onApproveAll={approveAllFromCapture}
             onLoadExample={loadSampleIntake}
+            onOpenCalendar={() => setView("calendar")}
             onOpenToday={() => setView("today")}
+            onOpenVault={() => setView("vault")}
             onReview={() => setView("review")}
             onRoute={followCaptureRoute}
           />
@@ -1581,11 +1569,12 @@ function CaptureWorkspace({
   intake,
   map,
   onAnalyze,
-  onApproveAll,
   onClose,
   onIntakeChange,
   onLoadExample,
+  onOpenCalendar,
   onOpenToday,
+  onOpenVault,
   onReview,
   onRoute,
 }: {
@@ -1596,15 +1585,65 @@ function CaptureWorkspace({
   intake: string;
   map: LifeMapAnalysis;
   onAnalyze: () => void;
-  onApproveAll: () => Promise<boolean>;
   onClose: () => void;
   onIntakeChange: (intake: string) => void;
   onLoadExample: (rawIntake: string) => void;
+  onOpenCalendar: () => void;
   onOpenToday: () => void;
+  onOpenVault: () => void;
   onReview: () => void;
   onRoute: () => void;
 }) {
   const hasIntake = intake.trim().length > 0;
+  const calendarItems = buildCalendarEventsFromAnalysis(map);
+  const vaultItems = buildVaultItemsFromAnalysis(map);
+  const approvalItems = buildApprovalQueue(map);
+  const reliefTargets = [
+    {
+      id: "today",
+      label: "Next moves",
+      detail:
+        map.nextActions.length > 0
+          ? "Start with the first clear action."
+          : "See the calm summary.",
+      count: map.nextActions.length,
+      icon: CheckCircle2,
+      onClick: onOpenToday,
+    },
+    {
+      id: "calendar",
+      label: "Put on calendar",
+      detail:
+        calendarItems.length > 0
+          ? "Save dates and appointments."
+          : "No dated items found.",
+      count: calendarItems.length,
+      icon: CalendarDays,
+      onClick: onOpenCalendar,
+    },
+    {
+      id: "review",
+      label: "Needs approval",
+      detail:
+        approvalItems.length > 0
+          ? "Drafts and reminders wait here."
+          : "Nothing needs approval.",
+      count: approvalItems.length,
+      icon: MessageSquare,
+      onClick: onReview,
+    },
+    {
+      id: "vault",
+      label: "Save privately",
+      detail:
+        vaultItems.length > 0
+          ? "Keep records and missing details."
+          : "No private records found.",
+      count: vaultItems.length,
+      icon: LockKeyhole,
+      onClick: onOpenVault,
+    },
+  ];
   const captureTypeOptions = captureTypeGuides.map((guide) => ({
     ...guide,
     sample: examples.find((example) => example.label === guide.sampleLabel),
@@ -1618,7 +1657,7 @@ function CaptureWorkspace({
       <header className="notebook-head">
         <div className="notebook-head-row">
           <h1 id="capture-sheet-title" className="notebook-title">
-            Ask LifeMap AI
+            Brain dump
           </h1>
           <button
             aria-label="Back to Today"
@@ -1630,9 +1669,8 @@ function CaptureWorkspace({
           </button>
         </div>
         <p className="notebook-sub">
-          Paste any messy email, note, form, or travel plan. LifeMap turns it
-          into due items, missing info, and ready-to-review drafts — nothing
-          sends automatically.
+          Drop the messy stuff. LifeMap sorts it into next moves, calendar
+          items, private records, and approval-gated messages.
         </p>
       </header>
 
@@ -1642,9 +1680,9 @@ function CaptureWorkspace({
             <Sparkles size={14} />
           </span>
           <p>
-            Hi — paste anything cluttering your head and I&apos;ll sort it into
-            tasks, what&apos;s missing, and anything that needs your OK. Nothing
-            sends automatically.
+            Paste anything cluttering your head. I&apos;ll pull out what needs a
+            date, what needs saving, what needs a message, and what can wait.
+            Nothing moves without you.
           </p>
         </div>
 
@@ -1669,12 +1707,76 @@ function CaptureWorkspace({
         ) : null}
 
         {analyzeStatus === "success" ? (
-          <PayoffSummary
-            map={map}
-            onApproveAll={onApproveAll}
-            onDone={onOpenToday}
-            onTweak={onReview}
-          />
+          <div className="chat-bubble ai">
+            <span className="chat-avatar" aria-hidden="true">
+              <Sparkles size={14} />
+            </span>
+            <div className="capture-result">
+              <span className="capture-result-eyebrow">
+                Sorted into relief steps
+              </span>
+              <p className="capture-result-summary">
+                I found {map.nextActions.length}{" "}
+                {pluralize("next move", map.nextActions.length)},{" "}
+                {calendarItems.length}{" "}
+                {pluralize("calendar item", calendarItems.length)},{" "}
+                {approvalItems.length}{" "}
+                {pluralize("approval", approvalItems.length)}, and{" "}
+                {vaultItems.length}{" "}
+                {pluralize("private record", vaultItems.length)}.
+              </p>
+              <div
+                aria-label="Sorted LifeMap results"
+                className="capture-relief-grid"
+              >
+                {reliefTargets.map(
+                  ({ id, label, detail, count, icon: Icon, onClick }) => (
+                    <button
+                      className={`capture-relief-card capture-relief-card-${id}`}
+                      disabled={id !== "today" && count === 0}
+                      key={id}
+                      type="button"
+                      onClick={onClick}
+                    >
+                      <span className="capture-relief-icon" aria-hidden="true">
+                        <Icon size={16} />
+                      </span>
+                      <span className="capture-relief-count">{count}</span>
+                      <span className="capture-relief-label">{label}</span>
+                      <span className="capture-relief-detail">{detail}</span>
+                    </button>
+                  ),
+                )}
+              </div>
+              {map.missingInfo.length > 0 ? (
+                <div className="capture-result-group">
+                  <span className="capture-result-label">
+                    Clarify {map.missingInfo.length}{" "}
+                    {pluralize("thing", map.missingInfo.length)}
+                  </span>
+                  <div className="capture-pills">
+                    {map.missingInfo.slice(0, 4).map((info) => (
+                      <span className="capture-pill" key={info.label}>
+                        {info.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {captureRoute ? (
+                <div className="capture-suggested-route">
+                  <span>{captureRoute.message}</span>
+                  <button
+                    className="notebook-link"
+                    type="button"
+                    onClick={onRoute}
+                  >
+                    {captureRoute.buttonLabel}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
         ) : null}
 
         {analyzeStatus === "fallback" || analyzeStatus === "error" ? (
@@ -1718,49 +1820,38 @@ function CaptureWorkspace({
           )}
         </button>
       </div>
-
-      {analyzeStatus === "success" && captureRoute ? (
-        <p className="capture-route-note">{captureRoute.message}</p>
-      ) : null}
-
-      {analyzeStatus === "success" && captureRoute ? (
-        <div className="capture-actions-row">
-          <button className="notebook-link" type="button" onClick={onRoute}>
-            {captureRoute.buttonLabel}
-          </button>
-        </div>
-      ) : null}
-
-      <section aria-labelledby="capture-type-title">
-        <h2 className="notebook-section-title" id="capture-type-title">
-          Choose what this is
-        </h2>
-        <p className="notebook-sub">
-          Start from a category to prefill an example, or just paste above.
-        </p>
-        <div className="notebook-list">
-          {captureTypeOptions.map((option) => (
-            <button
-              aria-label={`Use ${option.title.toLowerCase()} template`}
-              className="notebook-row"
-              disabled={!option.sample}
-              key={option.title}
-              type="button"
-              onClick={() => {
-                if (option.sample) {
-                  onLoadExample(option.sample.rawIntake);
-                }
-              }}
-            >
-              <span className="notebook-row-main">
-                <span className="notebook-row-title">{option.title}</span>
-                <span className="notebook-row-sub">{option.description}</span>
-              </span>
-              <ChevronRight className="notebook-chev" size={16} />
-            </button>
-          ))}
-        </div>
-      </section>
+      {analyzeStatus === "success" ? null : (
+        <section aria-labelledby="capture-type-title">
+          <h2 className="notebook-section-title" id="capture-type-title">
+            Choose what this is
+          </h2>
+          <p className="notebook-sub">
+            Start from a category to prefill an example, or just paste above.
+          </p>
+          <div className="notebook-list">
+            {captureTypeOptions.map((option) => (
+              <button
+                aria-label={`Use ${option.title.toLowerCase()} template`}
+                className="notebook-row"
+                disabled={!option.sample}
+                key={option.title}
+                type="button"
+                onClick={() => {
+                  if (option.sample) {
+                    onLoadExample(option.sample.rawIntake);
+                  }
+                }}
+              >
+                <span className="notebook-row-main">
+                  <span className="notebook-row-title">{option.title}</span>
+                  <span className="notebook-row-sub">{option.description}</span>
+                </span>
+                <ChevronRight className="notebook-chev" size={16} />
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
     </section>
   );
 }
@@ -1871,10 +1962,10 @@ function MoreView({
         <div>
           <span className="workspace-kicker">
             <Map size={14} />
-            LifeMap controls
+            LifeMap settings
           </span>
-          <h1 id="more-title">More</h1>
-          <p>Deep admin tools, privacy notes, and demo controls.</p>
+          <h1 id="more-title">Settings</h1>
+          <p>Account, privacy, setup, and founder tools.</p>
         </div>
       </header>
 
@@ -1884,9 +1975,9 @@ function MoreView({
           className="more-section more-section-primary"
         >
           <div className="more-section-heading">
-            <span>Recommended first</span>
-            <h2 id="more-start-title">Start here</h2>
-            <p>Set up your real-life buckets before adding more tools.</p>
+            <span>Keep building</span>
+            <h2 id="more-start-title">Your map</h2>
+            <p>Set up real-life buckets or add another brain dump.</p>
           </div>
           <button
             aria-label="Open how LifeMap works"
@@ -1915,7 +2006,7 @@ function MoreView({
             <span className="more-row-copy">
               <strong>Guided setup</strong>
               <span>
-                Pick family, pets, travel, and life logistics buckets.
+                Pick family, pets, records, travel, and life logistics.
               </span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
@@ -1931,7 +2022,7 @@ function MoreView({
             </span>
             <span className="more-row-copy">
               <strong>Welcome tour</strong>
-              <span>Replay the first-run walkthrough of your map.</span>
+              <span>Replay the first-run walkthrough.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
@@ -1939,11 +2030,11 @@ function MoreView({
 
         <section aria-labelledby="more-build-title" className="more-section">
           <div className="more-section-heading">
-            <span>Workflows</span>
-            <h2 id="more-build-title">Build and review</h2>
+            <span>Capture</span>
+            <h2 id="more-build-title">Add context</h2>
           </div>
           <button
-            aria-label="Open LifeMap AI capture"
+            aria-label="Open brain dump capture"
             className="more-row"
             type="button"
             onClick={onOpenCapture}
@@ -1952,9 +2043,9 @@ function MoreView({
               <Inbox size={18} />
             </span>
             <span className="more-row-copy">
-              <strong>LifeMap AI capture</strong>
+              <strong>Brain dump capture</strong>
               <span>
-                Paste messy context and turn it into an organized map.
+                Paste messy context and route it to calendar, vault, or review.
               </span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
@@ -1969,8 +2060,8 @@ function MoreView({
               <Sparkles size={18} />
             </span>
             <span className="more-row-copy">
-              <strong>Family admin map</strong>
-              <span>Full extraction workspace for emails and forms.</span>
+              <strong>Founder extraction lab</strong>
+              <span>Legacy full-map workspace for QA and demos.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
@@ -1985,9 +2076,7 @@ function MoreView({
             </span>
             <span className="more-row-copy">
               <strong>Launch Plan</strong>
-              <span>
-                Review MVP readiness, to-dos, and founder demo progress.
-              </span>
+              <span>Founder readiness checklist and demo progress.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>

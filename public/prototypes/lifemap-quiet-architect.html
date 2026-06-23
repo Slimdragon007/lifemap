@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>LifeMap Editorial Minimal Prototype</title>
+    <link rel="stylesheet" href="./lifemap-style-tokens.css" />
+    <style>
+      body.mode-realism {
+        background: var(--lm-canvas);
+      }
+
+      .architect-phone {
+        background: var(--lm-canvas);
+      }
+
+      .architect-shell {
+        padding-bottom: 142px;
+      }
+
+      .architect-hero {
+        margin: 22px 0 18px;
+        border-bottom: 1px solid var(--lm-line);
+        padding-bottom: 18px;
+      }
+
+      .architect-hero h1 {
+        margin: 0;
+        max-width: 340px;
+        font-size: 38px;
+        line-height: 0.98;
+      }
+
+      .architect-hero p {
+        margin: 10px 0 0;
+        max-width: 340px;
+        color: var(--lm-muted);
+        font-size: 15px;
+        line-height: 1.4;
+      }
+
+      .source-strip {
+        border-left: 2px solid var(--lm-line);
+        padding: 8px 0 8px 14px;
+        color: var(--lm-muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .source-strip strong {
+        display: block;
+        margin-bottom: 2px;
+        color: var(--lm-text);
+        font-size: 13px;
+      }
+
+      .guide-panel {
+        border: 1px solid color-mix(in srgb, var(--lm-primary) 18%, var(--lm-line));
+        border-radius: 20px;
+        background:
+          linear-gradient(135deg, color-mix(in srgb, var(--lm-primary-soft) 72%, #fff) 0%, #fff 58%),
+          var(--lm-surface);
+        padding: 14px;
+      }
+
+      .guide-panel > strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 18px;
+        line-height: 1.12;
+      }
+
+      .guide-panel p {
+        margin: 6px 0 0;
+        color: var(--lm-muted);
+        font-size: 13px;
+        line-height: 1.36;
+      }
+
+      .guide-steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .guide-step {
+        min-height: 70px;
+        border: 1px solid var(--lm-line);
+        border-radius: 15px;
+        background: color-mix(in srgb, var(--lm-surface) 84%, var(--lm-primary-soft));
+        padding: 10px;
+      }
+
+      .guide-step strong {
+        display: block;
+        font-size: 12px;
+        line-height: 1.08;
+      }
+
+      .guide-step span {
+        display: block;
+        margin-top: 5px;
+        color: var(--lm-muted);
+        font-size: 11px;
+        line-height: 1.22;
+      }
+
+      .guide-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        margin-top: 12px;
+      }
+
+      .architect-card {
+        border: 1px solid var(--lm-line);
+        border-radius: 20px;
+        background: var(--lm-surface);
+        padding: 16px;
+        box-shadow: var(--lm-shadow-soft);
+      }
+
+      .next-move h2,
+      .plan-row h3,
+      .approval-card h2 {
+        margin: 0;
+        color: var(--lm-text);
+      }
+
+      .next-move h2 {
+        font-size: 23px;
+        line-height: 1.04;
+      }
+
+      .next-move p,
+      .plan-row p,
+      .approval-card p {
+        margin: 6px 0 0;
+        color: var(--lm-muted);
+        font-size: 13px;
+        line-height: 1.36;
+      }
+
+      .impact-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .impact {
+        border: 1px solid var(--lm-line);
+        border-radius: 14px;
+        background: var(--lm-surface-soft);
+        padding: 10px;
+      }
+
+      .impact strong {
+        display: block;
+        font-size: 20px;
+        line-height: 1;
+      }
+
+      .impact span {
+        display: block;
+        margin-top: 4px;
+        color: var(--lm-muted);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .plan-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .plan-row {
+        display: grid;
+        grid-template-columns: 42px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        border: 1px solid var(--lm-line);
+        border-radius: 16px;
+        background: var(--lm-surface);
+        padding: 12px;
+      }
+
+      .plan-row h3 {
+        font-size: 15px;
+        line-height: 1.12;
+      }
+
+      .scope-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .scope-card {
+        min-height: 108px;
+        border: 1px solid var(--lm-line);
+        border-radius: 16px;
+        background: var(--lm-surface-soft);
+        padding: 12px;
+      }
+
+      .scope-card strong {
+        display: block;
+        margin-top: 9px;
+        color: var(--lm-text);
+        font-size: 15px;
+        line-height: 1.1;
+      }
+
+      .scope-card p {
+        margin: 5px 0 0;
+        color: var(--lm-muted);
+        font-size: 12px;
+        line-height: 1.3;
+      }
+
+      .scope-card.primary {
+        background: var(--lm-primary-soft);
+      }
+
+      .scope-card.warm {
+        background: var(--lm-warm-soft);
+      }
+
+      .scope-card.safe {
+        background: var(--lm-safe-soft);
+      }
+
+      .queue {
+        display: grid;
+        gap: 9px;
+      }
+
+      .queue-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid var(--lm-line);
+        padding-bottom: 9px;
+        color: var(--lm-muted);
+        font-size: 13px;
+      }
+
+      .queue-item:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .architect-nav {
+        grid-template-columns: repeat(4, 1fr);
+        border-top: 1px solid var(--lm-line);
+        border-right: 0;
+        border-bottom: 0;
+        border-left: 0;
+        border-radius: 0;
+        background: var(--lm-surface);
+        box-shadow: var(--lm-shadow-nav);
+      }
+
+      .architect-nav button.active {
+        background: var(--lm-primary-soft);
+        color: var(--lm-primary);
+      }
+
+      .drawer {
+        position: absolute;
+        right: 14px;
+        bottom: 78px;
+        left: 14px;
+        display: none;
+        border: 1px solid var(--lm-line);
+        border-radius: 20px;
+        background: var(--lm-surface);
+        padding: 14px;
+        box-shadow: var(--lm-shadow-panel);
+      }
+
+      .drawer.show {
+        display: block;
+      }
+    </style>
+  </head>
+  <body class="mode-realism">
+    <main class="prototype-page">
+      <section class="phone architect-phone" aria-label="LifeMap Editorial Minimal prototype">
+        <div class="screen architect-shell">
+          <header class="topbar">
+            <button class="icon-btn" type="button" aria-label="Open menu">
+              <svg viewBox="0 0 24 24" width="21" height="21" fill="none">
+                <path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+            <div class="brandline" style="text-align:center">
+              <strong>LifeMap</strong>
+              <span>editorial life map</span>
+            </div>
+            <button class="icon-btn" type="button" aria-label="Safety contract" data-toggle-drawer>
+              <svg viewBox="0 0 24 24" width="21" height="21" fill="none">
+                <path d="M12 3 5 6v6c0 4.2 2.6 7.5 7 9 4.4-1.5 7-4.8 7-9V6l-7-3Z" stroke="currentColor" stroke-width="2" />
+                <path d="m9 12 2 2 4-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </header>
+
+          <section class="architect-hero">
+            <h1>Built from one brain dump.</h1>
+            <p>LifeMap guides the stressful pile into the right place, then asks before anything sensitive happens.</p>
+          </section>
+
+          <div class="stack">
+            <section class="source-strip" aria-label="Original brain dump">
+              <strong>Captured thought</strong>
+              San Diego Friday. Camp medical form, dog vaccine proof, passport numbers, reward points, sunscreen rules, and the normal stuff I forget.
+            </section>
+
+            <section class="guide-panel" aria-label="Guided LifeMap flow">
+              <div class="label">Guided flow</div>
+              <strong>One dump becomes four places.</strong>
+              <p>No tool hunting. LifeMap sorts the thought into a next move, family records, trip context, or review.</p>
+              <div class="guide-steps">
+                <div class="guide-step">
+                  <strong>1. Dump it</strong>
+                  <span>Say the messy thing once.</span>
+                </div>
+                <div class="guide-step">
+                  <strong>2. LifeMap sorts</strong>
+                  <span>Family, Trips, Today, Review.</span>
+                </div>
+                <div class="guide-step">
+                  <strong>3. You approve</strong>
+                  <span>Nothing acts alone.</span>
+                </div>
+              </div>
+              <button class="soft-action guide-action" type="button" data-capture>
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" />
+                </svg>
+                <span>Capture another thought</span>
+              </button>
+            </section>
+
+            <section class="architect-card next-move">
+              <div class="between">
+                <span class="pill primary">Today</span>
+                <span class="pill warm">first guided step</span>
+              </div>
+              <div class="row" style="align-items:flex-start;margin-top:14px">
+                <div class="glyph soft" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                    <path d="M7 3h7l4 4v14H7V3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                    <path d="M14 3v5h5M9 15h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  </svg>
+                </div>
+                <div>
+                  <h2>Confirm Casey's MCV4 date</h2>
+                  <p>One clear move. This unlocks the camp form, vaccine record, and trip checklist.</p>
+                </div>
+              </div>
+              <div class="impact-grid">
+                <div class="impact"><strong>2</strong><span>minutes</span></div>
+                <div class="impact"><strong>3</strong><span>unlocked</span></div>
+                <div class="impact"><strong>0</strong><span>auto-send</span></div>
+              </div>
+              <button class="primary-action" type="button" style="margin-top: 14px" data-start>Start with this</button>
+            </section>
+
+            <section class="architect-card">
+              <div class="between" style="margin-bottom:12px">
+                <div>
+                  <div class="label">Where it lives</div>
+                  <strong>The app has four doors.</strong>
+                </div>
+                <span class="pill safe">guided</span>
+              </div>
+
+              <div class="scope-grid" aria-label="LifeMap destinations">
+                <article class="scope-card primary">
+                  <div class="glyph soft" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                      <path d="M12 3 5 6v6c0 4.2 2.6 7.5 7 9 4.4-1.5 7-4.8 7-9V6l-7-3Z" stroke="currentColor" stroke-width="2" />
+                      <path d="m9 12 2 2 4-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </div>
+                  <strong>Family</strong>
+                  <p>People, pets, records, health, school, IDs.</p>
+                </article>
+                <article class="scope-card warm">
+                  <div class="glyph warm" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                      <path d="M4 17 11 4l2 7 7 2-16 4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                      <path d="m11 13 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                  </div>
+                  <strong>Trips</strong>
+                  <p>Packing lists, docs, points, rules, itinerary.</p>
+                </article>
+                <article class="scope-card">
+                  <div class="glyph soft" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                      <path d="M4 7h16M7 4v6M17 4v6M6 10h12v10H6V10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </div>
+                  <strong>Today</strong>
+                  <p>The one next move, not a wall of tasks.</p>
+                </article>
+                <article class="scope-card safe">
+                  <div class="glyph safe" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                      <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                    </svg>
+                  </div>
+                  <strong>Review</strong>
+                  <p>Approvals for send, save, reveal, schedule.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="architect-card">
+              <div class="between" style="margin-bottom:12px">
+                <div>
+                  <div class="label">Trip context</div>
+                  <strong>San Diego Trip Pack</strong>
+                </div>
+                <span class="pill warm">building</span>
+              </div>
+
+              <div class="plan-list">
+                <article class="plan-row">
+                  <div class="glyph soft" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                      <path d="M7 3h7l4 4v14H7V3Z" stroke="currentColor" stroke-width="2" />
+                      <path d="M14 3v5h5M9 15h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3>Documents</h3>
+                    <p>Passports, vaccines, dog boarding proof.</p>
+                  </div>
+                  <span class="pill">4</span>
+                </article>
+                <article class="plan-row">
+                  <div class="glyph warm" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                      <path d="M6 20V5a2 2 0 0 1 2-2h9v17H6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                      <path d="M10 8h3M10 12h4M10 16h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3>Packing memory</h3>
+                    <p>The repeat-forgotten items and current travel rules.</p>
+                  </div>
+                  <span class="pill warm">list</span>
+                </article>
+              </div>
+            </section>
+
+            <section class="architect-card approval-card">
+              <div class="between" style="align-items:flex-start">
+                <div>
+                  <div class="label">Safety contract</div>
+                  <h2 style="font-size:20px;line-height:1.08;margin-top:6px">Nothing sends, saves, or reveals without approval.</h2>
+                  <p>LifeMap can architect the plan. You decide when it acts.</p>
+                </div>
+                <span class="pill primary">2 queued</span>
+              </div>
+              <div class="queue" style="margin-top:14px">
+                <div class="queue-item">
+                  <span>Stage message to Westview Pediatrics</span>
+                  <strong>Review</strong>
+                </div>
+                <div class="queue-item">
+                  <span>Save updated vaccine PDF to Vault</span>
+                  <strong>Review</strong>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <aside class="drawer" data-drawer aria-label="Safety details">
+          <div class="label">Private by design</div>
+          <p style="margin:8px 0 0;color:var(--lm-muted);font-size:13px;line-height:1.4">
+            This prototype shows the product rule: LifeMap may organize sensitive information, but sending, saving, revealing, and calendar writes wait for approval.
+          </p>
+        </aside>
+
+        <nav class="nav architect-nav" aria-label="Quiet Architect navigation">
+          <button class="active" type="button" aria-current="page">Today</button>
+          <button type="button">Family</button>
+          <button type="button">Trips</button>
+          <button type="button">Review</button>
+        </nav>
+      </section>
+    </main>
+
+    <script>
+      document.querySelector("[data-start]")?.addEventListener("click", (event) => {
+        event.currentTarget.textContent = "Opened next step";
+      });
+
+      document.querySelector("[data-toggle-drawer]")?.addEventListener("click", () => {
+        document.querySelector("[data-drawer]")?.classList.toggle("show");
+      });
+
+      document.querySelector("[data-capture]")?.addEventListener("click", (event) => {
+        event.currentTarget.querySelector("span").textContent = "Dump ready";
+      });
+
+      document.querySelectorAll(".architect-nav button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".architect-nav button").forEach((item) => {
+            item.classList.remove("active");
+            item.removeAttribute("aria-current");
+          });
+          button.classList.add("active");
+          button.setAttribute("aria-current", "page");
+        });
+      });
+    </script>
+  </body>
+</html>

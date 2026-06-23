@@ -125,15 +125,22 @@ function CalendarView({
         <h1 id="calendar-title" className="notebook-title">
           Calendar
         </h1>
-        <p className="notebook-sub">Everything time-bound, in one list.</p>
+        <p className="notebook-sub">
+          Review dated items LifeMap found. Save only the ones you want; Google
+          Calendar stays one explicit tap away.
+        </p>
         <GoogleConnection />
       </header>
 
       {pendingAnalysisEvents.length > 0 ? (
         <div className="notebook-callout" aria-label="Calendar suggestions">
-          <span>
-            LifeMap found {pendingAnalysisEvents.length} calendar{" "}
-            {pendingAnalysisEvents.length === 1 ? "item" : "items"} to review.
+          <span className="notebook-callout-copy">
+            <strong>Ready to schedule</strong>
+            <span>
+              {pendingAnalysisEvents.length}{" "}
+              {pendingAnalysisEvents.length === 1 ? "item" : "items"} from your
+              brain dump can become LifeMap calendar events.
+            </span>
           </span>
           <button
             className="notebook-link"
@@ -142,28 +149,36 @@ function CalendarView({
               onSaveSuggestions(pendingAnalysisEvents.map((event) => event.id))
             }
           >
-            Save all
+            Save to LifeMap calendar
           </button>
         </div>
       ) : null}
 
-      <div className="notebook-filters" aria-label="Calendar layers">
-        {calendarLayers.map((layer) => (
-          <button
-            aria-pressed={activeLayers.has(layer.id)}
-            className={
-              activeLayers.has(layer.id)
-                ? "notebook-filter active"
-                : "notebook-filter"
-            }
-            key={layer.id}
-            type="button"
-            onClick={() => toggleLayer(layer.id)}
-          >
-            {layer.label}
-          </button>
-        ))}
-      </div>
+      <details className="notebook-filter-disclosure">
+        <summary>
+          <span>Filter areas</span>
+          <small>
+            {activeLayers.size} of {calendarLayers.length} shown
+          </small>
+        </summary>
+        <div className="notebook-filters" aria-label="Calendar layers">
+          {calendarLayers.map((layer) => (
+            <button
+              aria-pressed={activeLayers.has(layer.id)}
+              className={
+                activeLayers.has(layer.id)
+                  ? "notebook-filter active"
+                  : "notebook-filter"
+              }
+              key={layer.id}
+              type="button"
+              onClick={() => toggleLayer(layer.id)}
+            >
+              {layer.label}
+            </button>
+          ))}
+        </div>
+      </details>
 
       <h2 className="notebook-section-title">Schedule</h2>
       <div className="notebook-list">

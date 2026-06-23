@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>LifeMap Soft Neumorphism Prototype</title>
+    <link rel="stylesheet" href="./lifemap-style-tokens.css" />
+    <style>
+      .neo-card,
+      .neo-pill,
+      .neo-nav {
+        border: 0;
+        background: var(--lm-surface);
+        box-shadow: var(--lm-shadow-soft);
+      }
+
+      .neo-pressed {
+        box-shadow:
+          inset 7px 7px 15px rgba(123, 145, 170, 0.2),
+          inset -7px -7px 15px rgba(255, 255, 255, 0.86);
+      }
+
+      .neo-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .neo-metric {
+        min-height: 82px;
+        border-radius: 22px;
+        padding: 12px 8px;
+        text-align: center;
+      }
+
+      .neo-metric strong {
+        display: block;
+        font-size: 22px;
+      }
+
+      .neo-metric span {
+        display: block;
+        margin-top: 4px;
+        color: var(--lm-muted);
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .neo-nav {
+        grid-template-columns: repeat(5, 1fr);
+      }
+
+      .touch-panel {
+        border-radius: 30px;
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body class="mode-neo">
+    <main class="prototype-page">
+      <section class="phone" aria-label="LifeMap soft neumorphism prototype">
+        <div class="screen">
+          <header class="topbar">
+            <button class="icon-btn neo-card" type="button" aria-label="Open menu">
+              <svg viewBox="0 0 24 24" width="21" height="21" fill="none">
+                <path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+            <div class="brandline">
+              <strong>LifeMap</strong>
+              <span>tactile relief console</span>
+            </div>
+            <button class="icon-btn neo-card" type="button" aria-label="Notifications">
+              <svg viewBox="0 0 24 24" width="21" height="21" fill="none">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 7-3 9h18c0-2-3-2-3-9Z" stroke="currentColor" stroke-width="2" />
+                <path d="M10 21h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </header>
+
+          <section class="hero">
+            <h1>Make San Diego easy.</h1>
+            <p>Soft surfaces, clear pressure, and one task your hand can actually start.</p>
+          </section>
+
+          <div class="stack">
+            <section class="panel neo-card touch-panel">
+              <div class="label">Brain dump captured</div>
+              <p style="margin:10px 0 0;color:var(--lm-muted);font-size:14px;line-height:1.42">
+                Camp medical form, dog vaccine proof, passport numbers, reward points, sunscreen rules, and normal forget-list.
+              </p>
+            </section>
+
+            <section class="panel neo-card touch-panel">
+              <div class="between">
+                <span class="pill primary neo-pill">One next move</span>
+                <span class="pill warm neo-pill">approval safe</span>
+              </div>
+              <div class="card neo-pressed" style="margin-top: 14px">
+                <div class="row">
+                  <div class="glyph soft neo-card" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                      <path d="M7 7V5.5A2.5 2.5 0 0 1 9.5 3h5A2.5 2.5 0 0 1 17 5.5V7" stroke="currentColor" stroke-width="2" />
+                      <path d="M5 7h14a2 2 0 0 1 2 2v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 style="margin:0;font-size:21px;line-height:1.05">Confirm Casey's MCV4 date</h2>
+                    <p style="margin:6px 0 0;color:var(--lm-muted);font-size:12px">Unlocks camp form and record PDF.</p>
+                  </div>
+                </div>
+                <button class="primary-action" type="button" style="margin-top: 14px" data-step>Start this step</button>
+              </div>
+            </section>
+
+            <div class="neo-grid">
+              <div class="neo-metric neo-card"><strong>4</strong><span>DOCS</span></div>
+              <div class="neo-metric neo-card"><strong>6</strong><span>BRING</span></div>
+              <div class="neo-metric neo-card"><strong>2</strong><span>RULES</span></div>
+              <div class="neo-metric neo-card"><strong>2</strong><span>REVIEW</span></div>
+            </div>
+
+            <section class="panel neo-card touch-panel">
+              <div class="between">
+                <div>
+                  <strong>Vault stays closed</strong>
+                  <p style="margin:4px 0 0;color:var(--lm-muted);font-size:12px">Reveal records only when needed.</p>
+                </div>
+                <button class="soft-action neo-card" type="button" data-reveal="neo-secret">Reveal</button>
+              </div>
+              <div id="neo-secret" class="hidden-detail">Passport and reward values stay masked until this trip context needs them.</div>
+            </section>
+          </div>
+        </div>
+
+        <nav class="nav neo-nav" aria-label="Neumorphic navigation">
+          <button class="active" type="button">Home</button>
+          <button type="button">Pack</button>
+          <button type="button">Vault</button>
+          <button type="button">Review</button>
+          <button type="button">You</button>
+        </nav>
+      </section>
+    </main>
+    <script>
+      document.querySelector("[data-step]")?.addEventListener("click", (event) => {
+        event.currentTarget.textContent = "Step started";
+      });
+      document.querySelector("[data-reveal]")?.addEventListener("click", (event) => {
+        const target = document.getElementById(event.currentTarget.dataset.reveal);
+        target?.classList.toggle("show");
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>LifeMap Quiet Minimal Prototype</title>
+    <link rel="stylesheet" href="./lifemap-style-tokens.css" />
+    <style>
+      .mode-minimal body,
+      body.mode-minimal {
+        background: #fff;
+      }
+
+      .minimal-frame {
+        border-color: var(--lm-line);
+        background: #fff;
+      }
+
+      .minimal-nav {
+        grid-template-columns: repeat(5, 1fr);
+        border-top: 1px solid var(--lm-line);
+        border-right: 0;
+        border-bottom: 0;
+        border-left: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .dump-note {
+        border-left: 2px solid var(--lm-line);
+        padding: 8px 0 8px 16px;
+        color: var(--lm-muted);
+        font-size: 15px;
+        line-height: 1.48;
+      }
+
+      .next-card {
+        border: 1px solid var(--lm-line);
+        border-radius: 18px;
+        background: #fff;
+        padding: 18px;
+      }
+
+      .quiet-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .quiet-list div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--lm-line);
+        padding-bottom: 10px;
+        color: var(--lm-muted);
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body class="mode-minimal">
+    <main class="prototype-page">
+      <section class="phone minimal-frame" aria-label="LifeMap quiet minimal prototype">
+        <div class="screen">
+          <header class="topbar">
+            <button class="icon-btn" type="button" aria-label="Open menu">
+              <svg viewBox="0 0 24 24" width="21" height="21" fill="none">
+                <path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+            <div class="brandline" style="text-align:center">
+              <strong>LifeMap</strong>
+              <span>private trip relief</span>
+            </div>
+            <button class="icon-btn" type="button" aria-label="Safety">
+              <svg viewBox="0 0 24 24" width="21" height="21" fill="none">
+                <path d="M12 3 5 6v6c0 4.2 2.6 7.5 7 9 4.4-1.5 7-4.8 7-9V6l-7-3Z" stroke="currentColor" stroke-width="2" />
+              </svg>
+            </button>
+          </header>
+
+          <section class="hero">
+            <h1>Your trip. Handled privately.</h1>
+            <p>One calm next step. No dashboard. No pile.</p>
+          </section>
+
+          <div class="stack">
+            <p class="dump-note">
+              San Diego Friday. Camp medical form, dog vaccine proof, passport numbers, reward points, sunscreen rules, and the things I usually forget.
+            </p>
+
+            <section class="next-card">
+              <div class="label">Next move</div>
+              <div class="row" style="align-items:flex-start;margin-top:14px">
+                <div class="glyph soft" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                    <path d="M7 3h7l4 4v14H7V3Z" stroke="currentColor" stroke-width="2" />
+                    <path d="M14 3v5h5M9 15h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 style="margin:0;font-size:22px;line-height:1.06">Confirm Casey's MCV4 date</h2>
+                  <p style="margin:8px 0 0;color:var(--lm-muted);font-size:13px;line-height:1.38">This clears the camp form and keeps the vaccine record current.</p>
+                </div>
+              </div>
+              <div class="between" style="margin-top: 16px">
+                <span class="pill">2 min</span>
+                <span class="pill warm">high impact</span>
+              </div>
+              <button class="primary-action" type="button" style="margin-top: 16px" data-done>Handle this</button>
+            </section>
+
+            <section class="next-card">
+              <div class="between">
+                <strong>San Diego Trip Pack</strong>
+                <button class="soft-action" type="button">Open</button>
+              </div>
+              <div class="quiet-list">
+                <div><span>Documents</span><strong>4 ready</strong></div>
+                <div><span>Private records</span><strong>hidden</strong></div>
+                <div><span>Approvals</span><strong>2 held</strong></div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <nav class="nav minimal-nav" aria-label="Minimal navigation">
+          <button class="active" type="button">Home</button>
+          <button type="button">Pack</button>
+          <button type="button">Vault</button>
+          <button type="button">Review</button>
+          <button type="button">You</button>
+        </nav>
+      </section>
+    </main>
+    <script>
+      document.querySelector("[data-done]")?.addEventListener("click", (event) => {
+        event.currentTarget.textContent = "Queued for review";
+      });
+    </script>
+  </body>
+</html>

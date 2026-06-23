@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>LifeMap Creative Prototype Links</title>
+    <link rel="stylesheet" href="./lifemap-style-tokens.css" />
+    <style>
+      .link-shell {
+        width: min(100%, 520px);
+        display: grid;
+        gap: 12px;
+        padding: 18px;
+      }
+
+      .link-shell h1 {
+        margin: 0;
+        font-size: 32px;
+        line-height: 1;
+      }
+
+      .link-shell p {
+        margin: 0;
+        color: var(--lm-muted);
+        line-height: 1.45;
+      }
+
+      .prototype-link {
+        display: block;
+        border: 1px solid var(--lm-line, rgba(19, 28, 43, 0.14));
+        border-radius: var(--lm-radius-lg, 18px);
+        background: var(--lm-surface, #ffffff);
+        color: var(--lm-text, #101624);
+        padding: 16px;
+        text-decoration: none;
+        box-shadow: var(--lm-shadow-soft, 0 10px 24px rgba(17, 24, 39, 0.04));
+      }
+
+      .prototype-link span {
+        display: block;
+        margin-top: 4px;
+        color: var(--lm-muted);
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="prototype-page">
+      <section class="link-shell">
+        <h1>LifeMap design direction</h1>
+        <p>Selected path first. The other files stay as exploration references.</p>
+        <a class="prototype-link" href="./lifemap-smart-cabinet.html">Smart Cabinet <span>Drop a messy family form, sort it into packs, records, calendar suggestions, and review.</span></a>
+        <a class="prototype-link" href="./lifemap-quiet-architect.html">Selected: Editorial LifeMap / Quiet Minimal <span>The usable LifeMap concept and tools, redesigned with the quiet minimal visual system.</span></a>
+        <a class="prototype-link" href="./lifemap-liquid-glass.html">Liquid Glass <span>Translucent controls over calm content.</span></a>
+        <a class="prototype-link" href="./lifemap-quiet-minimal.html">Quiet Minimalism <span>One action, low visual noise.</span></a>
+        <a class="prototype-link" href="./lifemap-soft-neumorphism.html">Soft Neumorphism <span>Tactile, raised relief surfaces.</span></a>
+        <a class="prototype-link" href="./lifemap-field-kit.html">Warm Editorial Field Kit <span>Travel notebook, checklists, privacy stamps.</span></a>
+      </section>
+    </main>
+  </body>
+</html>

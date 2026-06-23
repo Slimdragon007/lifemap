@@ -18,6 +18,6 @@ export default defineConfig({
     globals: true,
     setupFiles: "./src/test/setup.ts",
     // Keep Playwright E2E specs out of the Vitest/jsdom run.
-    exclude: [...configDefaults.exclude, "tests/e2e/**"],
+    exclude: [...configDefaults.exclude, ".worktrees/**", "tests/e2e/**"],
   },
 });
