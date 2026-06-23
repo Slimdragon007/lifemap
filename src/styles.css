@@ -9979,3 +9979,22 @@ button.notebook-row:active {
     scroll-behavior: auto !important;
   }
 }
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-panel);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+.theme-toggle:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
+}

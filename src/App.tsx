@@ -20,6 +20,7 @@ import {
   UsersRound,
   X,
 } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { analyzeWithAi, generateBriefWithAi, sendDraftEmail } from "./api";
 import { clearFieldCrypto, ensureFieldCrypto } from "./field-crypto";
@@ -1149,6 +1150,7 @@ function App() {
               Sign out
             </button>
           ) : null}
+          <ThemeToggle />
         </aside>
 
         {view === "today" ? (
