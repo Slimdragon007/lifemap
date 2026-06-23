@@ -7767,6 +7767,74 @@ html[data-theme="dark"] .ambient-field {
   max-width: 600px;
 }
 
+/* First-run "New here?" coach card (empty accounts only; dismissible). */
+.calm-coach {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-panel);
+  color: var(--color-text-primary);
+}
+
+.calm-coach-lead {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.calm-coach-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.calm-coach-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.calm-coach-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-blue);
+  color: var(--color-text-inverse);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  transition: filter var(--motion-state) var(--ease-out);
+}
+
+.calm-coach-cta:hover {
+  filter: brightness(1.06);
+}
+
+.calm-coach-dismiss {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-quiet);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--motion-state) var(--ease-out);
+}
+
+.calm-coach-dismiss:hover {
+  color: var(--color-text-primary);
+}
+
 /* ── Section 1 · Greeting / status ─────────────────────────────────── */
 .calm-greeting {
   gap: 18px;

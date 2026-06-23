@@ -45,6 +45,16 @@ type TodayViewProps = {
   onOpenVault?: () => void;
 };
 
+const COACH_KEY = "lm-coach-seen";
+
+function readCoachSeen(): boolean {
+  try {
+    return localStorage.getItem(COACH_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 function greetingForHour(hour: number): string {
   if (hour < 5) return "Good night";
   if (hour < 12) return "Good morning";
@@ -73,8 +83,21 @@ function TodayView({
   onOpenVault,
 }: TodayViewProps) {
   const [showMore, setShowMore] = useState(false);
+  const [coachSeen, setCoachSeen] = useState(readCoachSeen);
 
   const greeting = greetingForHour(new Date().getHours());
+
+  // First-run orientation for a fresh/empty account (the seeded demo has
+  // priorities, so it never sees this). Dismissed for good once acknowledged.
+  const showCoach = brief.topPriorities.length === 0 && !coachSeen;
+  function dismissCoach() {
+    try {
+      localStorage.setItem(COACH_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+    setCoachSeen(true);
+  }
 
   const topPriorities =
     brief.topPriorities.length > 0
@@ -183,6 +206,42 @@ function TodayView({
       </header>
 
       <div className="lowstim-today calm-spine">
+        {showCoach ? (
+          <section className="calm-coach" aria-label="Getting started">
+            <span className="atlas-eyebrow">New here?</span>
+            <p className="calm-coach-lead">
+              LifeMap turns the mental load off your plate.
+            </p>
+            <ul className="calm-coach-steps">
+              <li>
+                Dump anything with the <strong>+</strong>
+              </li>
+              <li>The AI sorts it into calendar, vault &amp; reminders</li>
+              <li>You only see what needs your yes</li>
+            </ul>
+            <div className="calm-coach-actions">
+              <button
+                className="calm-coach-cta"
+                type="button"
+                onClick={() => {
+                  dismissCoach();
+                  onOpenBrainDump();
+                }}
+              >
+                Capture your first thing
+                <ChevronRight size={15} />
+              </button>
+              <button
+                className="calm-coach-dismiss"
+                type="button"
+                onClick={dismissCoach}
+              >
+                Got it
+              </button>
+            </div>
+          </section>
+        ) : null}
+
         {/* ── Section 2 · Needs you ───────────────────────────────────── */}
         <section
           className="calm-section calm-needs"

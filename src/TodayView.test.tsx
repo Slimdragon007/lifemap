@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import TodayView from "./TodayView";
 import type { DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
@@ -30,6 +30,8 @@ type TodayOverrides = {
   identity?: { name: string; initials: string };
   approvalCount?: number;
   onOpenApprovals?: () => void;
+  onOpenBrainDump?: () => void;
+  brief?: DailyBrief;
 };
 
 function renderToday(overrides: TodayOverrides = {}) {
@@ -37,11 +39,13 @@ function renderToday(overrides: TodayOverrides = {}) {
     identity = { name: "Alex Kim", initials: "AK" },
     approvalCount = 0,
     onOpenApprovals = vi.fn(),
+    onOpenBrainDump = vi.fn(),
+    brief = emptyBrief,
   } = overrides;
   render(
     <TodayView
       approvalCount={approvalCount}
-      brief={emptyBrief}
+      brief={brief}
       captureExamples={[]}
       identity={identity}
       map={emptyMap}
@@ -52,7 +56,7 @@ function renderToday(overrides: TodayOverrides = {}) {
       onGenerateBrief={vi.fn()}
       onOpenApprovals={onOpenApprovals}
       onOpenBrief={vi.fn()}
-      onOpenBrainDump={vi.fn()}
+      onOpenBrainDump={onOpenBrainDump}
       onOpenFamilyMap={vi.fn()}
       onOpenPriority={vi.fn()}
       onTogglePriorityDone={vi.fn()}
@@ -61,6 +65,12 @@ function renderToday(overrides: TodayOverrides = {}) {
     />,
   );
 }
+
+beforeEach(() => {
+  localStorage.clear();
+  // Suppress the first-run coach by default; the coach tests opt in by clearing it.
+  localStorage.setItem("lm-coach-seen", "1");
+});
 
 describe("TodayView identity", () => {
   test("a real viewer never sees the Alex Kim demo identity", () => {
@@ -105,5 +115,44 @@ describe("TodayView Needs you", () => {
     expect(
       screen.queryByRole("button", { name: /waiting for your yes/i }),
     ).toBeNull();
+  });
+});
+
+describe("TodayView coach", () => {
+  test("shows the new-user coach on an empty account and routes the CTA to capture", async () => {
+    const user = userEvent.setup();
+    localStorage.removeItem("lm-coach-seen");
+    const onOpenBrainDump = vi.fn();
+    renderToday({ onOpenBrainDump });
+
+    expect(screen.getByText("New here?")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: /Capture your first thing/i }),
+    );
+    expect(onOpenBrainDump).toHaveBeenCalledTimes(1);
+  });
+
+  test("'Got it' dismisses the coach and persists the choice", async () => {
+    const user = userEvent.setup();
+    localStorage.removeItem("lm-coach-seen");
+    renderToday();
+
+    expect(screen.getByText("New here?")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Got it" }));
+    expect(screen.queryByText("New here?")).toBeNull();
+    expect(localStorage.getItem("lm-coach-seen")).toBe("1");
+  });
+
+  test("never shows the coach once the account has priorities", () => {
+    localStorage.removeItem("lm-coach-seen");
+    const seededBrief: DailyBrief = {
+      ...emptyBrief,
+      topPriorities: [
+        { id: "p1", label: "Field trip permission slip", reason: "due soon" },
+      ],
+    };
+    renderToday({ brief: seededBrief });
+
+    expect(screen.queryByText("New here?")).toBeNull();
   });
 });
