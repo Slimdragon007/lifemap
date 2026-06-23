@@ -123,7 +123,7 @@ describe("LifeMap MVP app", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Capture" }));
     expect(
-      screen.getByRole("heading", { name: "Ask LifeMap AI" }),
+      screen.getByRole("heading", { name: "Brain dump" }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Calendar" }));
     expect(
@@ -134,7 +134,9 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Review" }));
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "More" }));
-    expect(screen.getByRole("heading", { name: "More" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Settings" }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Inbox" }),
     ).not.toBeInTheDocument();
@@ -142,18 +144,18 @@ describe("LifeMap MVP app", () => {
       screen.getByRole("button", { name: "Open launch plan" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("region", { name: "Start here" }),
+      screen.getByRole("region", { name: "Your map" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("region", { name: "Build and review" }),
+      screen.getByRole("region", { name: "Add context" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("region", { name: "Account and privacy" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Recommended first")).toBeInTheDocument();
+    expect(screen.getByText("Keep building")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Set up your real-life buckets before adding more tools.",
+        "Set up real-life buckets or add another brain dump.",
       ),
     ).toBeInTheDocument();
     await user.click(
@@ -463,7 +465,7 @@ describe("LifeMap MVP app", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "Ask LifeMap AI" }),
+      screen.getByRole("heading", { name: "Brain dump" }),
     ).toBeInTheDocument();
     expect(
       screen.getByDisplayValue(/Vault records starter/),
@@ -508,7 +510,7 @@ describe("LifeMap MVP app", () => {
     );
 
     const capture = screen
-      .getByRole("heading", { name: "Ask LifeMap AI" })
+      .getByRole("heading", { name: "Brain dump" })
       .closest("section");
     expect(capture).not.toBeNull();
     await user.click(
@@ -529,7 +531,7 @@ describe("LifeMap MVP app", () => {
     );
 
     expect(
-      screen.queryByRole("heading", { name: "Ask LifeMap AI" }),
+      screen.queryByRole("heading", { name: "Brain dump" }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
     expect(screen.getByText("Parent signature")).toBeInTheDocument();
@@ -553,7 +555,7 @@ describe("LifeMap MVP app", () => {
     expect(screen.queryByLabelText("Approval status")).not.toBeInTheDocument();
   });
 
-  test("opens LifeMap AI capture from the centered capture action", async () => {
+  test("opens brain dump capture from the centered capture action", async () => {
     const user = userEvent.setup();
     vi.stubGlobal(
       "fetch",
@@ -569,7 +571,7 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Capture" }));
 
     const capture = screen
-      .getByRole("heading", { name: "Ask LifeMap AI" })
+      .getByRole("heading", { name: "Brain dump" })
       .closest("section");
     expect(capture).not.toBeNull();
     await user.click(
@@ -579,12 +581,12 @@ describe("LifeMap MVP app", () => {
     );
 
     expect(
-      await screen.findByText("Here's what I pulled out"),
+      await screen.findByText("Sorted into relief steps"),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Review drafts" }));
+    await user.click(screen.getByRole("button", { name: /Needs approval/i }));
 
     expect(
-      screen.queryByRole("heading", { name: "Ask LifeMap AI" }),
+      screen.queryByRole("heading", { name: "Brain dump" }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
   });
@@ -597,7 +599,7 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
     await user.click(screen.getByRole("button", { name: "Capture" }));
 
-    const capture = screen.getByRole("region", { name: "Ask LifeMap AI" });
+    const capture = screen.getByRole("region", { name: "Brain dump" });
     expect(
       within(capture).getByRole("heading", {
         name: "Paste anything",
@@ -624,7 +626,7 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
     await user.click(screen.getByRole("button", { name: "Capture" }));
 
-    const capture = screen.getByRole("region", { name: "Ask LifeMap AI" });
+    const capture = screen.getByRole("region", { name: "Brain dump" });
     const captureTypePicker = within(capture).getByRole("region", {
       name: "Choose what this is",
     });
@@ -669,20 +671,26 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
     await user.click(screen.getByRole("button", { name: "Capture" }));
 
-    const capture = screen.getByRole("region", { name: "Ask LifeMap AI" });
+    const capture = screen.getByRole("region", { name: "Brain dump" });
     await user.click(
       within(capture).getByRole("button", { name: "Analyze intake" }),
     );
 
     expect(
-      await within(capture).findByRole("heading", { name: "Route this map" }),
+      await within(capture).findByText("Sorted into relief steps"),
     ).toBeInTheDocument();
     expect(
-      within(capture).getByRole("button", { name: "Review drafts" }),
+      within(capture).getByRole("button", { name: /Put on calendar/i }),
     ).toBeInTheDocument();
+    expect(
+      within(capture).getByRole("button", { name: /Needs approval/i }),
+    ).toBeInTheDocument();
+    expect(
+      within(capture).queryByRole("heading", { name: "Choose what this is" }),
+    ).not.toBeInTheDocument();
   });
 
-  test("routes analyzed Capture results into the app surfaces", async () => {
+  test("routes analyzed Capture results into Calendar", async () => {
     const user = userEvent.setup();
     vi.stubGlobal(
       "fetch",
@@ -698,7 +706,7 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Capture" }));
 
     const capture = screen
-      .getByRole("heading", { name: "Ask LifeMap AI" })
+      .getByRole("heading", { name: "Brain dump" })
       .closest("section");
     expect(capture).not.toBeNull();
     await user.click(
@@ -708,23 +716,23 @@ describe("LifeMap MVP app", () => {
     );
 
     expect(
-      await within(capture as HTMLElement).findByRole("heading", {
-        name: "Route this map",
+      await within(capture as HTMLElement).findByText(
+        "Sorted into relief steps",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(capture as HTMLElement).getByRole("button", {
+        name: /Next moves/i,
       }),
     ).toBeInTheDocument();
     expect(
       within(capture as HTMLElement).getByRole("button", {
-        name: "Go to Today",
+        name: /Put on calendar/i,
       }),
     ).toBeInTheDocument();
     expect(
       within(capture as HTMLElement).getByRole("button", {
-        name: "Go to Vault",
-      }),
-    ).toBeInTheDocument();
-    expect(
-      within(capture as HTMLElement).getByRole("button", {
-        name: "Review approvals",
+        name: /Save privately/i,
       }),
     ).toBeInTheDocument();
     expect(
@@ -735,11 +743,14 @@ describe("LifeMap MVP app", () => {
 
     await user.click(
       within(capture as HTMLElement).getByRole("button", {
-        name: "Go to Vault",
+        name: /Put on calendar/i,
       }),
     );
 
-    expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Calendar" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Field trip permission slip")).toBeInTheDocument();
   });
 
   test("projects current AI analysis into Calendar and Vault", async () => {
@@ -946,7 +957,7 @@ describe("LifeMap MVP app", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "Ask LifeMap AI" }),
+      screen.getByRole("heading", { name: "Brain dump" }),
     ).toBeInTheDocument();
   });
 
@@ -960,7 +971,7 @@ describe("LifeMap MVP app", () => {
     // Capture: the quiet "Capture anything" action opens the AI capture flow.
     await user.click(screen.getByRole("button", { name: "Capture anything" }));
     expect(
-      screen.getByRole("heading", { name: "Ask LifeMap AI" }),
+      screen.getByRole("heading", { name: "Brain dump" }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Back to Today" }));
 

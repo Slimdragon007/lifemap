@@ -1,0 +1,122 @@
+{
+  "name": "LifeMap Creative Prototype Modes",
+  "source": "public/prototypes/lifemap-style-tokens.css",
+  "figmaFile": "https://www.figma.com/design/QYtDU0O2tOTVT40M3SIGNC",
+  "modes": ["Liquid Glass", "Quiet Minimal", "Quiet Realism", "Soft Neo", "Field Kit"],
+  "collections": [
+    {
+      "name": "LifeMap Prototype / Color",
+      "variables": [
+        {
+          "name": "lm/canvas",
+          "css": "var(--lm-canvas)",
+          "type": "COLOR",
+          "scope": ["FRAME_FILL"],
+          "values": {
+            "Liquid Glass": "#edf6ff",
+            "Quiet Minimal": "#ffffff",
+            "Quiet Realism": "#fbfcfd",
+            "Soft Neo": "#edf3fb",
+            "Field Kit": "#fff8ed"
+          }
+        },
+        {
+          "name": "lm/surface",
+          "css": "var(--lm-surface)",
+          "type": "COLOR",
+          "scope": ["FRAME_FILL", "SHAPE_FILL"],
+          "values": {
+            "Liquid Glass": "rgba(255, 255, 255, 0.72)",
+            "Quiet Minimal": "#ffffff",
+            "Quiet Realism": "#ffffff",
+            "Soft Neo": "#eef4fb",
+            "Field Kit": "#fffdf7"
+          }
+        },
+        {
+          "name": "lm/text",
+          "css": "var(--lm-text)",
+          "type": "COLOR",
+          "scope": ["TEXT_FILL"],
+          "values": {
+            "Liquid Glass": "#102033",
+            "Quiet Minimal": "#0b1020",
+            "Quiet Realism": "#101624",
+            "Soft Neo": "#172337",
+            "Field Kit": "#1f1a17"
+          }
+        },
+        {
+          "name": "lm/muted",
+          "css": "var(--lm-muted)",
+          "type": "COLOR",
+          "scope": ["TEXT_FILL"],
+          "values": {
+            "Liquid Glass": "#54687d",
+            "Quiet Minimal": "#59616f",
+            "Quiet Realism": "#5b6674",
+            "Soft Neo": "#617085",
+            "Field Kit": "#735f51"
+          }
+        },
+        {
+          "name": "lm/primary",
+          "css": "var(--lm-primary)",
+          "type": "COLOR",
+          "scope": ["FRAME_FILL", "SHAPE_FILL", "TEXT_FILL", "STROKE_COLOR"],
+          "values": {
+            "Liquid Glass": "#2f6fe6",
+            "Quiet Minimal": "#111827",
+            "Quiet Realism": "#1f5fbf",
+            "Soft Neo": "#376fe6",
+            "Field Kit": "#4b2f23"
+          }
+        },
+        {
+          "name": "lm/warm",
+          "css": "var(--lm-warm)",
+          "type": "COLOR",
+          "scope": ["FRAME_FILL", "SHAPE_FILL", "TEXT_FILL", "STROKE_COLOR"],
+          "values": {
+            "Liquid Glass": "#cf7555",
+            "Quiet Minimal": "#b96549",
+            "Quiet Realism": "#b9684b",
+            "Soft Neo": "#e18b69",
+            "Field Kit": "#c75d3d"
+          }
+        }
+      ]
+    },
+    {
+      "name": "LifeMap Prototype / Shape",
+      "variables": [
+        {
+          "name": "lm/radius/panel",
+          "css": "var(--lm-radius-lg)",
+          "type": "FLOAT",
+          "scope": ["CORNER_RADIUS"],
+          "values": {
+            "Liquid Glass": 30,
+            "Quiet Minimal": 18,
+            "Quiet Realism": 18,
+            "Soft Neo": 26,
+            "Field Kit": 22
+          }
+        },
+        {
+          "name": "lm/blur",
+          "css": "var(--lm-blur)",
+          "type": "FLOAT",
+          "scope": ["EFFECT_FLOAT"],
+          "values": {
+            "Liquid Glass": 24,
+            "Quiet Minimal": 0,
+            "Quiet Realism": 0,
+            "Soft Neo": 0,
+            "Field Kit": 0
+          }
+        }
+      ]
+    }
+  ]
+}

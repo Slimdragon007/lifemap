@@ -71,7 +71,7 @@ test.describe("demo smoke", () => {
     const nav = page.getByRole("navigation", { name: "Household sections" });
     await nav.getByRole("button", { name: "Capture", exact: true }).click();
 
-    const capture = page.getByRole("region", { name: "Ask LifeMap AI" });
+    const capture = page.getByRole("region", { name: "Brain dump" });
     await expect(
       capture.getByRole("heading", { name: "Paste anything" }),
     ).toBeVisible();
