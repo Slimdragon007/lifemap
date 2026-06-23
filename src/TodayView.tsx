@@ -190,11 +190,13 @@ function TodayView({
         >
           <div className="atlas-trunk-head">
             <span className="atlas-eyebrow" id="needs-title">
-              Needs you{approvalCount > 0 ? ` (${approvalCount})` : ""}
+              Needs you
             </span>
-            <span className="atlas-progress">
-              {doneCount} of {topPriorities.length} done
-            </span>
+            {doneCount > 0 ? (
+              <span className="atlas-progress">
+                {doneCount} of {topPriorities.length} done
+              </span>
+            ) : null}
           </div>
           <h2 className="sr-only">Top Priorities</h2>
           <div className="atlas-trunk">
@@ -261,9 +263,11 @@ function TodayView({
             <span className="atlas-eyebrow" id="handled-title">
               Handled today
             </span>
-            <span className="atlas-progress">
-              {litCount} of {lifeAreas.length} areas active
-            </span>
+            {litCount > 0 ? (
+              <span className="atlas-progress">
+                {litCount} of {lifeAreas.length} areas active
+              </span>
+            ) : null}
           </div>
 
           {extras.length > 0 ? (
@@ -320,10 +324,6 @@ function TodayView({
               ))}
             </div>
           </div>
-
-          {brief.todaySummary?.trim() ? (
-            <p className="lowstim-foot">Nothing else needs you today.</p>
-          ) : null}
 
           <BriefNotice
             status={status}

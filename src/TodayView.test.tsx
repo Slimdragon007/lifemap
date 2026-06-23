@@ -87,10 +87,7 @@ describe("TodayView Needs you", () => {
     const onOpenApprovals = vi.fn();
     renderToday({ approvalCount: 3, onOpenApprovals });
 
-    // The "Needs you" section header carries the live approval count.
-    expect(screen.getByText("Needs you (3)")).toBeInTheDocument();
-
-    // And a dedicated opener folds Review in, calling onOpenApprovals.
+    // A dedicated opener folds Review in, surfacing the count + calling onOpenApprovals.
     const opener = screen.getByRole("button", {
       name: /Review 3 waiting for your yes/i,
     });
