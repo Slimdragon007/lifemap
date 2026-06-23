@@ -156,9 +156,11 @@ describe("LifeMap real-mode AI-vault persistence", () => {
       await screen.findByRole("button", { name: "Sign out alex@example.com" }),
     ).toBeInTheDocument();
 
-    // Wait for the remote analysis to load so `map` carries the vault candidate.
-    await screen.findByRole("button", { name: "Calendar" });
-    await user.click(screen.getByRole("button", { name: "Calendar" }));
+    // Wait for the remote analysis to load so `map` carries the vault candidate,
+    // then open Calendar from the Settings hub (it's no longer a Today link).
+    await screen.findByRole("button", { name: "Settings" });
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Open calendar" }));
 
     await user.click(
       screen.getByRole("button", { name: "Save vault suggestion" }),

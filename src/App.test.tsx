@@ -149,13 +149,13 @@ describe("LifeMap MVP app", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Back to Today" }));
 
-    // Calendar + Vault are reachable from the quiet Today link row.
-    await user.click(screen.getByRole("button", { name: "Calendar" }));
+    // Calendar + Vault now live in the Settings hub (removed from Today).
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Open calendar" }));
     expect(
       screen.getByRole("heading", { name: "Calendar" }),
     ).toBeInTheDocument();
 
-    // ...and as a fallback from the Settings hub list.
     await user.click(screen.getByRole("button", { name: "Settings" }));
     await user.click(screen.getByRole("button", { name: "Open vault" }));
     expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
@@ -802,9 +802,9 @@ describe("LifeMap MVP app", () => {
 
     render(<App />);
 
-    // Calendar + Vault are demoted to contextual entries: Calendar via Today's
-    // quiet link row, Vault via the Settings hub list.
-    await user.click(screen.getByRole("button", { name: "Calendar" }));
+    // Calendar + Vault are demoted to the Settings hub (no longer on Today).
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Open calendar" }));
 
     expect(
       screen.getByRole("heading", { name: "Calendar" }),
@@ -832,8 +832,9 @@ describe("LifeMap MVP app", () => {
 
     const firstRender = render(<App />);
 
-    // Calendar opens from Today's quiet contextual link row.
-    await user.click(screen.getByRole("button", { name: "Calendar" }));
+    // Calendar opens from the Settings hub.
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Open calendar" }));
 
     expect(screen.getByText("Needs review")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Save" }));
@@ -845,7 +846,8 @@ describe("LifeMap MVP app", () => {
     firstRender.unmount();
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Calendar" }));
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Open calendar" }));
     expect(screen.getByText("Saved to LifeMap")).toBeInTheDocument();
 
     // Vault never carries the analysis gap as a record (reached via Settings).
@@ -1155,8 +1157,9 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    // Vault is reachable from Today's quiet contextual link row.
-    await user.click(screen.getByRole("button", { name: "Vault" }));
+    // Vault is reachable from the Settings hub (removed from Today).
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Open vault" }));
 
     expect(screen.queryByText("Westview Elementary")).not.toBeInTheDocument();
 
