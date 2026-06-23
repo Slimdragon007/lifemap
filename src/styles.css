@@ -7715,6 +7715,219 @@ body {
   }
 }
 
+/* =====================================================================
+   CALM SPINE — Today home rebuilt as a quiet vertical spine of four
+   sections: greeting/status · Needs you · Handled today · pinned "+"
+   dump bar. ElevenLabs register: near-monochrome, one accent, uppercase
+   tracked eyebrows, hairline rules, generous space. All colours resolve
+   through --color-* / alias tokens, so light + dark follow
+   html[data-theme] automatically (no hard-coded palette).
+   ===================================================================== */
+
+/* Reserve room for the always-pinned dump bar at the bottom. */
+.calm-today {
+  position: relative;
+  padding-bottom: calc(132px + env(safe-area-inset-bottom));
+}
+
+.calm-today .lowstim-today.calm-spine {
+  gap: 38px;
+  max-width: 600px;
+}
+
+/* ── Section 1 · Greeting / status ─────────────────────────────────── */
+.calm-greeting {
+  gap: 18px;
+  margin-bottom: 4px;
+}
+
+/* "Today" demoted to a tracked eyebrow label; the greeting is the lead. */
+.calm-today .calm-today-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.calm-greeting-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.calm-greeting-title {
+  margin: 0;
+  max-width: 22ch;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 6vw, 34px);
+  font-weight: 560;
+  line-height: 1.06;
+  letter-spacing: -0.01em;
+  color: var(--color-text-strong);
+}
+
+.calm-status-line {
+  margin: 0;
+  max-width: 36ch;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+/* ── Section eyebrows + shared section rhythm ──────────────────────── */
+.calm-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.calm-section .atlas-trunk-head {
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.calm-section .atlas-eyebrow {
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--color-text-secondary);
+}
+
+.calm-section .atlas-progress {
+  letter-spacing: 0.06em;
+  color: var(--color-text-quiet);
+}
+
+/* ── Section 2 · Needs you ─────────────────────────────────────────── */
+.calm-needs .atlas-trunk {
+  gap: 14px;
+}
+
+/* Fold-in Review opener: a quiet hairline row that surfaces the approval
+   count and routes to the ReviewDialog via onOpenApprovals. */
+.calm-approvals-opener {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-panel);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition:
+    border-color var(--motion-state) var(--ease),
+    transform var(--motion-press) var(--ease);
+}
+
+.calm-approvals-opener svg {
+  color: var(--color-text-quiet);
+}
+
+.calm-approvals-opener:hover {
+  border-color: var(--color-border-strong);
+}
+
+.calm-approvals-opener:active {
+  transform: scale(0.99);
+}
+
+/* ── Section 3 · Handled today ─────────────────────────────────────── */
+.calm-handled .lowstim-showmore {
+  justify-content: flex-start;
+  margin-top: 0;
+  padding-top: 0;
+  color: var(--color-text-secondary);
+}
+
+.calm-handled .lowstim-showmore .lowstim-chev {
+  color: var(--color-text-quiet);
+}
+
+.calm-handled .lowstim-list {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+/* Quiet the branch panel chrome to a hairline card so the life-area tiles
+   read as "filed", not as a hero. */
+.calm-handled .atlas-branch-panel {
+  margin-top: 18px;
+  padding: 22px 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-panel);
+  box-shadow: none;
+}
+
+.calm-handled .atlas-branch-line {
+  background: var(--color-border-strong);
+  opacity: 0.6;
+}
+
+.calm-handled .lowstim-foot {
+  margin-top: 18px;
+  color: var(--color-text-quiet);
+}
+
+.calm-handled .analyze-notice {
+  margin-top: 18px;
+}
+
+/* ── Section 4 · Pinned "+" dump bar ───────────────────────────────── */
+.calm-dumpbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(70px + env(safe-area-inset-bottom));
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding: 0 22px;
+  pointer-events: none;
+}
+
+.calm-dumpbar .calm-dumpbar-button {
+  pointer-events: auto;
+  width: min(100%, 600px);
+  margin: 0;
+  align-self: stretch;
+  justify-content: center;
+  padding: 14px 20px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-command);
+  box-shadow: var(--shadow-command);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.calm-dumpbar-plus {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-inverse);
+  background: var(--color-accent-blue);
+}
+
+@media (max-width: 640px) {
+  .calm-dumpbar {
+    padding: 0 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calm-approvals-opener:active {
+    transform: none !important;
+  }
+}
+
 /* ──────────────────────────────────────────────────────────────────────────
    Low-stim flattening for the remaining primary screens (Review, Calendar,
    Vault, Capture). Mirrors the Today notebook: single calm column, one accent,

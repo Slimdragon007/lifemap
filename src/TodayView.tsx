@@ -3,6 +3,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  Plus,
   RefreshCw,
 } from "lucide-react";
 import { useState } from "react";
@@ -37,6 +38,13 @@ type TodayViewProps = {
   onTogglePriorityDone: (id: string) => void;
 };
 
+function greetingForHour(hour: number): string {
+  if (hour < 5) return "Good night";
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 function TodayView({
   brief,
   identity,
@@ -57,11 +65,7 @@ function TodayView({
 }: TodayViewProps) {
   const [showMore, setShowMore] = useState(false);
 
-  const todayDate = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  }).format(new Date());
+  const greeting = greetingForHour(new Date().getHours());
 
   const topPriorities =
     brief.topPriorities.length > 0
@@ -74,8 +78,8 @@ function TodayView({
           },
         ];
 
-  // Everything beyond the three things lives behind "show more": open loops
-  // first (what is waiting on clarity), then the items that can wait.
+  // "Handled today" — quiet, filed rows that need nothing from you right now.
+  // Open loops first (waiting on clarity), then the items that can wait.
   const extras = [
     ...brief.openLoops.map((loop) => ({
       id: loop.id,
@@ -111,14 +115,27 @@ function TodayView({
   ).length;
   const litCount = lifeAreas.filter((area) => area.isLit).length;
 
+  // The calm "you're handled" status line: prefer the AI brief summary; otherwise
+  // narrate progress so the greeting always lands on something reassuring.
+  const statusLine = brief.todaySummary?.trim()
+    ? brief.todaySummary
+    : approvalCount > 0
+      ? `${approvalCount} thing${approvalCount === 1 ? "" : "s"} need a quick yes from you.`
+      : doneCount > 0
+        ? `${doneCount} of ${topPriorities.length} handled — you're on top of today.`
+        : "You're handled. Capture anything new before it turns into background stress.";
+
   return (
     <section
-      className="workspace today-workspace atlas-today"
+      className="workspace today-workspace atlas-today calm-today"
       aria-labelledby="today-title"
     >
-      <header className="atlas-header">
+      {/* ── Section 1 · Greeting / status ─────────────────────────────── */}
+      <header className="atlas-header calm-greeting">
         <div className="atlas-brand-line">
-          <span className="atlas-wordmark">LifeMap</span>
+          <h1 className="atlas-eyebrow calm-today-label" id="today-title">
+            Today
+          </h1>
           <div className="atlas-header-actions" aria-label="Today controls">
             <button
               aria-label="Refresh Daily Brief"
@@ -147,130 +164,133 @@ function TodayView({
             </span>
           </div>
         </div>
-        <div className="atlas-title-row">
-          <div>
-            <h1 id="today-title">Today</h1>
-            <p>{todayDate}</p>
-            <p className="notebook-sub">
-              Your calm summary. Just the few things that need you.
-            </p>
-          </div>
+        <div className="calm-greeting-copy">
+          <p className="calm-greeting-title">
+            {greeting}, {identity.name}
+          </p>
+          <p className="calm-status-line">{statusLine}</p>
         </div>
       </header>
 
-      <div className="lowstim-today">
-        <p className="lowstim-brief">
-          {brief.todaySummary?.trim()
-            ? brief.todaySummary
-            : "Welcome to LifeMap. Capture your first messy note below — an email, a school form, a to-do — and it becomes your map."}
-        </p>
-
-        <div className="atlas-trunk-head">
-          <span className="atlas-eyebrow">Now · tap to check off</span>
-          <span className="atlas-progress">
-            {doneCount} of {topPriorities.length} done
-          </span>
-        </div>
-        <h2 className="sr-only">Top Priorities</h2>
-        <div className="atlas-trunk">
-          <span className="atlas-spine" aria-hidden="true" />
-          {topPriorities.map((priority, index) => {
-            const isDone = priorityActionStates[priority.id] === "completed";
-            const isNeeds = index === 0 && !isDone;
-            const className = [
-              "atlas-task",
-              isNeeds ? "needs" : "",
-              isDone ? "done" : "",
-            ]
-              .filter(Boolean)
-              .join(" ");
-            return (
-              <div className={className} key={priority.id}>
-                <button
-                  aria-label={
-                    isDone
-                      ? `Mark ${priority.label} not done`
-                      : `Check off ${priority.label}`
-                  }
-                  aria-pressed={isDone}
-                  className="atlas-node"
-                  type="button"
-                  onClick={() => onTogglePriorityDone(priority.id)}
-                >
-                  {isDone ? <Check size={13} strokeWidth={3} /> : null}
-                </button>
-                <button
-                  aria-label={`Open priority ${priority.label}`}
-                  className="atlas-task-card"
-                  type="button"
-                  onClick={() => onOpenPriority(priority)}
-                >
-                  <span className="atlas-task-text">{priority.label}</span>
-                  {isNeeds ? (
-                    <span className="atlas-needs-pill">Needs you</span>
-                  ) : null}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-
-        {extras.length > 0 ? (
-          <>
-            <button
-              aria-expanded={showMore}
-              className={`lowstim-showmore${showMore ? " open" : ""}`}
-              type="button"
-              onClick={() => setShowMore((value) => !value)}
-            >
-              <span>
-                {showMore
-                  ? "Show less"
-                  : `Show ${extras.length} more this week`}
-              </span>
-              <ChevronDown className="lowstim-chev" size={14} />
-            </button>
-            <div className="lowstim-more" hidden={!showMore}>
-              <div className="lowstim-list">
-                {extras.map((item) => (
-                  <button
-                    className="lowstim-item lowstim-item-quiet"
-                    key={item.id}
-                    type="button"
-                    onClick={onOpenBrief}
-                  >
-                    <span className="lowstim-when">{item.when}</span>
-                    <span className="lowstim-entry">
-                      <span className="lowstim-text">{item.label}</span>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
-        ) : null}
-
-        <button
-          className="lowstim-capture"
-          type="button"
-          onClick={() => onOpenBrainDump()}
-        >
-          Capture anything
-          <ChevronRight size={15} />
-        </button>
-
+      <div className="lowstim-today calm-spine">
+        {/* ── Section 2 · Needs you ───────────────────────────────────── */}
         <section
-          className="atlas-section atlas-lifemap-section"
-          aria-labelledby="lifemap-title"
+          className="calm-section calm-needs"
+          aria-labelledby="needs-title"
         >
           <div className="atlas-trunk-head">
-            <span className="atlas-eyebrow" id="lifemap-title">
-              Your LifeMap · tap to light up
+            <span className="atlas-eyebrow" id="needs-title">
+              Needs you{approvalCount > 0 ? ` (${approvalCount})` : ""}
             </span>
             <span className="atlas-progress">
-              {litCount} of {lifeAreas.length} active
+              {doneCount} of {topPriorities.length} done
             </span>
           </div>
+          <h2 className="sr-only">Top Priorities</h2>
+          <div className="atlas-trunk">
+            <span className="atlas-spine" aria-hidden="true" />
+            {topPriorities.map((priority, index) => {
+              const isDone = priorityActionStates[priority.id] === "completed";
+              const isNeeds = index === 0 && !isDone;
+              const className = [
+                "atlas-task",
+                isNeeds ? "needs" : "",
+                isDone ? "done" : "",
+              ]
+                .filter(Boolean)
+                .join(" ");
+              return (
+                <div className={className} key={priority.id}>
+                  <button
+                    aria-label={
+                      isDone
+                        ? `Mark ${priority.label} not done`
+                        : `Check off ${priority.label}`
+                    }
+                    aria-pressed={isDone}
+                    className="atlas-node"
+                    type="button"
+                    onClick={() => onTogglePriorityDone(priority.id)}
+                  >
+                    {isDone ? <Check size={13} strokeWidth={3} /> : null}
+                  </button>
+                  <button
+                    aria-label={`Open priority ${priority.label}`}
+                    className="atlas-task-card"
+                    type="button"
+                    onClick={() => onOpenPriority(priority)}
+                  >
+                    <span className="atlas-task-text">{priority.label}</span>
+                    {isNeeds ? (
+                      <span className="atlas-needs-pill">Needs you</span>
+                    ) : null}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {approvalCount > 0 ? (
+            <button
+              className="calm-approvals-opener"
+              type="button"
+              onClick={onOpenApprovals}
+            >
+              <span>Review {approvalCount} waiting for your yes</span>
+              <ChevronRight size={15} />
+            </button>
+          ) : null}
+        </section>
+
+        {/* ── Section 3 · Handled today ───────────────────────────────── */}
+        <section
+          className="calm-section calm-handled"
+          aria-labelledby="handled-title"
+        >
+          <div className="atlas-trunk-head">
+            <span className="atlas-eyebrow" id="handled-title">
+              Handled today
+            </span>
+            <span className="atlas-progress">
+              {litCount} of {lifeAreas.length} areas active
+            </span>
+          </div>
+
+          {extras.length > 0 ? (
+            <>
+              <button
+                aria-expanded={showMore}
+                className={`lowstim-showmore${showMore ? " open" : ""}`}
+                type="button"
+                onClick={() => setShowMore((value) => !value)}
+              >
+                <span>
+                  {showMore
+                    ? "Show less"
+                    : `Show ${extras.length} more this week`}
+                </span>
+                <ChevronDown className="lowstim-chev" size={14} />
+              </button>
+              <div className="lowstim-more" hidden={!showMore}>
+                <div className="lowstim-list">
+                  {extras.map((item) => (
+                    <button
+                      className="lowstim-item lowstim-item-quiet"
+                      key={item.id}
+                      type="button"
+                      onClick={onOpenBrief}
+                    >
+                      <span className="lowstim-when">{item.when}</span>
+                      <span className="lowstim-entry">
+                        <span className="lowstim-text">{item.label}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : null}
+
           <div className="atlas-branch-panel">
             <div className="atlas-branch">
               <span className="atlas-branch-line" aria-hidden="true" />
@@ -290,17 +310,31 @@ function TodayView({
               ))}
             </div>
           </div>
+
+          {brief.todaySummary?.trim() ? (
+            <p className="lowstim-foot">Nothing else needs you today.</p>
+          ) : null}
+
+          <BriefNotice
+            status={status}
+            error={error}
+            onOpenBrainDump={onOpenBrainDump}
+          />
         </section>
+      </div>
 
-        {brief.todaySummary?.trim() ? (
-          <p className="lowstim-foot">Nothing else needs you today.</p>
-        ) : null}
-
-        <BriefNotice
-          status={status}
-          error={error}
-          onOpenBrainDump={onOpenBrainDump}
-        />
+      {/* ── Section 4 · Pinned "+" dump bar ───────────────────────────── */}
+      <div className="calm-dumpbar">
+        <button
+          className="lowstim-capture calm-dumpbar-button"
+          type="button"
+          onClick={() => onOpenBrainDump()}
+        >
+          <span className="calm-dumpbar-plus" aria-hidden="true">
+            <Plus size={16} strokeWidth={2.5} />
+          </span>
+          Capture anything
+        </button>
       </div>
     </section>
   );
