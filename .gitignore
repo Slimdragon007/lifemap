@@ -15,3 +15,8 @@ supabase/.temp/
 tests/e2e/.env.e2e
 # Keep the committed demo-mode env (overrides the .env ignore above)
 !tests/e2e/env-demo/.env
+
+# scratch agent reports (never ship)
+.merge-report.md
+.task1-report.md
+.task1-report*.md
