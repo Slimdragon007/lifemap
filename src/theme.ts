@@ -18,6 +18,7 @@ export function getInitialTheme(): Theme {
 }
 
 export function applyTheme(t: Theme): void {
+  if (typeof document === "undefined") return;
   document.documentElement.dataset.theme = t;
 }
 

@@ -56,7 +56,7 @@
   --color-accent-plum: #6b6b73;
   --color-accent-sage: #6b6b73;
   --color-accent-amber: #4f46e5;
-  --color-status-danger: #4338ca;
+  --color-status-danger: #dc2626;
 
   --color-action-ink: #09090b;
 
@@ -161,7 +161,7 @@ html[data-theme="dark"] {
   --color-accent-plum: #8a8a93;
   --color-accent-sage: #8a8a93;
   --color-accent-amber: #8b8bff;
-  --color-status-danger: #a5a5ff;
+  --color-status-danger: #f87171;
 
   --color-action-ink: #fafafa;
 

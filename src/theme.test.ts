@@ -1,4 +1,8 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 import { getInitialTheme, setTheme, toggleTheme, applyTheme } from "./theme";
 
 beforeEach(() => {
