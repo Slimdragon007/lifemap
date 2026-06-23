@@ -1012,15 +1012,24 @@ function App() {
       // Derive the per-user key BEFORE writing so details/care_notes encrypt at
       // rest (see materializeSuggestions for the same guard).
       const crypto = await ensureFieldCrypto(session.access_token);
-      for (const person of people) {
-        const member = onboardingPersonToFamilyMember(person);
-        const saved = await upsertFamilyMember(userId, member, client, crypto);
-        if (saved.ok) {
-          setCollections((current) => ({
-            ...current,
-            familyMembers: [...current.familyMembers, saved.item],
-          }));
-        }
+      const results = await Promise.all(
+        people.map((person) =>
+          upsertFamilyMember(
+            userId,
+            onboardingPersonToFamilyMember(person),
+            client,
+            crypto,
+          ),
+        ),
+      );
+      const saved = results.flatMap((result) =>
+        result.ok ? [result.item] : [],
+      );
+      if (saved.length > 0) {
+        setCollections((current) => ({
+          ...current,
+          familyMembers: [...current.familyMembers, ...saved],
+        }));
       }
       return;
     }

@@ -19,6 +19,13 @@ export type OnboardingPerson = {
   role: OnboardingRole;
 };
 
+// Internal row carries a stable id (React key + handler target) and the chip it
+// came from, so renaming a chip-seeded row keeps the chip linked (no duplicate).
+type PersonRow = OnboardingPerson & { id: string; chip?: string };
+
+let personIdSeq = 0;
+const nextPersonId = () => `p${(personIdSeq += 1)}`;
+
 type OnboardingViewProps = {
   onComplete: (result: {
     name: string;
@@ -64,8 +71,8 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
   const [name, setName] = useState("");
   // "Your people" is a structured, scalable list (not a fixed Set) so any number
   // of adults/children/pets persist into family_members later. Seeded with "You".
-  const [people, setPeople] = useState<OnboardingPerson[]>([
-    { name: "You", role: "adult" },
+  const [people, setPeople] = useState<PersonRow[]>([
+    { id: nextPersonId(), name: "You", role: "adult", chip: "You" },
   ]);
   const [areas, setAreas] = useState<Set<string>>(new Set());
 
@@ -86,43 +93,57 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
   // Quick chips toggle a single person of that label in/out of the list.
   const toggleChip = (label: string, role: OnboardingRole) => {
     setPeople((current) => {
-      const exists = current.some((person) => person.name === label);
-      if (exists) {
-        return current.filter((person) => person.name !== label);
+      if (current.some((person) => person.chip === label)) {
+        return current.filter((person) => person.chip !== label);
       }
-      return [...current, { name: label, role }];
+      return [
+        ...current,
+        { id: nextPersonId(), name: label, role, chip: label },
+      ];
     });
   };
 
   const addPerson = () =>
-    setPeople((current) => [...current, { name: "", role: "child" }]);
+    setPeople((current) => [
+      ...current,
+      { id: nextPersonId(), name: "", role: "child" },
+    ]);
 
-  const updatePerson = (index: number, patch: Partial<OnboardingPerson>) =>
+  const updatePerson = (id: string, patch: Partial<OnboardingPerson>) =>
     setPeople((current) =>
-      current.map((person, i) =>
-        i === index ? { ...person, ...patch } : person,
+      current.map((person) =>
+        person.id === id ? { ...person, ...patch } : person,
       ),
     );
 
-  const removePerson = (index: number) =>
-    setPeople((current) => current.filter((_, i) => i !== index));
+  const removePerson = (id: string) =>
+    setPeople((current) => current.filter((person) => person.id !== id));
 
-  // Chips reflect a person added with that exact default label; custom rows
-  // (from "+ Add another") never light a chip.
   const chipActive = (label: string) =>
-    people.some((person) => person.name === label);
+    people.some((person) => person.chip === label);
 
   const back = () => setStep((s) => Math.max(1, s - 1));
   const next = () => setStep((s) => Math.min(TOTAL_STEPS, s + 1));
-  const finish = () =>
+  const finish = () => {
+    // Drop empty rows and collapse duplicate names so each person becomes one
+    // family_member.
+    const seen = new Set<string>();
+    const cleaned: OnboardingPerson[] = [];
+    for (const person of people) {
+      const pname = person.name.trim();
+      const key = pname.toLowerCase();
+      if (!pname || seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      cleaned.push({ name: pname, role: person.role });
+    }
     onComplete({
       name: name.trim(),
       areas: Array.from(areas),
-      // Drop empty custom rows the user added but never named.
-      people: people
-        .map((person) => ({ ...person, name: person.name.trim() }))
-        .filter((person) => person.name.length > 0),
+      people: cleaned,
     });
+  };
 
   const chosenAreas = areas.size > 0 ? Array.from(areas) : ["School", "Health"];
 
@@ -250,7 +271,7 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
                   aria-label="People in your map"
                 >
                   {people.map((person, index) => (
-                    <li className="onboarding-person" key={`person-${index}`}>
+                    <li className="onboarding-person" key={person.id}>
                       <input
                         aria-label={`Name for person ${index + 1}`}
                         className="onboarding-person-name"
@@ -258,7 +279,7 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
                         type="text"
                         value={person.name}
                         onChange={(event) =>
-                          updatePerson(index, { name: event.target.value })
+                          updatePerson(person.id, { name: event.target.value })
                         }
                       />
                       <select
@@ -266,7 +287,7 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
                         className="onboarding-person-role"
                         value={person.role}
                         onChange={(event) =>
-                          updatePerson(index, {
+                          updatePerson(person.id, {
                             role: event.target.value as OnboardingRole,
                           })
                         }
@@ -281,7 +302,7 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
                         aria-label={`Remove person ${index + 1}`}
                         className="onboarding-person-remove"
                         type="button"
-                        onClick={() => removePerson(index)}
+                        onClick={() => removePerson(person.id)}
                       >
                         <X size={15} />
                       </button>

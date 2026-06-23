@@ -87,4 +87,33 @@ describe("OnboardingView 'Your people' step", () => {
     // Only the seeded "You" survives; the empty row is dropped.
     expect(payload.people).toEqual([{ name: "You", role: "adult" }]);
   });
+
+  test("keeps the chip linked after a rename and collapses duplicate names", async () => {
+    const user = userEvent.setup();
+    const onComplete = vi.fn();
+    render(<OnboardingView onComplete={onComplete} onSkip={vi.fn()} />);
+
+    await advanceToPeopleStep(user);
+
+    // Rename the seeded "You" row. The "You" chip stays active (linked by a
+    // stable marker, not the editable name) — so it is not re-added as a dup.
+    const youInput = screen.getByLabelText("Name for person 1");
+    await user.clear(youInput);
+    await user.type(youInput, "Alex");
+    expect(screen.getByRole("button", { name: "You" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    // A second row also named "Alex" is collapsed by the dedup in finish().
+    await user.click(screen.getByRole("button", { name: "Add another" }));
+    await user.type(screen.getByLabelText("Name for person 2"), "Alex");
+
+    await finishFromPeopleStep(user);
+
+    const payload = onComplete.mock.calls[0][0] as {
+      people: OnboardingPerson[];
+    };
+    expect(payload.people.filter((p) => p.name === "Alex")).toHaveLength(1);
+  });
 });
