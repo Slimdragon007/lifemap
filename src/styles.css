@@ -8053,47 +8053,6 @@ button.calm-row:active {
 
 /* (Capture lives in the bottom-nav center "+" — no floating dump bar.) */
 
-/* Quiet "Calendar · Vault" contextual entry row in the Handled footer — the
-   demoted views are one calm tap away now that the bottom-nav is 3 surfaces.
-   Near-monochrome, hairline, no card chrome (matches the ElevenLabs spine). */
-.calm-quiet-links {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.calm-quiet-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 4px;
-  border: none;
-  background: transparent;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--color-text-quiet);
-  cursor: pointer;
-  transition: color var(--motion-state) var(--ease);
-}
-
-.calm-quiet-link svg {
-  color: var(--color-text-quiet);
-}
-
-.calm-quiet-link:hover,
-.calm-quiet-link:focus-visible {
-  color: var(--color-text-strong);
-}
-
-.calm-quiet-dot {
-  color: var(--color-text-quiet);
-  user-select: none;
-}
-
 /* Desktop (≥1100px): the nav is a sticky LEFT sidebar, not a bottom bar, so
    Today needs no bottom reserve. */
 @media (min-width: 1100px) {
@@ -10261,6 +10220,14 @@ button.notebook-row:active {
     align-items: flex-start;
     flex-direction: column;
   }
+}
+.capture-result-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-subtle);
 }
 .capture-result-label {
   font-family: var(--font-mono);

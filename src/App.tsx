@@ -58,7 +58,7 @@ import PrivacyView from "./PrivacyView";
 import HowItWorksView from "./how-it-works-view";
 import { useSession } from "./use-session";
 import { demoMode } from "./demoMode";
-import { viewerIdentity } from "./viewer";
+import { initialsFromName, viewerIdentity } from "./viewer";
 import { sampleCollections } from "./sampleData";
 import {
   buildCalendarEventsFromAnalysis,
@@ -227,18 +227,12 @@ type CaptureRoute = {
   message: string;
 };
 
-// Initials for an onboarding-supplied display name (first letters of up to two
-// words), matching the email-derived style in viewer.ts.
-// Map an onboarding role to the FamilyMember.profileType + a human display role.
 const ONBOARDING_ROLE_LABEL: Record<OnboardingPerson["role"], string> = {
   adult: "Adult",
   child: "Child",
   pet: "Pet",
 };
 
-// Build a durable FamilyMember from a wizard person. The user types a name in
-// the wizard (placeholder rows are dropped before this), and can refine details
-// in Vault later. A real uuid id lets the row persist as-is in real mode.
 function onboardingPersonToFamilyMember(
   person: OnboardingPerson,
 ): FamilyMember {
@@ -252,17 +246,6 @@ function onboardingPersonToFamilyMember(
     details: [],
     careNotes: [],
   };
-}
-
-function initialsFromName(name: string): string {
-  const tokens = name.split(/\s+/).filter(Boolean);
-  if (tokens.length === 0) {
-    return "";
-  }
-  if (tokens.length === 1) {
-    return tokens[0].slice(0, 2).toUpperCase();
-  }
-  return (tokens[0][0] + tokens[1][0]).toUpperCase();
 }
 
 // Turn the onboarding area chips into a real setup profile so the wizard's
@@ -998,11 +981,6 @@ function App() {
     setView("today");
   }
 
-  // Turn the wizard's chosen people into family_members. Real mode persists each
-  // through upsertFamilyMember (encrypted, RLS-scoped) then joins the saved row
-  // into the in-memory collection — mirroring materializeSuggestions. Demo mode
-  // just grows the local collection. Names are placeholders the user renames in
-  // Vault later.
   async function persistOnboardingPeople(
     people: OnboardingPerson[],
   ): Promise<void> {
@@ -1244,8 +1222,6 @@ function App() {
             onOpenApprovals={() => setView("review")}
             onOpenBrief={() => setIsBriefOpen(true)}
             onOpenBrainDump={openCapture}
-            onOpenCalendar={() => setView("calendar")}
-            onOpenVault={() => setView("vault")}
             onOpenFamilyMap={() => setView("family")}
             onOpenPriority={setSelectedPriority}
             onTogglePriorityDone={togglePriorityDone}

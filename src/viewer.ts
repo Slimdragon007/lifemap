@@ -17,11 +17,14 @@ export function viewerIdentity(
   }
 
   const localPart = email.split("@")[0];
-  return { name: localPart, initials: initialsFromLocalPart(localPart) };
+  return { name: localPart, initials: initialsFromName(localPart) };
 }
 
-function initialsFromLocalPart(localPart: string): string {
-  const tokens = localPart.split(/[._\-+]/).filter(Boolean);
+// Initials = first letters of up to two tokens. Splits on whitespace AND
+// email-local-part delimiters so it serves both display names ("Jane Doe") and
+// dotted local-parts ("jane.doe") with one rule.
+export function initialsFromName(value: string): string {
+  const tokens = value.split(/[\s._\-+]+/).filter(Boolean);
   if (tokens.length === 0) {
     return "";
   }

@@ -36,11 +36,6 @@ type TodayViewProps = {
   onOpenApprovals: () => void;
   onOpenPriority: (priority: BriefPriority) => void;
   onTogglePriorityDone: (id: string) => void;
-  // Optional contextual openers for the views demoted out of the bottom-nav.
-  // Appended (optional) so the 19-prop contract that TodayView.test asserts
-  // stays unchanged; App.tsx wires them to setView("calendar"/"vault").
-  onOpenCalendar?: () => void;
-  onOpenVault?: () => void;
 };
 
 const COACH_KEY = "lm-coach-seen";

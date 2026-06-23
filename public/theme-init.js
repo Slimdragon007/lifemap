@@ -1,6 +1,5 @@
-// Pre-paint theme init. External (not inline) so it satisfies the strict CSP
-// (script-src 'self'); kept parser-blocking in <head> so it runs before first
-// paint — no theme flash. Sets data-theme from the saved choice, else dark.
+// External (not inline) to satisfy the strict CSP (script-src 'self'), and
+// parser-blocking in <head> so it runs before first paint (no theme flash).
 (function () {
   try {
     var t = localStorage.getItem("lm-theme");

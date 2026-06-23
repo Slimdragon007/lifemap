@@ -35,8 +35,6 @@ type OnboardingViewProps = {
   onSkip: () => void;
 };
 
-// Quick-add chips: each seeds one person with a sensible default role. The list
-// is no longer a hard cap — "+ Add another" lets any number of people through.
 const PEOPLE_CHIPS: ReadonlyArray<{ label: string; role: OnboardingRole }> = [
   { label: "You", role: "adult" },
   { label: "Partner", role: "adult" },
