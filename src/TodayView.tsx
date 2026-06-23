@@ -87,9 +87,10 @@ function TodayView({
 
   const greeting = greetingForHour(new Date().getHours());
 
-  // First-run orientation for a fresh/empty account (the seeded demo has
-  // priorities, so it never sees this). Dismissed for good once acknowledged.
-  const showCoach = brief.topPriorities.length === 0 && !coachSeen;
+  // First-run orientation: shown once to anyone who hasn't dismissed it, then
+  // gone for good. (Gating on empty data doesn't work — new accounts still get
+  // a seeded sample brief, so an "empty brief" almost never occurs.)
+  const showCoach = !coachSeen;
   function dismissCoach() {
     try {
       localStorage.setItem(COACH_KEY, "1");

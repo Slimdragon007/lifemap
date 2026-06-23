@@ -143,7 +143,7 @@ describe("TodayView coach", () => {
     expect(localStorage.getItem("lm-coach-seen")).toBe("1");
   });
 
-  test("never shows the coach once the account has priorities", () => {
+  test("shows on first run even when the account already has priorities", () => {
     localStorage.removeItem("lm-coach-seen");
     const seededBrief: DailyBrief = {
       ...emptyBrief,
@@ -153,6 +153,13 @@ describe("TodayView coach", () => {
     };
     renderToday({ brief: seededBrief });
 
+    // Trigger is first-run (not empty-data), so it appears regardless of brief.
+    expect(screen.getByText("New here?")).toBeInTheDocument();
+  });
+
+  test("stays hidden once dismissed", () => {
+    // beforeEach sets lm-coach-seen="1" — a returning user never sees it again.
+    renderToday();
     expect(screen.queryByText("New here?")).toBeNull();
   });
 });
