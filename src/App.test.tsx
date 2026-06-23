@@ -118,9 +118,7 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Capture anything" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Capture" })).toBeInTheDocument();
     // Primary nav is now Today · "+" Capture · Settings — Calendar, Vault, and
     // Review are demoted to contextual entries (Today affordances + Settings),
     // so they no longer appear as bottom-nav tabs.
@@ -964,8 +962,8 @@ describe("LifeMap MVP app", () => {
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
 
-    // Capture: the quiet "Capture anything" action opens the AI capture flow.
-    await user.click(screen.getByRole("button", { name: "Capture anything" }));
+    // Capture: the nav "Capture" action opens the AI capture flow.
+    await user.click(screen.getByRole("button", { name: "Capture" }));
     expect(
       screen.getByRole("heading", { name: "Brain dump" }),
     ).toBeInTheDocument();

@@ -5,10 +5,10 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
-  Plus,
   RefreshCw,
 } from "lucide-react";
 import { useState } from "react";
+import { ThemeToggle } from "./ThemeToggle";
 import { STARTER_LIFE_AREAS, getSetupLifeArea } from "./lifeAreas";
 import type { BriefPriority, DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
@@ -168,6 +168,7 @@ function TodayView({
               <Bell size={15} />
               {approvalCount > 0 ? <span aria-hidden="true" /> : null}
             </button>
+            <ThemeToggle />
             <span className="atlas-avatar" aria-label={identity.name}>
               {identity.initials}
             </span>
@@ -363,20 +364,6 @@ function TodayView({
             </nav>
           ) : null}
         </section>
-      </div>
-
-      {/* ── Section 4 · Pinned "+" dump bar ───────────────────────────── */}
-      <div className="calm-dumpbar">
-        <button
-          className="lowstim-capture calm-dumpbar-button"
-          type="button"
-          onClick={() => onOpenBrainDump()}
-        >
-          <span className="calm-dumpbar-plus" aria-hidden="true">
-            <Plus size={16} strokeWidth={2.5} />
-          </span>
-          Capture anything
-        </button>
       </div>
     </section>
   );

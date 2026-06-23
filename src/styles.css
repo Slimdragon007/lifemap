@@ -3427,11 +3427,10 @@ button.nav-item {
 
 .bottom-nav {
   display: grid;
-  /* Today · "+" capture · Settings — one side item, the raised capture
-     button, one side item. (Collapsed from the old 6-tab grid.) */
-  grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
-  gap: 4px;
-  align-items: end;
+  /* Today · "+" capture · Settings — three equal cells, flat + even. */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  align-items: stretch;
 }
 
 .bottom-nav .nav-item,
@@ -3479,8 +3478,8 @@ button.nav-item {
   display: grid;
   place-items: center;
   gap: 2px;
-  min-height: 70px;
-  margin-top: -24px;
+  min-height: 58px;
+  margin-top: 0;
   color: var(--color-text-inverse);
   border-color: var(--color-border-subtle);
   border-radius: 24px;
@@ -3819,6 +3818,30 @@ button.nav-item {
 
 .more-row-static .more-row-chevron {
   display: none;
+}
+
+/* Appearance / theme row — token-based so it's correct in light AND dark. */
+.more-appearance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 64px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-panel);
+  color: var(--color-text-primary);
+}
+
+.more-appearance-row .more-row-copy strong {
+  color: var(--color-text-primary);
+}
+
+.more-appearance-row .more-row-copy span {
+  color: var(--color-text-quiet);
+  font-size: 13px;
 }
 
 .setup-workspace {
@@ -7731,14 +7754,12 @@ html[data-theme="dark"] .ambient-field {
    html[data-theme] automatically (no hard-coded palette).
    ===================================================================== */
 
-/* Reserve room for the always-pinned dump bar + the fixed bottom-nav shell so
-   the last calm-spine row scrolls fully clear of both. The dump bar is now a
-   SOLID full-width bar seated flush directly above the nav shell (see
-   .calm-dumpbar below), so nothing renders behind it. Reserve the nav shell
-   height (~142px incl. its 12px offset) + the dump bar's own height (~70px). */
+/* Reserve room for the fixed bottom-nav shell so the last calm-spine row
+   scrolls clear of it (~142px nav incl. its 12px offset, + breathing room).
+   Capture lives in the nav's center "+", so there's no floating dump bar. */
 .calm-today {
   position: relative;
-  padding-bottom: calc(232px + env(safe-area-inset-bottom));
+  padding-bottom: calc(150px + env(safe-area-inset-bottom));
 }
 
 .calm-today .lowstim-today.calm-spine {
@@ -7952,50 +7973,7 @@ button.calm-row:active {
   margin-top: 18px;
 }
 
-/* ── Section 4 · Pinned "+" dump bar ───────────────────────────────────
-   Reseated as a SOLID, full-width bar flush directly above the bottom-nav
-   shell. It carries the page-canvas background + a hairline top rule, so any
-   scroll content (the "Handled today" tiles) is fully occluded as it passes
-   under — fixing the old overlap where a floating pill let tiles slide
-   behind it. The nav shell sits 12px off the bottom and is ~142px tall, so
-   the bar's bottom edge clears it; an inner gap keeps a calm rhythm. */
-.calm-dumpbar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: calc(142px + env(safe-area-inset-bottom));
-  z-index: 30;
-  display: flex;
-  justify-content: center;
-  padding: 14px 22px 16px;
-  background: var(--color-canvas-app);
-  border-top: 1px solid var(--color-border-subtle);
-}
-
-.calm-dumpbar .calm-dumpbar-button {
-  width: min(100%, 600px);
-  margin: 0;
-  align-self: stretch;
-  justify-content: center;
-  padding: 14px 20px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-command);
-  box-shadow: var(--shadow-command);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-text-strong);
-}
-
-.calm-dumpbar-plus {
-  display: inline-grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-pill);
-  color: var(--color-text-inverse);
-  background: var(--color-accent-blue);
-}
+/* (Capture lives in the bottom-nav center "+" — no floating dump bar.) */
 
 /* Quiet "Calendar · Vault" contextual entry row in the Handled footer — the
    demoted views are one calm tap away now that the bottom-nav is 3 surfaces.
@@ -8038,27 +8016,11 @@ button.calm-row:active {
   user-select: none;
 }
 
-@media (max-width: 640px) {
-  .calm-dumpbar {
-    padding: 12px 16px 14px;
-  }
-}
-
-/* Desktop (≥1100px): the nav shell is a sticky LEFT sidebar, not a bottom bar,
-   so the dump bar must not float fixed mid-viewport. Drop it back into the
-   Today column flow as a static element, and remove the bottom padding the
-   mobile fixed-bar layout reserved. */
+/* Desktop (≥1100px): the nav is a sticky LEFT sidebar, not a bottom bar, so
+   Today needs no bottom reserve. */
 @media (min-width: 1100px) {
   .calm-today {
     padding-bottom: 0;
-  }
-
-  .calm-dumpbar {
-    position: static;
-    margin-top: 38px;
-    padding: 0;
-    background: none;
-    border-top: 0;
   }
 }
 
@@ -10630,4 +10592,11 @@ button.notebook-row:active {
 .theme-toggle:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
+}
+
+/* In the Today header control cluster, size the toggle to sit with the
+   refresh / bell icon buttons + the avatar. */
+.atlas-header-actions .theme-toggle {
+  width: 34px;
+  height: 34px;
 }

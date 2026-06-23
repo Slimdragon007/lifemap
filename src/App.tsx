@@ -1148,7 +1148,6 @@ function App() {
               Sign out
             </button>
           ) : null}
-          <ThemeToggle />
         </aside>
 
         {view === "today" ? (
@@ -1986,6 +1985,23 @@ function MoreView({
       </header>
 
       <div className="more-list">
+        <section
+          aria-labelledby="more-appearance-title"
+          className="more-section"
+        >
+          <div className="more-section-heading">
+            <span>Appearance</span>
+            <h2 id="more-appearance-title">Theme</h2>
+            <p>Dark by default, or switch to the high-contrast light theme.</p>
+          </div>
+          <div className="more-appearance-row">
+            <span className="more-row-copy">
+              <strong>Light / Dark</strong>
+              <span>Tap to toggle the app theme.</span>
+            </span>
+            <ThemeToggle />
+          </div>
+        </section>
         <section
           aria-labelledby="more-start-title"
           className="more-section more-section-primary"
