@@ -2,15 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      (function () {
-        try {
-          var t = localStorage.getItem("lm-theme");
-          if (t !== "light" && t !== "dark") t = "dark"; // default dark (high-contrast)
-          document.documentElement.setAttribute("data-theme", t);
-        } catch (e) {}
-      })();
-    </script>
+    <script src="/theme-init.js"></script>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no"

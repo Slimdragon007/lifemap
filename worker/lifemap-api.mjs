@@ -1368,7 +1368,26 @@ function resolveAllowedOrigin(origin, configuredOrigins = "*") {
     .map((value) => value.trim())
     .filter(Boolean);
 
-  return allowed.includes(origin) ? origin : allowed[0] || "*";
+  if (allowed.includes(origin)) {
+    return origin;
+  }
+
+  // Allow Cloudflare Pages preview origins (per-branch alias subdomains, e.g.
+  // https://redesign-stage2-today.lifemap-d33.pages.dev) so branch previews get
+  // correct CORS + working field encryption without listing every alias.
+  try {
+    const host = new URL(origin).hostname;
+    if (
+      host === "lifemap-d33.pages.dev" ||
+      host.endsWith(".lifemap-d33.pages.dev")
+    ) {
+      return origin;
+    }
+  } catch {
+    /* origin is not a valid URL — fall through */
+  }
+
+  return allowed[0] || "*";
 }
 
 function jsonResponse(body, status, corsHeaders) {
