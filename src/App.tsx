@@ -66,6 +66,7 @@ import {
 import {
   loadFamilyCollections,
   upsertFamilyEvent,
+  upsertVaultItem,
   type FamilyCollections,
   type FamilyDataClient,
 } from "./family-data";
@@ -659,12 +660,34 @@ function App() {
     }
     const userId = session.user.id;
     const client = getSupabase() as unknown as FamilyDataClient;
+    // Derive the per-user encryption key BEFORE writing. Using the synchronous
+    // getFieldCrypto() here could return identity (no-op) crypto if a save fires
+    // before the key finishes loading — silently persisting plaintext sensitive
+    // fields. Awaiting guarantees real encryption at rest.
+    const crypto = await ensureFieldCrypto(session.access_token);
+    const vaultCandidates = buildVaultItemsFromAnalysis(map);
     const eventCandidates = buildCalendarEventsFromAnalysis(map);
     const persistedIds: string[] = [];
     let failed = false;
 
     for (const id of ids) {
-      if (id.startsWith("ai-event-")) {
+      if (id.startsWith("ai-vault-")) {
+        const candidate = vaultCandidates.find((item) => item.id === id);
+        if (!candidate) {
+          continue;
+        }
+        const result = await upsertVaultItem(userId, candidate, client, crypto);
+        if (result.ok) {
+          const saved = result.item;
+          setCollections((current) => ({
+            ...current,
+            vaultItems: [saved, ...current.vaultItems],
+          }));
+          persistedIds.push(id);
+        } else {
+          failed = true;
+        }
+      } else if (id.startsWith("ai-event-")) {
         const candidate = eventCandidates.find((event) => event.id === id);
         if (!candidate) {
           continue;
