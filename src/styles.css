@@ -7304,6 +7304,16 @@ html[data-theme="dark"] .ambient-field {
   padding: 36px 30px 30px;
   box-shadow: 0 18px 44px -28px rgba(120, 90, 60, 0.4);
 }
+.auth-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.auth-card-head .theme-toggle {
+  width: 34px;
+  height: 34px;
+}
 .auth-mark {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -9720,11 +9730,10 @@ button.notebook-row:active {
 .feedback-bubble {
   position: fixed;
   right: max(16px, env(safe-area-inset-right));
-  /* FAB clear of BOTH the fixed bottom-nav shell (~142px tall incl. offset)
-     and the solid dump bar seated flush above it (~70px). Sits just above the
-     dump bar's top edge on mobile so nothing collides; desktop has a side nav
-     so the corner is free. */
-  bottom: calc(228px + env(safe-area-inset-bottom));
+  /* Sit just above the fixed 3-tab bottom-nav shell (~142px tall incl. its
+     12px offset) in the bottom-right corner — not floating mid-content. (The
+     old dump bar this used to clear was removed.) */
+  bottom: calc(154px + env(safe-area-inset-bottom));
   z-index: 50;
   display: grid;
   place-items: center;

@@ -80,11 +80,11 @@ function AuthScreen() {
 
   return (
     <main className="auth">
-      <div className="theme-toggle-floating">
-        <ThemeToggle />
-      </div>
       <section className="auth-card" aria-labelledby="auth-title">
-        <span className="auth-mark">LifeMap</span>
+        <div className="auth-card-head">
+          <span className="auth-mark">LifeMap</span>
+          <ThemeToggle />
+        </div>
         <h1 id="auth-title" className="auth-title">
           {title}
         </h1>
