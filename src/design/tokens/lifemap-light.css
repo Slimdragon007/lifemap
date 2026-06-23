@@ -1,9 +1,8 @@
 :root {
   /* ================================================================= */
-  /* THE LIFEMAP — calm "chief of staff for real life".                */
-  /* Cool blue + white lead; ONE clay-orange accent reserved for "this */
-  /* needs you". No green, ever (retired). Variable NAMES are kept      */
-  /* stable so every screen inherits the retheme at once.              */
+  /* THE LIFEMAP — ElevenLabs-grade palette.                           */
+  /* Near-monochrome + one restrained indigo accent. Variable NAMES    */
+  /* are kept stable so every screen inherits the retheme at once.     */
   /* ================================================================= */
 
   /* Type — Darker Grotesque display (headings), Hanken body, mono data */
@@ -16,66 +15,61 @@
   --font-mono:
     "Fragment Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
 
-  /* Canvas — cool near-white */
-  --color-canvas-warm: #f2f6fc;
-  --color-canvas-app: #f2f6fc;
-  --color-canvas-login: #f2f6fc;
-  --color-canvas-soft-blue: #eaf1fb;
-  --color-canvas-soft-warm: #eaf1fb;
+  /* Canvas */
+  --color-canvas-warm: #f5f5f6;
+  --color-canvas-app: #f5f5f6;
+  --color-canvas-login: #f5f5f6;
+  --color-canvas-soft-blue: #efeff1;
+  --color-canvas-soft-warm: #efeff1;
 
-  /* Surfaces — white cards/panels on the cool canvas */
-  --color-surface-glass: rgba(248, 251, 255, 0.86);
+  /* Surfaces */
+  --color-surface-glass: rgba(255, 255, 255, 0.86);
   --color-surface-panel: #ffffff;
   --color-surface-panel-strong: #ffffff;
   --color-surface-command: #ffffff;
-  --color-surface-command-soft: #f2f6fc;
+  --color-surface-command-soft: #fbfbfc;
   --color-surface-nav: rgba(255, 255, 255, 0.92);
   --color-surface-capture: #ffffff;
   --color-surface-row: #ffffff;
-  --color-backdrop-capture: rgba(248, 251, 255, 0.6);
+  --color-backdrop-capture: rgba(9, 9, 11, 0.06);
 
-  /* Ink — cool slate */
-  --color-text-primary: #1c2733;
-  --color-text-strong: #141d27;
-  --color-text-secondary: #5a6775;
-  /* Quiet captions/reasons; faint placeholders one step lighter. */
-  --color-text-quiet: #7a8794;
-  --color-text-inverse: #f8fbfe;
+  /* Text */
+  --color-text-primary: #09090b;
+  --color-text-strong: #09090b;
+  --color-text-secondary: #6b6b73;
+  --color-text-quiet: #9b9ba4;
+  --color-text-inverse: #ffffff;
 
-  /* Borders — cool hairlines */
-  --color-border-subtle: #dde5ee;
-  --color-border-strong: #cfdae6;
-  --color-focus-ring: rgba(63, 134, 196, 0.34);
+  /* Borders */
+  --color-border-subtle: rgba(9, 9, 11, 0.09);
+  --color-border-strong: rgba(9, 9, 11, 0.16);
+  --color-focus-ring: rgba(79, 70, 229, 0.34);
 
-  /* Accent — primary blue for interactive (links, CTAs, active, lit). */
-  --color-accent-blue: #3f86c4;
-  --color-accent-blue-strong: #356f9e;
-  --color-accent-blue-soft: rgba(63, 134, 196, 0.12);
-  --color-accent-sky: #e2eef9;
-  /* Clay-orange = the single warm "needs you" signal. Use sparingly. */
-  --color-accent-warm: #d97757;
-  --color-accent-warm-soft: rgba(217, 119, 87, 0.12);
-  --color-accent-clay: #d97757;
-  --color-accent-plum: #5a6775;
-  --color-accent-sage: #4aa3c4;
-  --color-accent-amber: #c2603f;
-  --color-status-danger: #c2603f;
+  /* Accent — restrained indigo */
+  --color-accent-blue: #4f46e5;
+  --color-accent-blue-strong: #4338ca;
+  --color-accent-blue-soft: rgba(79, 70, 229, 0.1);
+  --color-accent-sky: #eceaff;
+  --color-accent-warm: #4f46e5; /* "needs you" → single restrained accent */
+  --color-accent-warm-soft: rgba(79, 70, 229, 0.1);
+  --color-accent-clay: #4f46e5;
+  --color-accent-plum: #6b6b73;
+  --color-accent-sage: #6b6b73;
+  --color-accent-amber: #4f46e5;
+  --color-status-danger: #4338ca;
 
-  --color-action-ink: #1c2733;
+  --color-action-ink: #09090b;
 
-  /* Gradients — primary blue CTA + lit nodes; white→canvas command surface */
-  --gradient-action-primary: linear-gradient(180deg, #5aa9e6 0%, #3f86c4 100%);
-  --gradient-command-surface: linear-gradient(180deg, #ffffff 0%, #f2f6fc 100%);
+  /* Gradients */
+  --gradient-action-primary: linear-gradient(180deg, #6d68f0 0%, #4f46e5 100%);
+  --gradient-command-surface: linear-gradient(180deg, #ffffff 0%, #f5f5f6 100%);
 
   --radius-control: 12px;
   --radius-panel: 16px;
   --radius-command: 18px;
   --radius-pill: 999px;
 
-  /* Spacing — strict 4px grid. Every gap/padding/margin should snap to one of
-     these so screens line up instead of drifting by a pixel or two. Adopt these
-     in place of ad-hoc px values; that micro-consistency is what reads as
-     "finished" vs "rough". */
+  /* Spacing — strict 4px grid */
   --space-0-5: 2px;
   --space-1: 4px;
   --space-2: 8px;
@@ -89,21 +83,19 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* Section rhythm — the vertical break between major sections on a screen.
-     Used to give multi-section screens (Calendar, Vault) real separation
-     instead of stacking flat. */
+  /* Section rhythm */
   --space-section: var(--space-8);
 
-  /* Shadows — soft, blue-tinted, low spread */
-  --shadow-panel-soft: 0 14px 30px -22px rgba(40, 90, 150, 0.3);
-  --shadow-panel: 0 14px 30px -20px rgba(40, 90, 150, 0.45);
-  --shadow-command: 0 24px 50px -34px rgba(40, 90, 150, 0.45);
-  --shadow-nav: 0 -2px 22px rgba(40, 90, 150, 0.1);
-  --shadow-control: 0 12px 26px -14px rgba(40, 90, 150, 0.5);
-  --shadow-row: 0 6px 16px rgba(40, 90, 150, 0.05);
-  --shadow-row-hover: 0 10px 22px rgba(40, 90, 150, 0.1);
+  /* Shadows — neutral, low spread */
+  --shadow-panel-soft: 0 14px 30px -22px rgba(9, 9, 11, 0.12);
+  --shadow-panel: 0 14px 30px -20px rgba(9, 9, 11, 0.18);
+  --shadow-command: 0 24px 50px -34px rgba(9, 9, 11, 0.18);
+  --shadow-nav: 0 -2px 22px rgba(9, 9, 11, 0.06);
+  --shadow-control: 0 12px 26px -14px rgba(9, 9, 11, 0.2);
+  --shadow-row: 0 6px 16px rgba(9, 9, 11, 0.04);
+  --shadow-row-hover: 0 10px 22px rgba(9, 9, 11, 0.08);
 
-  /* Motion — the locked "Right-sized" spec (matches the handoff easing) */
+  /* Motion */
   --motion-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
   --motion-press: 100ms;
@@ -111,27 +103,103 @@
   --motion-enter: 220ms;
   --motion-cap: 300ms;
 
-  /* Map/notebook semantics.
-     --accent = primary blue (links, CTAs, active filters, the trunk/spine,
-                lit/saved/settled)
-     --needs  = clay-orange: action-required / needs your sign-off ONLY
-     --filed  = blue: settled / handled / saved (lit) */
-  --accent: #3f86c4;
-  --accent-soft: #5aa9e6;
-  --needs: #d97757;
-  --needs-soft: rgba(217, 119, 87, 0.12);
-  --filed: #3f86c4;
-  --paper: #f2f6fc;
+  /* Map/notebook semantics — mono-ized to indigo accent */
+  --accent: #4f46e5;
+  --accent-soft: #6d68f0;
+  --needs: #4f46e5;
+  --needs-soft: rgba(79, 70, 229, 0.1);
+  --filed: #4f46e5;
+  --paper: #f5f5f6;
   --paper-raised: #ffffff;
-  --rule: #dde5ee;
-  --warm-line: #dde5ee;
-  --warm-ink: #1c2733;
-  --warm-ink-soft: #5a6775;
-  --warm-ink-quiet: #7a8794;
+  --rule: rgba(9, 9, 11, 0.09);
+  --warm-line: rgba(9, 9, 11, 0.09);
+  --warm-ink: #09090b;
+  --warm-ink-soft: #6b6b73;
+  --warm-ink-quiet: #9b9ba4;
 
-  /* Back-compat aliases for components that read --line / --ink-* directly. */
-  --line: #dde5ee;
-  --ink: #1c2733;
-  --ink-soft: #5a6775;
-  --ink-quiet: #7a8794;
+  /* Back-compat aliases */
+  --line: rgba(9, 9, 11, 0.09);
+  --ink: #09090b;
+  --ink-soft: #6b6b73;
+  --ink-quiet: #9b9ba4;
+}
+
+html[data-theme="dark"] {
+  --color-canvas-warm: #09090b;
+  --color-canvas-app: #09090b;
+  --color-canvas-login: #09090b;
+  --color-canvas-soft-blue: #161618;
+  --color-canvas-soft-warm: #161618;
+
+  --color-surface-glass: rgba(22, 22, 24, 0.86);
+  --color-surface-panel: #161618;
+  --color-surface-panel-strong: #1b1b1e;
+  --color-surface-command: #161618;
+  --color-surface-command-soft: #1b1b1e;
+  --color-surface-nav: rgba(22, 22, 24, 0.92);
+  --color-surface-capture: #161618;
+  --color-surface-row: #161618;
+  --color-backdrop-capture: rgba(0, 0, 0, 0.5);
+
+  --color-text-primary: #fafafa;
+  --color-text-strong: #ffffff;
+  --color-text-secondary: #8a8a93;
+  --color-text-quiet: #56565e;
+  --color-text-inverse: #09090b;
+
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-focus-ring: rgba(139, 139, 255, 0.4);
+
+  --color-accent-blue: #8b8bff;
+  --color-accent-blue-strong: #a5a5ff;
+  --color-accent-blue-soft: rgba(139, 139, 255, 0.12);
+  --color-accent-sky: #20203a;
+  --color-accent-warm: #8b8bff;
+  --color-accent-warm-soft: rgba(139, 139, 255, 0.12);
+  --color-accent-clay: #8b8bff;
+  --color-accent-plum: #8a8a93;
+  --color-accent-sage: #8a8a93;
+  --color-accent-amber: #8b8bff;
+  --color-status-danger: #a5a5ff;
+
+  --color-action-ink: #fafafa;
+
+  --gradient-action-primary: linear-gradient(180deg, #a5a5ff 0%, #8b8bff 100%);
+  --gradient-command-surface: linear-gradient(180deg, #1b1b1e 0%, #161618 100%);
+
+  --shadow-panel-soft: 0 14px 30px -22px rgba(0, 0, 0, 0.5);
+  --shadow-panel: 0 14px 30px -20px rgba(0, 0, 0, 0.6);
+  --shadow-command: 0 24px 50px -34px rgba(0, 0, 0, 0.6);
+  --shadow-nav: 0 -2px 22px rgba(0, 0, 0, 0.3);
+  --shadow-control: 0 12px 26px -14px rgba(0, 0, 0, 0.6);
+  --shadow-row: 0 6px 16px rgba(0, 0, 0, 0.2);
+  --shadow-row-hover: 0 10px 22px rgba(0, 0, 0, 0.3);
+
+  --accent: #8b8bff;
+  --accent-soft: #a5a5ff;
+  --needs: #8b8bff;
+  --needs-soft: rgba(139, 139, 255, 0.12);
+  --filed: #8b8bff;
+  --paper: #09090b;
+  --paper-raised: #161618;
+  --rule: rgba(255, 255, 255, 0.08);
+  --warm-line: rgba(255, 255, 255, 0.08);
+  --warm-ink: #fafafa;
+  --warm-ink-soft: #8a8a93;
+  --warm-ink-quiet: #56565e;
+
+  --line: rgba(255, 255, 255, 0.08);
+  --ink: #fafafa;
+  --ink-soft: #8a8a93;
+  --ink-quiet: #56565e;
+}
+
+:root {
+  color-scheme: light dark;
+}
+html {
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease;
 }
