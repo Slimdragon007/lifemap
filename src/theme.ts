@@ -8,12 +8,8 @@ export function getInitialTheme(): Theme {
   } catch {
     /* ignore */
   }
-  if (
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-color-scheme: light)").matches
-  ) {
-    return "light";
-  }
+  // Default to dark (high-contrast, easier on the eyes). A saved choice always
+  // wins; users can toggle to the high-contrast light theme any time.
   return "dark";
 }
 

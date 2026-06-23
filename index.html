@@ -6,10 +6,7 @@
       (function () {
         try {
           var t = localStorage.getItem("lm-theme");
-          if (t !== "light" && t !== "dark")
-            t = matchMedia("(prefers-color-scheme: light)").matches
-              ? "light"
-              : "dark";
+          if (t !== "light" && t !== "dark") t = "dark"; // default dark (high-contrast)
           document.documentElement.setAttribute("data-theme", t);
         } catch (e) {}
       })();
@@ -22,7 +19,7 @@
 
     <!-- PWA: installs to the home screen as a standalone, branded app (no browser chrome) -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#3e5f50" />
+    <meta name="theme-color" content="#09090b" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />

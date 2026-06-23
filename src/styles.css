@@ -114,6 +114,19 @@ textarea,
     var(--color-canvas-app);
 }
 
+/* Dark theme: the light blue/peach ambient tints would wash the near-black
+   canvas into a pale field. Drop to a single, very subtle indigo glow over the
+   dark canvas so the surface stays calm and easy on the eyes. */
+html[data-theme="dark"] .ambient-field {
+  background:
+    radial-gradient(
+      70% 60% at 50% -10%,
+      rgba(139, 139, 255, 0.06),
+      transparent 70%
+    ),
+    var(--color-canvas-app);
+}
+
 h1,
 h2,
 h3,
@@ -151,6 +164,18 @@ p {
       rgba(255, 255, 255, 0.98) 0%,
       rgba(238, 247, 255, 0.96) 42%,
       rgba(228, 241, 255, 0.92) 100%
+    ),
+    var(--color-canvas-login);
+}
+
+/* Dark theme: replace the white→blue wash with the dark canvas + one faint
+   indigo glow so the auth screen matches the rest of the app in dark mode. */
+html[data-theme="dark"] .login-shell {
+  background:
+    radial-gradient(
+      980px 680px at 16% 14%,
+      rgba(139, 139, 255, 0.1),
+      transparent 62%
     ),
     var(--color-canvas-login);
 }
@@ -485,7 +510,7 @@ h1 {
 
 .topbar p {
   margin-top: 8px;
-  color: #5c6879;
+  color: var(--color-text-secondary);
   font-size: 15px;
   line-height: 1.45;
 }
@@ -547,11 +572,10 @@ h1 {
 .panel,
 .approval-card {
   min-width: 0;
-  border: 1px solid rgba(18, 24, 38, 0.1);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(18px) saturate(1.14);
+  background: var(--color-surface-panel);
+  box-shadow: none;
 }
 
 .panel {
@@ -698,15 +722,17 @@ a:focus-visible {
   margin-top: 14px;
 }
 
+/* Status notices → calm hairline cards (no pastel fills). One accent for
+   info/success, the danger token for errors. Theme-aware via tokens. */
 .analyze-notice {
   margin-top: 12px;
   padding: 11px 12px;
-  border: 1px solid rgba(58, 107, 255, 0.18);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius);
-  color: var(--blue-strong);
-  background: rgba(232, 239, 251, 0.72);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-panel);
   font-size: 13px;
-  font-weight: 760;
+  font-weight: 600;
   line-height: 1.45;
   animation: rise-in 220ms var(--ease) both;
 }
@@ -714,47 +740,45 @@ a:focus-visible {
 .analyze-notice.error {
   display: grid;
   gap: 3px;
-  color: #833f29;
-  border-color: rgba(210, 106, 74, 0.25);
-  background: rgba(246, 224, 214, 0.76);
+  color: var(--color-status-danger);
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-panel);
 }
 
 .analyze-notice.fallback {
   display: grid;
   gap: 7px;
-  color: #4f3d65;
-  border-color: rgba(90, 70, 97, 0.22);
-  background: rgba(246, 241, 248, 0.78);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-subtle);
+  background: var(--color-surface-panel);
 }
 
 .analyze-notice.fallback button {
   justify-self: start;
   min-height: 30px;
   padding: 0 11px;
-  border: 1px solid rgba(18, 24, 38, 0.11);
+  border: 1px solid var(--color-border-strong);
   border-radius: 999px;
-  color: var(--ink);
-  background: rgba(255, 252, 246, 0.9);
-  box-shadow: 0 8px 18px rgba(18, 24, 38, 0.08);
+  color: var(--color-text-primary);
+  background: var(--color-surface-command);
+  box-shadow: none;
   font: inherit;
   font-size: 12px;
   cursor: pointer;
   transition:
     transform 160ms var(--ease),
-    border-color 160ms var(--ease),
-    box-shadow 160ms var(--ease);
+    border-color 160ms var(--ease);
 }
 
 .analyze-notice.fallback button:hover {
   transform: translateY(-1px);
-  border-color: rgba(58, 107, 255, 0.28);
-  box-shadow: 0 11px 24px rgba(18, 24, 38, 0.11);
+  border-color: var(--color-accent-blue);
 }
 
 .analyze-notice.success {
-  color: #3f6246;
-  border-color: rgba(127, 162, 132, 0.24);
-  background: rgba(229, 237, 226, 0.76);
+  color: var(--color-accent-blue);
+  border-color: var(--color-border-subtle);
+  background: var(--color-surface-panel);
 }
 
 .primary-button,
@@ -3387,17 +3411,10 @@ button.nav-item {
   height: auto;
   margin: 0 auto;
   padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.58);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 28px;
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.94),
-    rgba(239, 247, 255, 0.88) 58%,
-    rgba(255, 244, 236, 0.78)
-  );
-  box-shadow:
-    var(--shadow-nav),
-    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  background: var(--color-surface-nav);
+  box-shadow: var(--shadow-nav);
   backdrop-filter: blur(24px) saturate(1.18);
 }
 
@@ -3427,7 +3444,7 @@ button.nav-item {
   padding: 6px 4px;
   border: 1px solid transparent;
   border-radius: 18px;
-  color: #617084;
+  color: var(--color-text-secondary);
   background: transparent;
   font: inherit;
   font-size: 11px;
@@ -3451,15 +3468,8 @@ button.nav-item {
 .bottom-nav .nav-item.active,
 .bottom-nav .nav-item:hover,
 .nav-capture-button.active {
-  color: var(--blue-strong);
-  background:
-    linear-gradient(
-      135deg,
-      rgba(77, 126, 255, 0.12),
-      rgba(255, 255, 255, 0.78) 52%,
-      rgba(255, 242, 232, 0.66)
-    ),
-    rgba(255, 255, 255, 0.66);
+  color: var(--color-accent-blue);
+  background: var(--color-accent-blue-soft);
   box-shadow: none;
   transform: none;
 }
@@ -3471,13 +3481,11 @@ button.nav-item {
   gap: 2px;
   min-height: 70px;
   margin-top: -24px;
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.76);
+  color: var(--color-text-inverse);
+  border-color: var(--color-border-subtle);
   border-radius: 24px;
   background: var(--gradient-action-primary);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.26),
-    0 18px 44px rgba(47, 98, 216, 0.2);
+  box-shadow: var(--shadow-command);
 }
 
 .nav-capture-button.active {
@@ -5447,9 +5455,9 @@ button.nav-item {
     margin: 0;
     padding: 26px 16px;
     border: 0;
-    border-right: 1px solid var(--line);
+    border-right: 1px solid var(--color-border-subtle);
     border-radius: 0;
-    background: rgba(250, 247, 242, 0.72);
+    background: var(--color-surface-nav);
     box-shadow: none;
   }
 
@@ -6295,7 +6303,7 @@ button.nav-item {
 .app-nav-shell {
   width: min(428px, calc(100vw - 28px));
   border-radius: 24px;
-  background: rgba(255, 252, 246, 0.94);
+  background: var(--color-surface-nav);
 }
 
 .bottom-nav {
@@ -6307,7 +6315,7 @@ button.nav-item {
 .nav-capture-button {
   min-height: 50px;
   border-radius: 14px;
-  color: #616b7a;
+  color: var(--color-text-secondary);
   font-size: 9px;
   font-weight: 760;
 }
@@ -6429,6 +6437,18 @@ body {
     var(--color-canvas-app);
 }
 
+/* Dark theme: this later body re-definition would otherwise re-light the page.
+   Keep the near-black canvas with one faint indigo glow. */
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(
+      820px 520px at 18% 0%,
+      rgba(139, 139, 255, 0.06),
+      transparent 66%
+    ),
+    var(--color-canvas-app);
+}
+
 .ambient-field {
   background:
     linear-gradient(
@@ -6446,6 +6466,16 @@ body {
       rgba(217, 120, 82, 0.1),
       transparent 66%
     );
+}
+
+html[data-theme="dark"] .ambient-field {
+  background:
+    radial-gradient(
+      70% 60% at 50% -10%,
+      rgba(139, 139, 255, 0.06),
+      transparent 70%
+    ),
+    var(--color-canvas-app);
 }
 
 .panel,
@@ -6730,21 +6760,10 @@ body {
     margin: 0;
     padding: 30px 18px 26px;
     border: 0;
-    border-right: 1px solid rgba(35, 55, 82, 0.1);
+    border-right: 1px solid var(--color-border-subtle);
     border-radius: 0;
-    background:
-      radial-gradient(
-        280px 220px at 100% 0%,
-        rgba(77, 126, 255, 0.12),
-        transparent 72%
-      ),
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.94),
-        rgba(239, 247, 255, 0.78) 58%,
-        rgba(255, 244, 236, 0.72)
-      );
-    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.72);
+    background: var(--color-surface-nav);
+    box-shadow: none;
     backdrop-filter: blur(18px) saturate(1.08);
     scrollbar-width: none;
   }
@@ -7132,18 +7151,13 @@ body {
 
 @media (max-width: 1099px) {
   .app-nav-shell {
-    border-color: rgba(255, 255, 255, 0.58);
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.94),
-      rgba(239, 247, 255, 0.88) 58%,
-      rgba(255, 244, 236, 0.78)
-    );
+    border-color: var(--color-border-subtle);
+    background: var(--color-surface-nav);
   }
 
   .bottom-nav .nav-item.active,
   .bottom-nav .nav-item:hover {
-    background: rgba(77, 126, 255, 0.1);
+    background: var(--color-accent-blue-soft);
   }
 }
 
@@ -7718,11 +7732,13 @@ body {
    ===================================================================== */
 
 /* Reserve room for the always-pinned dump bar + the fixed bottom-nav shell so
-   the last calm-spine row scrolls clear of both (the bar now sits ~156px up to
-   clear the 3-item nav, so reserve a touch above the bar's top edge). */
+   the last calm-spine row scrolls fully clear of both. The dump bar is now a
+   SOLID full-width bar seated flush directly above the nav shell (see
+   .calm-dumpbar below), so nothing renders behind it. Reserve the nav shell
+   height (~142px incl. its 12px offset) + the dump bar's own height (~70px). */
 .calm-today {
   position: relative;
-  padding-bottom: calc(224px + env(safe-area-inset-bottom));
+  padding-bottom: calc(232px + env(safe-area-inset-bottom));
 }
 
 .calm-today .lowstim-today.calm-spine {
@@ -7788,6 +7804,70 @@ body {
 .calm-section .atlas-progress {
   letter-spacing: 0.06em;
   color: var(--color-text-quiet);
+}
+
+/* ── Shared calm-spine primitives ──────────────────────────────────────
+   A tiny, reusable kit so every surface (Capture result, Review, Family,
+   Settings) reads in the same ElevenLabs register: hairline borders, the
+   page-panel surface, no shadow / blur / lift, uppercase tracked eyebrows.
+   Modelled on .calm-approvals-opener + .atlas-eyebrow + .notebook-row.
+
+   .calm-card  — a hairline container (replaces shadowed/blurred cards).
+   .calm-row   — a flush hairline row (a .notebook-row without the ledger
+                 date column); add `as button` for a tappable variant.
+   .calm-eyebrow — uppercase mono section label (alias of .atlas-eyebrow). */
+.calm-card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-panel);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.calm-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.calm-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  color: var(--color-text-primary);
+}
+
+.calm-row:last-child {
+  border-bottom: 0;
+}
+
+button.calm-row {
+  cursor: pointer;
+  transition: transform var(--motion-press) var(--ease);
+}
+
+button.calm-row:active {
+  transform: scale(0.99);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.calm-row:active {
+    transform: none !important;
+  }
 }
 
 /* ── Section 2 · Needs you ─────────────────────────────────────────── */
@@ -7872,24 +7952,27 @@ body {
   margin-top: 18px;
 }
 
-/* ── Section 4 · Pinned "+" dump bar ───────────────────────────────── */
+/* ── Section 4 · Pinned "+" dump bar ───────────────────────────────────
+   Reseated as a SOLID, full-width bar flush directly above the bottom-nav
+   shell. It carries the page-canvas background + a hairline top rule, so any
+   scroll content (the "Handled today" tiles) is fully occluded as it passes
+   under — fixing the old overlap where a floating pill let tiles slide
+   behind it. The nav shell sits 12px off the bottom and is ~142px tall, so
+   the bar's bottom edge clears it; an inner gap keeps a calm rhythm. */
 .calm-dumpbar {
   position: fixed;
   left: 0;
   right: 0;
-  /* Sit just above the fixed bottom-nav shell. The shell is ~130px tall
-     (nav row + theme toggle) anchored 12px off the viewport bottom, so its
-     top edge is ~142px up; +14px keeps a calm gap above the raised "+". */
-  bottom: calc(156px + env(safe-area-inset-bottom));
-  z-index: 20;
+  bottom: calc(142px + env(safe-area-inset-bottom));
+  z-index: 30;
   display: flex;
   justify-content: center;
-  padding: 0 22px;
-  pointer-events: none;
+  padding: 14px 22px 16px;
+  background: var(--color-canvas-app);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .calm-dumpbar .calm-dumpbar-button {
-  pointer-events: auto;
   width: min(100%, 600px);
   margin: 0;
   align-self: stretch;
@@ -7957,7 +8040,25 @@ body {
 
 @media (max-width: 640px) {
   .calm-dumpbar {
-    padding: 0 16px;
+    padding: 12px 16px 14px;
+  }
+}
+
+/* Desktop (≥1100px): the nav shell is a sticky LEFT sidebar, not a bottom bar,
+   so the dump bar must not float fixed mid-viewport. Drop it back into the
+   Today column flow as a static element, and remove the bottom padding the
+   mobile fixed-bar layout reserved. */
+@media (min-width: 1100px) {
+  .calm-today {
+    padding-bottom: 0;
+  }
+
+  .calm-dumpbar {
+    position: static;
+    margin-top: 38px;
+    padding: 0;
+    background: none;
+    border-top: 0;
   }
 }
 
@@ -8153,7 +8254,7 @@ body {
   margin: 0 0 18px;
   border: 1px solid var(--color-border-subtle);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.56);
+  background: var(--color-surface-panel);
 }
 .notebook-filter-disclosure summary {
   display: flex;
@@ -9403,6 +9504,104 @@ button.notebook-row:active {
   transform: none;
 }
 
+/* Family approval rail shares .approval-* with Review. Mirror Review's calm
+   treatment here so the rail reads as the same hairline ledger (no
+   backdrop-blur, no shadow, no boxed icon) instead of the old glassy cards. */
+.app-shell.view-family .approval-rail,
+.app-shell.view-family .approval-panel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell.view-family .approval-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell.view-family .approval-card {
+  position: relative;
+  margin: 0;
+  padding: 16px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell.view-family .approval-card::before {
+  display: none;
+}
+
+.app-shell.view-family .approval-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.app-shell.view-family .approval-icon,
+.app-shell.view-family .approval-selection-state {
+  display: none;
+}
+
+.app-shell.view-family .approval-card-top {
+  position: absolute;
+  top: 14px;
+  right: 2px;
+  margin: 0;
+  gap: 0;
+}
+
+.app-shell.view-family .approval-card h3 {
+  padding-right: 56px;
+}
+
+.app-shell.view-family .approval-flow-card {
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.app-shell.view-family .switch {
+  background: var(--color-border-strong);
+}
+
+.app-shell.view-family .switch[aria-checked="true"] {
+  background: var(--color-accent-blue);
+}
+
+.app-shell.view-family .queue-status,
+.app-shell.view-family .queue-status.scheduled {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-quiet);
+}
+
+.app-shell.view-family .send-button {
+  background: var(--color-accent-blue);
+  box-shadow: none;
+}
+
+.app-shell.view-family .send-button:disabled {
+  background: var(--color-border-strong);
+  color: var(--color-text-quiet);
+  opacity: 1;
+}
+
 /* The 'Click here to see the full map' button (right column, collapsed state). */
 .see-full-map {
   display: flex;
@@ -9491,10 +9690,12 @@ button.notebook-row:active {
 .feedback-bubble {
   position: fixed;
   right: max(16px, env(safe-area-inset-right));
-  /* FAB above the bottom nav (mobile) / bottom-right corner (desktop has a side
-     nav). Keeps clear of both the nav and the top-right header controls. */
-  bottom: calc(90px + env(safe-area-inset-bottom));
-  z-index: 60;
+  /* FAB clear of BOTH the fixed bottom-nav shell (~142px tall incl. offset)
+     and the solid dump bar seated flush above it (~70px). Sits just above the
+     dump bar's top edge on mobile so nothing collides; desktop has a side nav
+     so the corner is free. */
+  bottom: calc(228px + env(safe-area-inset-bottom));
+  z-index: 50;
   display: grid;
   place-items: center;
   width: 44px;
@@ -9517,10 +9718,21 @@ button.notebook-row:active {
   transform: scale(0.96);
 }
 
+/* Desktop (≥1100px): the nav is a left sidebar and there's no bottom dump bar,
+   so the FAB + its panel return to the bottom-right corner. */
+@media (min-width: 1100px) {
+  .feedback-bubble {
+    bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  .feedback-panel {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
+
 .feedback-panel {
   position: fixed;
   right: max(16px, env(safe-area-inset-right));
-  bottom: calc(146px + env(safe-area-inset-bottom));
+  bottom: calc(284px + env(safe-area-inset-bottom));
   z-index: 60;
   display: flex;
   flex-direction: column;
@@ -9689,8 +9901,8 @@ button.notebook-row:active {
 }
 .atlas-task.needs .atlas-node {
   border: none;
-  background: radial-gradient(circle at 35% 30%, #c5544a, #d97757);
-  box-shadow: 0 0 0 5px rgba(217, 119, 87, 0.16);
+  background: var(--color-accent-blue);
+  box-shadow: 0 0 0 5px var(--color-accent-blue-soft);
 }
 .atlas-task-card {
   flex: 1;
@@ -9715,9 +9927,9 @@ button.notebook-row:active {
 }
 .atlas-task.needs .atlas-task-card {
   padding: 14px;
-  border: 1px solid rgba(217, 119, 87, 0.28);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-panel);
-  background: rgba(217, 119, 87, 0.07);
+  background: var(--color-accent-blue-soft);
 }
 .atlas-task-text {
   font-size: 16px;
@@ -9725,7 +9937,7 @@ button.notebook-row:active {
   color: var(--color-text-primary);
 }
 .atlas-task.done .atlas-task-text {
-  color: #9aa6b2;
+  color: var(--color-text-quiet);
   text-decoration: line-through;
 }
 .atlas-needs-pill {
@@ -9734,8 +9946,8 @@ button.notebook-row:active {
   font-size: 10px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: var(--color-accent-clay);
-  background: rgba(217, 119, 87, 0.14);
+  color: var(--color-accent-blue);
+  background: var(--color-accent-blue-soft);
   padding: 3px 9px;
   border-radius: 999px;
 }
@@ -9743,15 +9955,9 @@ button.notebook-row:active {
 .atlas-branch-panel {
   margin-top: 4px;
   padding: 26px 18px;
-  border: 1px solid #d7e2ee;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 20px;
-  background:
-    radial-gradient(
-      120% 90% at 50% 0%,
-      rgba(231, 242, 253, 0.55),
-      rgba(248, 251, 255, 0.2)
-    ),
-    var(--color-surface-panel);
+  background: var(--color-surface-panel);
   box-shadow: var(--shadow-panel);
 }
 .atlas-branch {
@@ -9841,12 +10047,12 @@ button.notebook-row:active {
 }
 .chat-bubble.ai > p,
 .chat-bubble.ai .capture-result {
-  padding: 13px 15px;
+  padding: 14px 16px;
   border: 1px solid var(--color-border-subtle);
   border-radius: 18px 18px 18px 6px;
   background: var(--color-surface-panel);
   color: var(--color-text-primary);
-  box-shadow: var(--shadow-row);
+  box-shadow: none;
 }
 .chat-bubble.user {
   align-self: flex-end;
@@ -9912,9 +10118,10 @@ button.notebook-row:active {
 .capture-result-eyebrow {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-text-quiet);
+  color: var(--color-text-secondary);
 }
 .capture-result-summary {
   margin: 0;
@@ -9922,6 +10129,9 @@ button.notebook-row:active {
   font-size: 14px;
   line-height: 1.45;
 }
+/* Relief grid → calm-spine: hairline cards, no shadow / hover-lift, quiet
+   monochrome icons, mono count. The "Done, here's what I did" payoff reads as
+   a tidy ledger instead of four coloured tiles. */
 .capture-relief-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -9934,51 +10144,52 @@ button.notebook-row:active {
     "icon count"
     "label label"
     "detail detail";
-  gap: 5px 8px;
-  min-height: 112px;
-  padding: 12px;
+  gap: 6px 8px;
+  min-height: 104px;
+  padding: 14px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: 14px;
-  background: var(--color-surface-row);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-panel);
   color: var(--color-text-primary);
   text-align: left;
-  box-shadow: var(--shadow-row);
+  box-shadow: none;
+  transition: border-color var(--motion-state) var(--ease);
 }
 .capture-relief-card:hover:not(:disabled) {
-  border-color: var(--color-accent-blue);
-  box-shadow: var(--shadow-row-hover);
-  transform: translateY(-1px);
+  border-color: var(--color-border-strong);
+  box-shadow: none;
+  transform: none;
 }
 .capture-relief-card:disabled {
   cursor: not-allowed;
-  opacity: 0.58;
+  opacity: 0.5;
   box-shadow: none;
 }
 .capture-relief-icon {
   grid-area: icon;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  background: var(--color-accent-sky);
-  color: var(--color-accent-blue);
+  width: 28px;
+  height: 28px;
+  border-radius: 0;
+  background: none;
+  color: var(--color-text-quiet);
 }
 .capture-relief-count {
   grid-area: count;
   align-self: center;
   justify-self: end;
   color: var(--color-text-strong);
-  font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 0.9;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
 }
 .capture-relief-label {
   grid-area: label;
-  color: var(--color-text-primary);
+  color: var(--color-text-strong);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .capture-relief-detail {
   grid-area: detail;
@@ -9987,8 +10198,8 @@ button.notebook-row:active {
   line-height: 1.35;
 }
 .capture-relief-card-review .capture-relief-icon {
-  background: var(--color-accent-warm-soft);
-  color: var(--color-accent-clay);
+  background: none;
+  color: var(--color-text-quiet);
 }
 .capture-suggested-route {
   display: flex;
@@ -10013,9 +10224,12 @@ button.notebook-row:active {
   }
 }
 .capture-result-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-accent-blue);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
 }
 .capture-result-list {
   margin: 6px 0 0;
@@ -10033,11 +10247,11 @@ button.notebook-row:active {
 }
 .capture-pill {
   font-size: 12.5px;
-  color: var(--color-accent-clay);
-  background: var(--color-accent-warm-soft);
-  border: 1px solid rgba(217, 119, 87, 0.24);
+  color: var(--color-text-secondary);
+  background: none;
+  border: 1px solid var(--color-border-subtle);
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 .capture-result-foot {
   margin: 2px 0 0;
