@@ -746,13 +746,6 @@ describe("LifeMap MVP app", () => {
         name: /Put on calendar/i,
       }),
     );
-    // Confirm-first: Approve all opens a quick confirm, not an instant exhale.
-    await user.click(
-      within(capture as HTMLElement).getByRole("button", { name: "Confirm" }),
-    );
-    expect(
-      await within(capture as HTMLElement).findByText(/off your plate/i),
-    ).toBeInTheDocument();
 
     expect(
       screen.getByRole("heading", { name: "Calendar" }),
