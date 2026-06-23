@@ -10501,6 +10501,73 @@ button.notebook-row:active {
   background: var(--color-accent-sky);
   color: var(--color-accent-blue-strong);
 }
+.onboarding-people {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.onboarding-person {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.onboarding-person-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 13px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-panel);
+  font: inherit;
+  font-size: 15px;
+  color: var(--color-text-primary);
+}
+.onboarding-person-role {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-panel);
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+.onboarding-person-name:focus-visible,
+.onboarding-person-role:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+.onboarding-person-remove {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-panel);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.onboarding-add-person {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 9px 15px;
+  border: 1.5px dashed var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
 .onboarding-actions-stack {
   display: flex;
   flex-direction: column;

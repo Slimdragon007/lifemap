@@ -3,19 +3,45 @@ import {
   Check,
   ChevronLeft,
   Map as MapIcon,
+  Plus,
   Sparkles,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 
 // First-run onboarding: a calm 5-step, skippable wizard that ends with the
 // user's map "assembling". No gamification — progress is framed, never deficit.
 
+export type OnboardingRole = "adult" | "child" | "pet";
+
+export type OnboardingPerson = {
+  name: string;
+  role: OnboardingRole;
+};
+
 type OnboardingViewProps = {
-  onComplete: (result: { name: string; areas: string[] }) => void;
+  onComplete: (result: {
+    name: string;
+    areas: string[];
+    people: OnboardingPerson[];
+  }) => void;
   onSkip: () => void;
 };
 
-const PEOPLE = ["You", "Partner", "A child", "Another child", "A pet"];
+// Quick-add chips: each seeds one person with a sensible default role. The list
+// is no longer a hard cap — "+ Add another" lets any number of people through.
+const PEOPLE_CHIPS: ReadonlyArray<{ label: string; role: OnboardingRole }> = [
+  { label: "You", role: "adult" },
+  { label: "Partner", role: "adult" },
+  { label: "A child", role: "child" },
+  { label: "A pet", role: "pet" },
+];
+
+const ROLE_OPTIONS: ReadonlyArray<{ value: OnboardingRole; label: string }> = [
+  { value: "adult", label: "Adult" },
+  { value: "child", label: "Child" },
+  { value: "pet", label: "Pet" },
+];
 
 // Money is framed as "Bills & dates" (due-dates only) — never a bank connection.
 const AREAS = [
@@ -36,7 +62,11 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
   const [showIntro, setShowIntro] = useState(true);
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
-  const [people, setPeople] = useState<Set<string>>(new Set(["You"]));
+  // "Your people" is a structured, scalable list (not a fixed Set) so any number
+  // of adults/children/pets persist into family_members later. Seeded with "You".
+  const [people, setPeople] = useState<OnboardingPerson[]>([
+    { name: "You", role: "adult" },
+  ]);
   const [areas, setAreas] = useState<Set<string>>(new Set());
 
   const toggle = (
@@ -53,10 +83,46 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
     update(next);
   };
 
+  // Quick chips toggle a single person of that label in/out of the list.
+  const toggleChip = (label: string, role: OnboardingRole) => {
+    setPeople((current) => {
+      const exists = current.some((person) => person.name === label);
+      if (exists) {
+        return current.filter((person) => person.name !== label);
+      }
+      return [...current, { name: label, role }];
+    });
+  };
+
+  const addPerson = () =>
+    setPeople((current) => [...current, { name: "", role: "child" }]);
+
+  const updatePerson = (index: number, patch: Partial<OnboardingPerson>) =>
+    setPeople((current) =>
+      current.map((person, i) =>
+        i === index ? { ...person, ...patch } : person,
+      ),
+    );
+
+  const removePerson = (index: number) =>
+    setPeople((current) => current.filter((_, i) => i !== index));
+
+  // Chips reflect a person added with that exact default label; custom rows
+  // (from "+ Add another") never light a chip.
+  const chipActive = (label: string) =>
+    people.some((person) => person.name === label);
+
   const back = () => setStep((s) => Math.max(1, s - 1));
   const next = () => setStep((s) => Math.min(TOTAL_STEPS, s + 1));
   const finish = () =>
-    onComplete({ name: name.trim(), areas: Array.from(areas) });
+    onComplete({
+      name: name.trim(),
+      areas: Array.from(areas),
+      // Drop empty custom rows the user added but never named.
+      people: people
+        .map((person) => ({ ...person, name: person.name.trim() }))
+        .filter((person) => person.name.length > 0),
+    });
 
   const chosenAreas = areas.size > 0 ? Array.from(areas) : ["School", "Health"];
 
@@ -162,21 +228,75 @@ function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
             <>
               <h1 id="onboarding-title">Your people</h1>
               <p className="onboarding-lede">
-                Who&apos;s in your map? Tap everyone you carry mental load for.
+                Tap everyone you carry mental load for — you can add more
+                anytime in your Vault.
               </p>
               <div className="onboarding-chips">
-                {PEOPLE.map((person) => (
+                {PEOPLE_CHIPS.map((chip) => (
                   <button
-                    aria-pressed={people.has(person)}
-                    className={`onboarding-chip${people.has(person) ? " on" : ""}`}
-                    key={person}
+                    aria-pressed={chipActive(chip.label)}
+                    className={`onboarding-chip${chipActive(chip.label) ? " on" : ""}`}
+                    key={chip.label}
                     type="button"
-                    onClick={() => toggle(people, person, setPeople)}
+                    onClick={() => toggleChip(chip.label, chip.role)}
                   >
-                    {person}
+                    {chip.label}
                   </button>
                 ))}
               </div>
+              {people.length > 0 ? (
+                <ul
+                  className="onboarding-people"
+                  aria-label="People in your map"
+                >
+                  {people.map((person, index) => (
+                    <li className="onboarding-person" key={`person-${index}`}>
+                      <input
+                        aria-label={`Name for person ${index + 1}`}
+                        className="onboarding-person-name"
+                        placeholder="Name"
+                        type="text"
+                        value={person.name}
+                        onChange={(event) =>
+                          updatePerson(index, { name: event.target.value })
+                        }
+                      />
+                      <select
+                        aria-label={`Role for person ${index + 1}`}
+                        className="onboarding-person-role"
+                        value={person.role}
+                        onChange={(event) =>
+                          updatePerson(index, {
+                            role: event.target.value as OnboardingRole,
+                          })
+                        }
+                      >
+                        {ROLE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        aria-label={`Remove person ${index + 1}`}
+                        className="onboarding-person-remove"
+                        type="button"
+                        onClick={() => removePerson(index)}
+                      >
+                        <X size={15} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <button
+                className="onboarding-add-person"
+                type="button"
+                onClick={addPerson}
+              >
+                <Plus size={15} />
+                Add another
+              </button>
             </>
           ) : null}
 

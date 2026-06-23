@@ -47,7 +47,7 @@ import {
 } from "./storage";
 import CalendarView from "./CalendarView";
 import AuthScreen from "./auth-screen";
-import OnboardingView from "./onboarding-view";
+import OnboardingView, { type OnboardingPerson } from "./onboarding-view";
 import SetNewPasswordScreen from "./set-new-password-screen";
 import FeedbackBubble from "./feedback-bubble";
 import ModalBackdrop from "./modal-backdrop";
@@ -63,10 +63,12 @@ import { sampleCollections } from "./sampleData";
 import {
   buildCalendarEventsFromAnalysis,
   buildVaultItemsFromAnalysis,
+  type FamilyMember,
 } from "./familyOS";
 import {
   loadFamilyCollections,
   upsertFamilyEvent,
+  upsertFamilyMember,
   upsertVaultItem,
   type FamilyCollections,
   type FamilyDataClient,
@@ -227,6 +229,31 @@ type CaptureRoute = {
 
 // Initials for an onboarding-supplied display name (first letters of up to two
 // words), matching the email-derived style in viewer.ts.
+// Map an onboarding role to the FamilyMember.profileType + a human display role.
+const ONBOARDING_ROLE_LABEL: Record<OnboardingPerson["role"], string> = {
+  adult: "Adult",
+  child: "Child",
+  pet: "Pet",
+};
+
+// Build a durable FamilyMember from a wizard person. The user types a name in
+// the wizard (placeholder rows are dropped before this), and can refine details
+// in Vault later. A real uuid id lets the row persist as-is in real mode.
+function onboardingPersonToFamilyMember(
+  person: OnboardingPerson,
+): FamilyMember {
+  const name = person.name.trim();
+  return {
+    id: crypto.randomUUID(),
+    name,
+    role: ONBOARDING_ROLE_LABEL[person.role],
+    initials: initialsFromName(name),
+    profileType: person.role,
+    details: [],
+    careNotes: [],
+  };
+}
+
 function initialsFromName(name: string): string {
   const tokens = name.split(/\s+/).filter(Boolean);
   if (tokens.length === 0) {
@@ -936,9 +963,14 @@ function App() {
   }
 
   // First-run onboarding: seed setup from the user's chosen areas + name (when
-  // they finish the wizard), mark seen, and drop the user into Today. Skipping
-  // passes no result, so nothing is seeded.
-  function completeOnboarding(result?: { name: string; areas: string[] }) {
+  // they finish the wizard), persist the chosen people as family members, mark
+  // seen, and drop the user into Today. Skipping passes no result, so nothing
+  // is seeded.
+  function completeOnboarding(result?: {
+    name: string;
+    areas: string[];
+    people: OnboardingPerson[];
+  }) {
     if (result) {
       const profile = setupProfileFromOnboardingAreas(result.areas);
       setSetupProfile(profile);
@@ -954,6 +986,9 @@ function App() {
           // Storage can be unavailable (private mode); name just won't persist.
         }
       }
+      if (result.people.length > 0) {
+        void persistOnboardingPeople(result.people);
+      }
     }
     try {
       window.localStorage.setItem("lifemap-onboarded", "1");
@@ -961,6 +996,40 @@ function App() {
       // Storage can be unavailable (private mode); the flow still completes.
     }
     setView("today");
+  }
+
+  // Turn the wizard's chosen people into family_members. Real mode persists each
+  // through upsertFamilyMember (encrypted, RLS-scoped) then joins the saved row
+  // into the in-memory collection — mirroring materializeSuggestions. Demo mode
+  // just grows the local collection. Names are placeholders the user renames in
+  // Vault later.
+  async function persistOnboardingPeople(
+    people: OnboardingPerson[],
+  ): Promise<void> {
+    if (isSupabaseConfigured && session) {
+      const userId = session.user.id;
+      const client = getSupabase() as unknown as FamilyDataClient;
+      // Derive the per-user key BEFORE writing so details/care_notes encrypt at
+      // rest (see materializeSuggestions for the same guard).
+      const crypto = await ensureFieldCrypto(session.access_token);
+      for (const person of people) {
+        const member = onboardingPersonToFamilyMember(person);
+        const saved = await upsertFamilyMember(userId, member, client, crypto);
+        if (saved.ok) {
+          setCollections((current) => ({
+            ...current,
+            familyMembers: [...current.familyMembers, saved.item],
+          }));
+        }
+      }
+      return;
+    }
+    // Demo / no-Supabase mode: keep it local.
+    const members = people.map(onboardingPersonToFamilyMember);
+    setCollections((current) => ({
+      ...current,
+      familyMembers: [...current.familyMembers, ...members],
+    }));
   }
 
   // Today map-hero: tapping a trunk node checks the task off (or un-checks it).
