@@ -3410,10 +3410,9 @@ button.nav-item {
 
 .bottom-nav {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) 72px repeat(
-      3,
-      minmax(0, 1fr)
-    );
+  /* Today · "+" capture · Settings — one side item, the raised capture
+     button, one side item. (Collapsed from the old 6-tab grid.) */
+  grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
   gap: 4px;
   align-items: end;
 }
@@ -5396,10 +5395,7 @@ button.nav-item {
   }
 
   .bottom-nav {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) 64px repeat(
-        3,
-        minmax(0, 1fr)
-      );
+    grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
   }
 
   .bottom-nav .nav-item {
@@ -6303,10 +6299,7 @@ button.nav-item {
 }
 
 .bottom-nav {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) 58px repeat(
-      3,
-      minmax(0, 1fr)
-    );
+  grid-template-columns: minmax(0, 1fr) 58px minmax(0, 1fr);
   gap: 2px;
 }
 
@@ -7724,10 +7717,12 @@ body {
    html[data-theme] automatically (no hard-coded palette).
    ===================================================================== */
 
-/* Reserve room for the always-pinned dump bar at the bottom. */
+/* Reserve room for the always-pinned dump bar + the fixed bottom-nav shell so
+   the last calm-spine row scrolls clear of both (the bar now sits ~156px up to
+   clear the 3-item nav, so reserve a touch above the bar's top edge). */
 .calm-today {
   position: relative;
-  padding-bottom: calc(132px + env(safe-area-inset-bottom));
+  padding-bottom: calc(224px + env(safe-area-inset-bottom));
 }
 
 .calm-today .lowstim-today.calm-spine {
@@ -7882,7 +7877,10 @@ body {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(70px + env(safe-area-inset-bottom));
+  /* Sit just above the fixed bottom-nav shell. The shell is ~130px tall
+     (nav row + theme toggle) anchored 12px off the viewport bottom, so its
+     top edge is ~142px up; +14px keeps a calm gap above the raised "+". */
+  bottom: calc(156px + env(safe-area-inset-bottom));
   z-index: 20;
   display: flex;
   justify-content: center;
@@ -7914,6 +7912,47 @@ body {
   border-radius: var(--radius-pill);
   color: var(--color-text-inverse);
   background: var(--color-accent-blue);
+}
+
+/* Quiet "Calendar · Vault" contextual entry row in the Handled footer — the
+   demoted views are one calm tap away now that the bottom-nav is 3 surfaces.
+   Near-monochrome, hairline, no card chrome (matches the ElevenLabs spine). */
+.calm-quiet-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.calm-quiet-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-text-quiet);
+  cursor: pointer;
+  transition: color var(--motion-state) var(--ease);
+}
+
+.calm-quiet-link svg {
+  color: var(--color-text-quiet);
+}
+
+.calm-quiet-link:hover,
+.calm-quiet-link:focus-visible {
+  color: var(--color-text-strong);
+}
+
+.calm-quiet-dot {
+  color: var(--color-text-quiet);
+  user-select: none;
 }
 
 @media (max-width: 640px) {

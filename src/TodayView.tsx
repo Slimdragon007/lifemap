@@ -1,5 +1,7 @@
 import {
+  Archive,
   Bell,
+  CalendarDays,
   Check,
   ChevronDown,
   ChevronRight,
@@ -36,6 +38,11 @@ type TodayViewProps = {
   onOpenApprovals: () => void;
   onOpenPriority: (priority: BriefPriority) => void;
   onTogglePriorityDone: (id: string) => void;
+  // Optional contextual openers for the views demoted out of the bottom-nav.
+  // Appended (optional) so the 19-prop contract that TodayView.test asserts
+  // stays unchanged; App.tsx wires them to setView("calendar"/"vault").
+  onOpenCalendar?: () => void;
+  onOpenVault?: () => void;
 };
 
 function greetingForHour(hour: number): string {
@@ -62,6 +69,8 @@ function TodayView({
   onOpenApprovals,
   onOpenPriority,
   onTogglePriorityDone,
+  onOpenCalendar,
+  onOpenVault,
 }: TodayViewProps) {
   const [showMore, setShowMore] = useState(false);
 
@@ -320,6 +329,39 @@ function TodayView({
             error={error}
             onOpenBrainDump={onOpenBrainDump}
           />
+
+          {/* Quiet contextual entry to the views demoted out of the bottom-nav
+              (the primary nav is now Today · + · Settings). Calendar + Vault
+              stay one tap away here; Review folds into "Needs you" above. */}
+          {onOpenCalendar || onOpenVault ? (
+            <nav className="calm-quiet-links" aria-label="More LifeMap views">
+              {onOpenCalendar ? (
+                <button
+                  className="calm-quiet-link"
+                  type="button"
+                  onClick={onOpenCalendar}
+                >
+                  <CalendarDays size={14} />
+                  <span>Calendar</span>
+                </button>
+              ) : null}
+              {onOpenCalendar && onOpenVault ? (
+                <span className="calm-quiet-dot" aria-hidden="true">
+                  ·
+                </span>
+              ) : null}
+              {onOpenVault ? (
+                <button
+                  className="calm-quiet-link"
+                  type="button"
+                  onClick={onOpenVault}
+                >
+                  <Archive size={14} />
+                  <span>Vault</span>
+                </button>
+              ) : null}
+            </nav>
+          ) : null}
         </section>
       </div>
 

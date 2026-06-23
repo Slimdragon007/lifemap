@@ -15,6 +15,7 @@ import {
   MessageSquare,
   Sparkles,
   Send,
+  Settings,
   ShieldCheck,
   UserRoundCheck,
   UsersRound,
@@ -1080,14 +1081,6 @@ function App() {
               <span>Today</span>
             </button>
             <button
-              className={view === "calendar" ? "nav-item active" : "nav-item"}
-              type="button"
-              onClick={() => setView("calendar")}
-            >
-              <CalendarDays size={18} />
-              <span>Calendar</span>
-            </button>
-            <button
               aria-label="Capture"
               className={
                 view === "capture"
@@ -1101,35 +1094,27 @@ function App() {
               <span>Capture</span>
             </button>
             <button
-              className={view === "vault" ? "nav-item active" : "nav-item"}
-              type="button"
-              onClick={() => setView("vault")}
-            >
-              <Archive size={18} />
-              <span>Vault</span>
-            </button>
-            <button
-              className={view === "review" ? "nav-item active" : "nav-item"}
-              type="button"
-              onClick={() => setView("review")}
-            >
-              <Bell size={18} />
-              <span>Review</span>
-            </button>
-            <button
               className={
+                // Settings is the home for every non-primary surface: its own
+                // hub plus the views demoted out of the bottom-nav (Calendar,
+                // Vault, Review) and the founder tools reached through it.
                 view === "more" ||
+                view === "calendar" ||
+                view === "vault" ||
+                view === "review" ||
                 view === "family" ||
                 view === "setup" ||
-                view === "launchPlan"
+                view === "launchPlan" ||
+                view === "privacy" ||
+                view === "howItWorks"
                   ? "nav-item active"
                   : "nav-item"
               }
               type="button"
               onClick={() => setView("more")}
             >
-              <Map size={18} />
-              <span>More</span>
+              <Settings size={18} />
+              <span>Settings</span>
             </button>
           </nav>
 
@@ -1182,6 +1167,8 @@ function App() {
             onOpenApprovals={() => setView("review")}
             onOpenBrief={() => setIsBriefOpen(true)}
             onOpenBrainDump={openCapture}
+            onOpenCalendar={() => setView("calendar")}
+            onOpenVault={() => setView("vault")}
             onOpenFamilyMap={() => setView("family")}
             onOpenPriority={setSelectedPriority}
             onTogglePriorityDone={togglePriorityDone}
@@ -1517,6 +1504,8 @@ function App() {
             sessionEmail={session?.user.email}
             onOpenFamilyMap={() => setView("family")}
             onOpenCapture={() => openCapture()}
+            onOpenCalendar={() => setView("calendar")}
+            onOpenVault={() => setView("vault")}
             onOpenSetup={() => setView("setup")}
             onOpenLaunchPlan={() => setView("launchPlan")}
             onOpenApprovals={() => setView("review")}
@@ -1957,6 +1946,8 @@ function MoreView({
   sessionEmail,
   onOpenFamilyMap,
   onOpenCapture,
+  onOpenCalendar,
+  onOpenVault,
   onOpenSetup,
   onOpenLaunchPlan,
   onOpenApprovals,
@@ -1970,6 +1961,8 @@ function MoreView({
   sessionEmail?: string;
   onOpenFamilyMap: () => void;
   onOpenCapture: () => void;
+  onOpenCalendar: () => void;
+  onOpenVault: () => void;
   onOpenSetup: () => void;
   onOpenLaunchPlan: () => void;
   onOpenApprovals: () => void;
@@ -2070,6 +2063,36 @@ function MoreView({
               <span>
                 Paste messy context and route it to calendar, vault, or review.
               </span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
+          <button
+            aria-label="Open calendar"
+            className="more-row"
+            type="button"
+            onClick={onOpenCalendar}
+          >
+            <span className="more-row-icon">
+              <CalendarDays size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Calendar</strong>
+              <span>Due dates, reminders, and what LifeMap put on a date.</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
+          <button
+            aria-label="Open vault"
+            className="more-row"
+            type="button"
+            onClick={onOpenVault}
+          >
+            <span className="more-row-icon">
+              <Archive size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Vault</strong>
+              <span>IDs, records, and documents kept behind one door.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>

@@ -90,7 +90,7 @@ const aiBrief: DailyBrief = {
 };
 
 async function openFamilyMap(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("button", { name: "More" }));
+  await user.click(screen.getByRole("button", { name: "Settings" }));
   await user.click(
     screen.getByRole("button", { name: "Open family admin map" }),
   );
@@ -121,19 +121,55 @@ describe("LifeMap MVP app", () => {
     expect(
       screen.getByRole("button", { name: "Capture anything" }),
     ).toBeInTheDocument();
+    // Primary nav is now Today · "+" Capture · Settings — Calendar, Vault, and
+    // Review are demoted to contextual entries (Today affordances + Settings),
+    // so they no longer appear as bottom-nav tabs.
+    const primaryNav = screen.getByRole("navigation", {
+      name: "Household sections",
+    });
+    expect(
+      within(primaryNav).getByRole("button", { name: "Today" }),
+    ).toBeInTheDocument();
+    expect(
+      within(primaryNav).getByRole("button", { name: "Capture" }),
+    ).toBeInTheDocument();
+    expect(
+      within(primaryNav).getByRole("button", { name: "Settings" }),
+    ).toBeInTheDocument();
+    expect(
+      within(primaryNav).queryByRole("button", { name: "Calendar" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(primaryNav).queryByRole("button", { name: "Vault" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(primaryNav).queryByRole("button", { name: "Review" }),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Capture" }));
     expect(
       screen.getByRole("heading", { name: "Brain dump" }),
     ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Back to Today" }));
+
+    // Calendar + Vault are reachable from the quiet Today link row.
     await user.click(screen.getByRole("button", { name: "Calendar" }));
     expect(
       screen.getByRole("heading", { name: "Calendar" }),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Vault" }));
+
+    // ...and as a fallback from the Settings hub list.
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Open vault" }));
     expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Review" }));
+
+    // Review folds into Today's "Needs you" opener.
+    await user.click(screen.getByRole("button", { name: "Today" }));
+    await user.click(
+      screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
+    );
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "More" }));
+
+    await user.click(screen.getByRole("button", { name: "Settings" }));
     expect(
       screen.getByRole("heading", { name: "Settings" }),
     ).toBeInTheDocument();
@@ -182,7 +218,7 @@ describe("LifeMap MVP app", () => {
     const { unmount } = render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("button", { name: "Settings" }));
     await user.click(screen.getByRole("button", { name: "Open launch plan" }));
 
     expect(
@@ -208,7 +244,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("button", { name: "Settings" }));
     await user.click(screen.getByRole("button", { name: "Open launch plan" }));
 
     expect(
@@ -224,7 +260,7 @@ describe("LifeMap MVP app", () => {
     const { unmount } = render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("button", { name: "Settings" }));
 
     expect(
       screen.getByRole("button", { name: "Open guided setup" }),
@@ -267,7 +303,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("button", { name: "Settings" }));
     await user.click(screen.getByRole("button", { name: "Open guided setup" }));
 
     expect(screen.getByLabelText("Children")).toHaveValue(2);
@@ -297,7 +333,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("button", { name: "Settings" }));
     await user.click(screen.getByRole("button", { name: "Open guided setup" }));
 
     await user.clear(screen.getByLabelText("Children"));
@@ -543,13 +579,17 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    // Review is demoted out of the bottom-nav; reach it from Today's "Needs you".
+    await user.click(
+      screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
+    );
 
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
     expect(
       screen.getByRole("region", { name: "Approval queue" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Review" })).toHaveClass(
+    // Review has no tab of its own now — Settings is the active primary surface.
+    expect(screen.getByRole("button", { name: "Settings" })).toHaveClass(
       "active",
     );
     expect(screen.queryByLabelText("Approval status")).not.toBeInTheDocument();
@@ -764,6 +804,8 @@ describe("LifeMap MVP app", () => {
 
     render(<App />);
 
+    // Calendar + Vault are demoted to contextual entries: Calendar via Today's
+    // quiet link row, Vault via the Settings hub list.
     await user.click(screen.getByRole("button", { name: "Calendar" }));
 
     expect(
@@ -772,7 +814,8 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByText("Field trip permission slip")).toBeInTheDocument();
     expect(screen.getByText("Missing: Parent signature")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Vault" }));
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Open vault" }));
 
     expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
     expect(screen.getByText("Documents & records")).toBeInTheDocument();
@@ -791,6 +834,7 @@ describe("LifeMap MVP app", () => {
 
     const firstRender = render(<App />);
 
+    // Calendar opens from Today's quiet contextual link row.
     await user.click(screen.getByRole("button", { name: "Calendar" }));
 
     expect(screen.getByText("Needs review")).toBeInTheDocument();
@@ -806,8 +850,9 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Calendar" }));
     expect(screen.getByText("Saved to LifeMap")).toBeInTheDocument();
 
-    // Vault never carries the analysis gap as a record.
-    await user.click(screen.getByRole("button", { name: "Vault" }));
+    // Vault never carries the analysis gap as a record (reached via Settings).
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Open vault" }));
     expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
     expect(screen.getByText("Documents & records")).toBeInTheDocument();
   });
@@ -950,7 +995,9 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(
+      screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
+    );
 
     const queue = screen.getByRole("region", { name: "Approval queue" });
     expect(within(queue).getByText("Step 1 of 3")).toBeInTheDocument();
@@ -971,7 +1018,9 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(
+      screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
+    );
 
     const queue = screen.getByRole("region", { name: "Approval queue" });
     expect(
@@ -1010,7 +1059,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("button", { name: "Settings" }));
     await user.click(screen.getByRole("button", { name: "Reset demo" }));
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
@@ -1022,7 +1071,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "More" }));
+    await user.click(screen.getByRole("button", { name: "Settings" }));
     await user.click(
       screen.getByRole("button", { name: "Open privacy and security" }),
     );
@@ -1054,7 +1103,9 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(
+      screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
+    );
 
     const queue = screen.getByRole("region", { name: "Approval queue" });
     const reminderToggle = within(queue).getByRole("switch", {
@@ -1106,6 +1157,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    // Vault is reachable from Today's quiet contextual link row.
     await user.click(screen.getByRole("button", { name: "Vault" }));
 
     expect(screen.queryByText("Westview Elementary")).not.toBeInTheDocument();
@@ -1399,7 +1451,9 @@ describe("LifeMap MVP app", () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(
+      screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
+    );
     await user.click(screen.getByRole("button", { name: "Review 1 selected" }));
     await user.click(screen.getByRole("button", { name: "Approve & stage" }));
 
