@@ -9980,6 +9980,13 @@ button.notebook-row:active {
   }
 }
 
+.theme-toggle-floating {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 50;
+}
+
 .theme-toggle {
   display: grid;
   place-items: center;

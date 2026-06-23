@@ -996,6 +996,9 @@ function App() {
     return (
       <main className="login-shell">
         <div className="ambient-field" aria-hidden="true" />
+        <div className="theme-toggle-floating">
+          <ThemeToggle />
+        </div>
         <section className="login-panel" aria-labelledby="login-title">
           <div className="login-brand-row">
             <span className="brand-mark login-mark">

@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { ThemeToggle } from "./ThemeToggle";
 import { getSupabase } from "./supabaseClient";
 
 type Mode = "signin" | "signup" | "reset";
@@ -79,6 +80,9 @@ function AuthScreen() {
 
   return (
     <main className="auth">
+      <div className="theme-toggle-floating">
+        <ThemeToggle />
+      </div>
       <section className="auth-card" aria-labelledby="auth-title">
         <span className="auth-mark">LifeMap</span>
         <h1 id="auth-title" className="auth-title">
