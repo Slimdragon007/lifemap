@@ -4,6 +4,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  MessageCircle,
   Plus,
   RefreshCw,
 } from "lucide-react";
@@ -35,6 +36,7 @@ type TodayViewProps = {
   onGenerateBrief: () => void;
   onOpenBrief: () => void;
   onOpenBrainDump: (rawIntake?: string) => void;
+  onOpenFeedback: () => void;
   onOpenFamilyMap: () => void;
   onOpenImportantDates: () => void;
   onOpenSetup: () => void;
@@ -74,6 +76,7 @@ function TodayView({
   onGenerateBrief,
   onOpenBrief,
   onOpenBrainDump,
+  onOpenFeedback,
   onOpenImportantDates,
   onOpenSetup,
   onOpenSetupBucket,
@@ -190,6 +193,14 @@ function TodayView({
             >
               <Bell size={15} />
               {approvalCount > 0 ? <span aria-hidden="true" /> : null}
+            </button>
+            <button
+              aria-label="Send feedback"
+              className="atlas-icon-button"
+              type="button"
+              onClick={onOpenFeedback}
+            >
+              <MessageCircle size={15} />
             </button>
             <ThemeToggle />
             <span className="atlas-avatar" aria-label={identity.name}>

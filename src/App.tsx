@@ -52,7 +52,7 @@ import CalendarView from "./CalendarView";
 import AuthScreen from "./auth-screen";
 import OnboardingView, { type OnboardingPerson } from "./onboarding-view";
 import SetNewPasswordScreen from "./set-new-password-screen";
-import { FeedbackPanel, FeedbackTrigger } from "./feedback-bubble";
+import { FeedbackPanel } from "./feedback-bubble";
 import ModalBackdrop from "./modal-backdrop";
 import BucketDetailView from "./BucketDetailView";
 import LaunchPlanView from "./LaunchPlanView";
@@ -1343,6 +1343,7 @@ function App() {
             captureExamples={sampleIntakes}
             upcomingDates={todayUpcomingDates}
             onGenerateBrief={handleGenerateBrief}
+            onOpenFeedback={() => setFeedbackOpen(true)}
             onOpenApprovals={() => setView("review")}
             onOpenBrief={() => setIsBriefOpen(true)}
             onOpenBrainDump={openCapture}
@@ -1759,9 +1760,6 @@ function App() {
               : undefined
           }
         />
-      ) : null}
-      {session || isLoggedIn ? (
-        <FeedbackTrigger onOpen={() => setFeedbackOpen(true)} />
       ) : null}
       {session || isLoggedIn ? (
         <FeedbackPanel

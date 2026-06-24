@@ -55,6 +55,7 @@ function renderToday(overrides: TodayOverrides = {}) {
       status="idle"
       upcomingDates={[]}
       onGenerateBrief={vi.fn()}
+      onOpenFeedback={vi.fn()}
       onOpenApprovals={onOpenApprovals}
       onOpenBrief={vi.fn()}
       onOpenBrainDump={onOpenBrainDump}
