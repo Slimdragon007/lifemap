@@ -2,6 +2,7 @@ import {
   Archive,
   Bell,
   CalendarDays,
+  CalendarHeart,
   Check,
   CheckCircle2,
   ChevronRight,
@@ -65,10 +66,12 @@ import { sampleCollections } from "./sampleData";
 import {
   buildCalendarEventsFromAnalysis,
   buildVaultItemsFromAnalysis,
+  type FamilyEvent,
   type FamilyMember,
 } from "./familyOS";
 import {
   deleteAllFamilyData,
+  deleteFamilyRow,
   EMPTY_COLLECTIONS,
   loadFamilyCollections,
   upsertFamilyEvent,
@@ -84,6 +87,8 @@ import {
 } from "./supabaseClient";
 import TodayView from "./TodayView";
 import VaultView from "./VaultView";
+import ImportantDatesView from "./ImportantDatesView";
+import { upcomingDates } from "./importantDates";
 import EmptyState from "./empty-state";
 import {
   loadRemoteState,
@@ -213,6 +218,7 @@ type AppView =
   | "capture"
   | "calendar"
   | "vault"
+  | "dates"
   | "review"
   | "more"
   | "family"
@@ -411,6 +417,12 @@ function App() {
   // True only when a remote load actually failed — lets data-backed views show a
   // "couldn't load" banner instead of an empty state that reads as "no records".
   const [recordsLoadFailed, setRecordsLoadFailed] = useState(false);
+  // Important Dates surfacing on Today: the next ~30 days of logged dates,
+  // computed live from current events (never persisted/stale). Quiet by design.
+  const todayUpcomingDates = useMemo(
+    () => upcomingDates(collections.familyEvents, new Date(), 30),
+    [collections.familyEvents],
+  );
   const storedState = useMemo<StoredDemoState>(
     () => ({
       isLoggedIn,
@@ -1071,6 +1083,49 @@ function App() {
     }));
   }
 
+  // Important Dates: persist a logged date. Real mode writes the row to Supabase
+  // (RLS-scoped) then folds the durable row into state; demo/local mode just keeps
+  // it in memory. Mirrors the family-member save path above.
+  async function handleSaveImportantDate(event: FamilyEvent): Promise<void> {
+    if (isSupabaseConfigured && session) {
+      const userId = session.user.id;
+      const client = getSupabase() as unknown as FamilyDataClient;
+      const result = await upsertFamilyEvent(userId, event, client);
+      if (result.ok) {
+        const saved = result.item;
+        setCollections((current) => ({
+          ...current,
+          familyEvents: [saved, ...current.familyEvents],
+        }));
+      } else {
+        setToastMessage("Couldn't save that date. Try again.");
+      }
+      return;
+    }
+    // Demo / no-Supabase mode: keep it local.
+    setCollections((current) => ({
+      ...current,
+      familyEvents: [event, ...current.familyEvents],
+    }));
+  }
+
+  // Important Dates: remove a logged date (real mode deletes the row first).
+  async function handleDeleteImportantDate(id: string): Promise<void> {
+    if (isSupabaseConfigured && session) {
+      const userId = session.user.id;
+      const client = getSupabase() as unknown as FamilyDataClient;
+      const result = await deleteFamilyRow(userId, "family_events", id, client);
+      if (!result.ok) {
+        setToastMessage("Couldn't remove that date. Try again.");
+        return;
+      }
+    }
+    setCollections((current) => ({
+      ...current,
+      familyEvents: current.familyEvents.filter((event) => event.id !== id),
+    }));
+  }
+
   // Today map-hero: tapping a trunk node checks the task off (or un-checks it).
   function togglePriorityDone(id: string) {
     setPriorityActionStates((current) => {
@@ -1209,6 +1264,7 @@ function App() {
                 view === "more" ||
                 view === "calendar" ||
                 view === "vault" ||
+                view === "dates" ||
                 view === "review" ||
                 view === "family" ||
                 view === "setup" ||
@@ -1270,11 +1326,13 @@ function App() {
             setupProfile={setupProfile}
             status={briefStatus}
             captureExamples={sampleIntakes}
+            upcomingDates={todayUpcomingDates}
             onGenerateBrief={handleGenerateBrief}
             onOpenApprovals={() => setView("review")}
             onOpenBrief={() => setIsBriefOpen(true)}
             onOpenBrainDump={openCapture}
             onOpenFamilyMap={() => setView("family")}
+            onOpenImportantDates={() => setView("dates")}
             onOpenPriority={setSelectedPriority}
             onTogglePriorityDone={togglePriorityDone}
             onOpenSetup={() => setView("setup")}
@@ -1337,6 +1395,14 @@ function App() {
             identity={identity}
             vaultItems={collections.vaultItems}
             onOpenCapture={() => openCapture()}
+          />
+        ) : view === "dates" ? (
+          <ImportantDatesView
+            familyEvents={collections.familyEvents}
+            familyMembers={collections.familyMembers}
+            onBack={() => setView("today")}
+            onSaveDate={handleSaveImportantDate}
+            onDeleteDate={handleDeleteImportantDate}
           />
         ) : view === "family" ? (
           <>
@@ -1611,6 +1677,7 @@ function App() {
             onOpenCapture={() => openCapture()}
             onOpenCalendar={() => setView("calendar")}
             onOpenVault={() => setView("vault")}
+            onOpenImportantDates={() => setView("dates")}
             onOpenSetup={() => setView("setup")}
             onOpenLaunchPlan={() => setView("launchPlan")}
             onOpenApprovals={() => setView("review")}
@@ -2056,6 +2123,7 @@ function MoreView({
   onOpenCapture,
   onOpenCalendar,
   onOpenVault,
+  onOpenImportantDates,
   onOpenSetup,
   onOpenLaunchPlan,
   onOpenApprovals,
@@ -2072,6 +2140,7 @@ function MoreView({
   onOpenCapture: () => void;
   onOpenCalendar: () => void;
   onOpenVault: () => void;
+  onOpenImportantDates: () => void;
   onOpenSetup: () => void;
   onOpenLaunchPlan: () => void;
   onOpenApprovals: () => void;
@@ -2221,6 +2290,23 @@ function MoreView({
             <span className="more-row-copy">
               <strong>Vault</strong>
               <span>IDs, records, and documents kept behind one door.</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
+          <button
+            aria-label="Open important dates"
+            className="more-row"
+            type="button"
+            onClick={onOpenImportantDates}
+          >
+            <span className="more-row-icon">
+              <CalendarHeart size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Important dates</strong>
+              <span>
+                Birthdays, renewals, and dates you never want to forget.
+              </span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>

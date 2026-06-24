@@ -1,8 +1,10 @@
 import {
   Bell,
+  CalendarHeart,
   Check,
   ChevronDown,
   ChevronRight,
+  Plus,
   RefreshCw,
 } from "lucide-react";
 import { useState } from "react";
@@ -12,6 +14,8 @@ import type { BriefPriority, DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
 import type { RecommendedBucket, SetupProfile } from "./setupBuckets";
 import type { ViewerIdentity } from "./viewer";
+import { dateCategoryMeta } from "./dateCategories";
+import { relativeDayLabel, type UpcomingDate } from "./importantDates";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 type PriorityActionState = "completed" | "snoozed";
@@ -24,6 +28,7 @@ type TodayViewProps = {
   status: BriefStatus;
   error?: string;
   captureExamples: Array<{ label: string; rawIntake: string }>;
+  upcomingDates: UpcomingDate[];
   priorityActionStates: Partial<Record<string, PriorityActionState>>;
   setupBuckets: RecommendedBucket[];
   setupProfile: SetupProfile;
@@ -31,6 +36,7 @@ type TodayViewProps = {
   onOpenBrief: () => void;
   onOpenBrainDump: (rawIntake?: string) => void;
   onOpenFamilyMap: () => void;
+  onOpenImportantDates: () => void;
   onOpenSetup: () => void;
   onOpenSetupBucket: (bucket: RecommendedBucket) => void;
   onOpenApprovals: () => void;
@@ -64,9 +70,11 @@ function TodayView({
   priorityActionStates,
   setupBuckets,
   setupProfile,
+  upcomingDates,
   onGenerateBrief,
   onOpenBrief,
   onOpenBrainDump,
+  onOpenImportantDates,
   onOpenSetup,
   onOpenSetupBucket,
   onOpenApprovals,
@@ -303,6 +311,54 @@ function TodayView({
               <ChevronRight size={15} />
             </button>
           ) : null}
+        </section>
+
+        {/* ── Section · Upcoming important dates ──────────────────────── */}
+        <section
+          className="calm-section calm-upcoming"
+          aria-labelledby="upcoming-title"
+        >
+          <div className="atlas-trunk-head">
+            <span className="atlas-eyebrow" id="upcoming-title">
+              Upcoming
+            </span>
+          </div>
+          {upcomingDates.length > 0 ? (
+            <ul className="calm-upcoming-list">
+              {upcomingDates.map(({ event, daysUntil }) => {
+                const Icon = dateCategoryMeta(
+                  event.eventCategory ?? "custom",
+                ).icon;
+                return (
+                  <li key={event.id} className="calm-upcoming-row">
+                    <span className="calm-upcoming-icon">
+                      <Icon size={16} />
+                    </span>
+                    <span className="calm-upcoming-copy">
+                      <span className="calm-upcoming-text">{event.title}</span>
+                      <span className="calm-upcoming-meta">
+                        {relativeDayLabel(daysUntil)}
+                        {event.owner ? ` · ${event.owner}` : ""}
+                      </span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="calm-upcoming-empty">
+              No dates coming up. Add one you never want to forget.
+            </p>
+          )}
+          <button
+            className="calm-upcoming-add"
+            type="button"
+            onClick={onOpenImportantDates}
+          >
+            <Plus size={15} />
+            <span>Add a date</span>
+            <CalendarHeart size={14} aria-hidden="true" />
+          </button>
         </section>
 
         {/* ── Section 3 · Handled today ───────────────────────────────── */}

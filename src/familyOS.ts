@@ -18,6 +18,19 @@ export type CalendarLayer =
   | "meals"
   | "admin";
 
+// "Important Dates" categories — the icon-grid the user taps to log a date they
+// never want to forget. Each maps to a CalendarLayer (see dateCategories.ts) so
+// the event still slots into the Calendar. Persisted on family_events via the
+// event_category column; "generic" is the default for pre-existing rows.
+export type DateCategory =
+  | "birthday"
+  | "anniversary"
+  | "renewal"
+  | "appointment"
+  | "school"
+  | "bill"
+  | "custom";
+
 export type FamilyEvent = {
   id: string;
   title: string;
@@ -27,6 +40,9 @@ export type FamilyEvent = {
   owner: string;
   source: string;
   needsPrep?: string;
+  // Important Dates extras (additive; absent on legacy/AI/demo rows).
+  eventCategory?: DateCategory;
+  isAnnual?: boolean;
 };
 
 export type VaultCategory =
@@ -174,6 +190,31 @@ export const familyEvents: FamilyEvent[] = [
     owner: "Alex",
     source: "Bright Smiles billing email",
     needsPrep: "Insurance card photo",
+  },
+  // Important Dates demo seeds — fixed dates so the view + Today "Upcoming"
+  // render non-empty AND deterministic under the frozen visual-test clock
+  // (2026-06-23 → "in 7 days" / "in 12 days").
+  {
+    id: "event-casey-birthday",
+    title: "Casey's birthday",
+    date: "2026-06-30",
+    time: "",
+    layer: "admin",
+    owner: "Casey",
+    source: "important-dates",
+    eventCategory: "birthday",
+    isAnnual: true,
+  },
+  {
+    id: "event-passport-renewal",
+    title: "Passport renewal due",
+    date: "2026-07-05",
+    time: "",
+    layer: "admin",
+    owner: "Jordan",
+    source: "important-dates",
+    eventCategory: "renewal",
+    isAnnual: false,
   },
 ];
 

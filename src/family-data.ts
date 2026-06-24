@@ -1,5 +1,6 @@
 import type {
   CalendarLayer,
+  DateCategory,
   FamilyEvent,
   FamilyMember,
   RecurringCareItem,
@@ -362,12 +363,21 @@ function eventToRow(
     owner: event.owner,
     source: event.source,
     needs_prep: event.needsPrep ?? null,
+    // Important Dates: default to the back-compat values so rows created before
+    // 0006 (and demo/local events) round-trip unchanged.
+    event_category: event.eventCategory ?? "generic",
+    is_annual: event.isAnnual ?? false,
     updated_at: nowIso(),
   });
 }
 
 function mapEventRow(row: Record<string, unknown>): FamilyEvent {
   const needsPrep = str(row.needs_prep);
+  // "generic" (the column default) means "not an Important Date" → leave
+  // eventCategory absent so the app treats it like any other calendar event.
+  const category = str(row.event_category);
+  const eventCategory =
+    category && category !== "generic" ? (category as DateCategory) : undefined;
   return {
     id: str(row.id),
     title: str(row.title),
@@ -377,6 +387,8 @@ function mapEventRow(row: Record<string, unknown>): FamilyEvent {
     owner: str(row.owner),
     source: str(row.source),
     ...(needsPrep ? { needsPrep } : {}),
+    ...(eventCategory ? { eventCategory } : {}),
+    ...(row.is_annual === true ? { isAnnual: true } : {}),
   };
 }
 

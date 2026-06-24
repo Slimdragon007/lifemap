@@ -10761,3 +10761,239 @@ button.notebook-row:active {
   width: 34px;
   height: 34px;
 }
+
+/* ── Important Dates ───────────────────────────────────────────────────
+   Calm, token-styled surface: an icon-category grid to add a date you never
+   want to forget, then the saved dates sorted by next occurrence. Leans on the
+   shared tokens so light + dark stay in register (no hard-coded colors). */
+.dates-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.dates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 12px;
+}
+.dates-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 16px 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control, 16px);
+  background: var(--color-surface-panel);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.dates-tile:hover {
+  border-color: var(--color-accent-blue);
+  transform: translateY(-1px);
+}
+.dates-tile:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+.dates-tile-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--gradient-action-primary);
+  color: #fff;
+}
+.dates-tile strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.dates-saved {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dates-saved .atlas-eyebrow {
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--color-text-secondary);
+}
+.dates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dates-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 32px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control, 16px);
+  background: var(--color-surface-panel);
+}
+.dates-row-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-accent-blue);
+  background: var(--color-surface-row, transparent);
+}
+.dates-row-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.dates-row-copy strong {
+  font-size: 15px;
+  color: var(--color-text-strong);
+}
+.dates-row-copy span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.dates-row-delete {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-quiet);
+  cursor: pointer;
+}
+.dates-row-delete:hover {
+  color: var(--color-danger, #c0453b);
+}
+.dates-row-delete:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+/* Add-a-date modal form (inside the shared .review-dialog shell). */
+.add-date-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+.add-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.add-date-field span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.add-date-field input,
+.add-date-field select {
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control, 14px);
+  background: var(--color-surface-panel);
+  font: inherit;
+  font-size: 16px;
+  color: var(--color-text-primary);
+}
+.add-date-field input:focus-visible,
+.add-date-field select:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+.add-date-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+.add-date-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent-blue);
+}
+
+/* Today "Upcoming" section — quiet list + an "Add a date" affordance. */
+.calm-upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.calm-upcoming-row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+}
+.calm-upcoming-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-accent-blue);
+}
+.calm-upcoming-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.calm-upcoming-text {
+  font-size: 14.5px;
+  color: var(--color-text-strong);
+}
+.calm-upcoming-meta {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+.calm-upcoming-empty {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  color: var(--color-text-quiet);
+}
+.calm-upcoming-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 9px 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 999px;
+  background: var(--color-surface-panel);
+  color: var(--color-accent-blue);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+.calm-upcoming-add:hover {
+  border-color: var(--color-accent-blue);
+  transform: translateY(-1px);
+}
+.calm-upcoming-add:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}

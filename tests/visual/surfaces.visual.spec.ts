@@ -75,6 +75,17 @@ for (const theme of ["dark", "light"] as const) {
       await shoot(page, `vault-${theme}.png`);
     });
 
+    test("Important dates", async ({ page }) => {
+      await prepare(page, theme);
+      await enterApp(page);
+      await page.getByRole("button", { name: "Settings" }).click();
+      await page.getByRole("button", { name: "Open important dates" }).click();
+      await expect(
+        page.getByRole("heading", { name: "Important dates" }),
+      ).toBeVisible();
+      await shoot(page, `dates-${theme}.png`);
+    });
+
     test("Capture", async ({ page }) => {
       await prepare(page, theme);
       await enterApp(page);

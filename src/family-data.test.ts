@@ -2,11 +2,12 @@ import { describe, expect, test, vi } from "vitest";
 import {
   deleteFamilyRow,
   loadFamilyCollections,
+  upsertFamilyEvent,
   upsertVaultItem,
   type FamilyDataClient,
 } from "./family-data";
 import { createFieldCrypto } from "./field-crypto";
-import type { VaultItem } from "./familyOS";
+import type { FamilyEvent, VaultItem } from "./familyOS";
 
 const UUID = "11111111-1111-4111-8111-111111111111";
 const EVENT_UUID = "22222222-2222-4222-8222-222222222222";
@@ -199,6 +200,95 @@ describe("family-data RLS-scoped persistence", () => {
     ).resolves.toEqual({ ok: true });
     expect(outerEq).toHaveBeenCalledWith("id", UUID);
     expect(innerEq).toHaveBeenCalledWith("user_id", "user-1");
+  });
+
+  test("event round-trips the Important Dates fields (eventCategory/isAnnual)", async () => {
+    let stored: Record<string, unknown> = {};
+    const upsert = vi.fn((payload: Record<string, unknown>) => {
+      stored = payload;
+      return {
+        select: () => ({
+          // Echo back what was written (with a minted id) so the mapper sees
+          // the same snake_case columns the row carries in Postgres.
+          maybeSingle: async () => ({
+            data: { ...payload, id: EVENT_UUID },
+            error: null,
+          }),
+        }),
+      };
+    });
+    const client: FamilyDataClient = {
+      from: () => ({ select: vi.fn(), upsert, delete: vi.fn() }),
+    };
+
+    const newEvent: FamilyEvent = {
+      id: "temp-id", // not a uuid → omitted so Postgres mints one
+      title: "Casey's birthday",
+      date: "2026-06-30",
+      time: "",
+      layer: "admin",
+      owner: "Casey",
+      source: "important-dates",
+      eventCategory: "birthday",
+      isAnnual: true,
+    };
+
+    const result = await upsertFamilyEvent("user-1", newEvent, client);
+
+    // serialized as snake_case columns
+    expect(stored.event_category).toBe("birthday");
+    expect(stored.is_annual).toBe(true);
+    expect(stored.id).toBeUndefined();
+    // deserialized back to camelCase app type
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.item).toMatchObject({
+      id: EVENT_UUID,
+      title: "Casey's birthday",
+      date: "2026-06-30",
+      owner: "Casey",
+      eventCategory: "birthday",
+      isAnnual: true,
+    });
+  });
+
+  test("event defaults to generic/false and maps a generic row without category", async () => {
+    const upsert = vi.fn((payload: Record<string, unknown>) => ({
+      select: () => ({
+        maybeSingle: async () => ({
+          data: { ...payload, id: EVENT_UUID },
+          error: null,
+        }),
+      }),
+    }));
+    const client: FamilyDataClient = {
+      from: () => ({ select: vi.fn(), upsert, delete: vi.fn() }),
+    };
+
+    // A plain calendar event (no Important Dates fields) — back-compat path.
+    const plain: FamilyEvent = {
+      id: "temp",
+      title: "Field trip",
+      date: "2026-06-18",
+      time: "8:00 AM",
+      layer: "school",
+      owner: "Casey",
+      source: "portal",
+    };
+
+    const result = await upsertFamilyEvent("user-1", plain, client);
+
+    const payload = (upsert.mock.calls[0] as unknown[])[0] as Record<
+      string,
+      unknown
+    >;
+    expect(payload.event_category).toBe("generic");
+    expect(payload.is_annual).toBe(false);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // "generic" must NOT surface as an eventCategory, and isAnnual stays absent
+    expect(result.item.eventCategory).toBeUndefined();
+    expect(result.item.isAnnual).toBeUndefined();
   });
 });
 
