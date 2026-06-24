@@ -3820,6 +3820,56 @@ button.nav-item {
   display: none;
 }
 
+/* Quiet destructive row: token-based red so it reads as irreversible without
+   shouting (Clear my map · start fresh). */
+.more-row-danger .more-row-copy strong,
+.more-row-danger .more-row-icon,
+.more-row-danger .more-row-chevron {
+  color: var(--color-status-danger);
+}
+
+.more-row-danger .more-row-icon {
+  border-color: var(--color-status-danger);
+  background: color-mix(in srgb, var(--color-status-danger) 12%, transparent);
+}
+
+.more-row-danger:hover {
+  border-color: var(--color-status-danger);
+}
+
+/* Confirm dialog: destructive primary action, token-based red. */
+.action-dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--color-status-danger);
+  border-radius: var(--radius);
+  color: var(--color-text-inverse);
+  background: var(--color-status-danger);
+  font-size: 13px;
+  font-weight: 820;
+  white-space: nowrap;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.danger-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px
+    color-mix(in srgb, var(--color-status-danger) 30%, transparent);
+}
+
 /* Appearance / theme row — token-based so it's correct in light AND dark. */
 .more-appearance-row {
   display: flex;

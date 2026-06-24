@@ -27,7 +27,7 @@ export type FamilyCollections = {
   recurringCareItems: RecurringCareItem[];
 };
 
-const EMPTY_COLLECTIONS: FamilyCollections = {
+export const EMPTY_COLLECTIONS: FamilyCollections = {
   familyMembers: [],
   familyEvents: [],
   vaultItems: [],
@@ -62,10 +62,12 @@ export type FamilyDataClient = {
       };
     };
     delete: () => {
+      // The first .eq() is itself awaitable (the Supabase builder is a thenable
+      // at every stage) AND chains into a second .eq() for the per-id deletes.
       eq: (
         column: string,
         value: string,
-      ) => {
+      ) => Promise<QueryResult> & {
         eq: (column: string, value: string) => Promise<QueryResult>;
       };
     };
@@ -240,6 +242,35 @@ export async function deleteFamilyRow(
 
   if (result.error) {
     return { ok: false, error: result.error.message ?? FAILED_DELETE };
+  }
+
+  return { ok: true };
+}
+
+const FAMILY_TABLES: FamilyTable[] = [
+  "family_members",
+  "family_events",
+  "vault_items",
+  "recurring_care_items",
+];
+
+// Wipes every row this user owns across all four family tables — the data half
+// of a real-account "Clear my map / start fresh". RLS already scopes each delete
+// to auth.uid(); the explicit .eq("user_id", …) is defense-in-depth (mirrors the
+// per-row deletes). Returns the first error encountered, if any.
+export async function deleteAllFamilyData(
+  userId: string,
+  client: FamilyDataClient,
+): Promise<DeleteResult> {
+  const results = await Promise.all(
+    FAMILY_TABLES.map((table) =>
+      client.from(table).delete().eq("user_id", userId),
+    ),
+  );
+
+  const failure = results.find((result) => result.error);
+  if (failure?.error) {
+    return { ok: false, error: failure.error.message ?? FAILED_DELETE };
   }
 
   return { ok: true };

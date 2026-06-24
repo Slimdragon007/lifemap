@@ -17,6 +17,7 @@ import {
   Send,
   Settings,
   ShieldCheck,
+  Trash2,
   UserRoundCheck,
   UsersRound,
   X,
@@ -41,6 +42,7 @@ import {
   clearStoredDemoState,
   emptyAnalysis,
   emptyDailyBrief,
+  emptyPersistedState,
   initialAppState,
   loadStoredDemoState,
   saveStoredDemoState,
@@ -66,6 +68,8 @@ import {
   type FamilyMember,
 } from "./familyOS";
 import {
+  deleteAllFamilyData,
+  EMPTY_COLLECTIONS,
   loadFamilyCollections,
   upsertFamilyEvent,
   upsertFamilyMember,
@@ -804,6 +808,54 @@ function App() {
     setSentDraftIds(new Set());
     setView("today");
     setToastMessage("Demo reset.");
+  }
+
+  // Real-account "Clear my map / start fresh": irreversibly wipe everything this
+  // user has persisted — the four family tables + their lifemapState in
+  // user_memory — then reset the in-memory app to a clean slate. Gated to real
+  // mode; demo has its own handleResetDemo and never reaches this.
+  async function handleClearRealAccount() {
+    if (!isSupabaseConfigured || !session) {
+      return;
+    }
+    const userId = session.user.id;
+
+    const wipe = await deleteAllFamilyData(
+      userId,
+      getSupabase() as unknown as FamilyDataClient,
+    );
+    if (!wipe.ok) {
+      console.warn("LifeMap clear-map family wipe failed", wipe.error);
+      setToastMessage("Couldn't clear your records — try again.");
+      return;
+    }
+
+    const reset = await saveRemoteState(
+      userId,
+      emptyPersistedState(),
+      getSupabase() as unknown as RemoteStateClient,
+    );
+    if (!reset.ok) {
+      console.warn("LifeMap clear-map remote reset failed", reset.error);
+      setToastMessage("Couldn't clear your map — try again.");
+      return;
+    }
+
+    setIntake("");
+    setMap(emptyAnalysis());
+    setCollections(EMPTY_COLLECTIONS);
+    setDisabledApprovals(new Set());
+    setApprovalBodyEdits({});
+    setSavedSuggestionIds(new Set());
+    setDismissedSuggestionIds(new Set());
+    setDailyBrief(emptyDailyBrief());
+    setSetupProfile(defaultSetupProfile);
+    setSetupBucketIds([]);
+    setStagedRun(undefined);
+    setSentDraftIds(new Set());
+    setRecordsLoadFailed(false);
+    setView("today");
+    setToastMessage("Your map is clear — start with your own.");
   }
 
   async function handleSendDraft(item: ApprovalItem, to: string) {
@@ -1566,6 +1618,9 @@ function App() {
             onOpenHowItWorks={() => setView("howItWorks")}
             onOpenPrivacy={() => setView("privacy")}
             onResetDemo={handleResetDemo}
+            onClearMap={() => {
+              void handleClearRealAccount();
+            }}
             onSignOut={() => getSupabase().auth.signOut()}
           />
         )}
@@ -2008,6 +2063,7 @@ function MoreView({
   onOpenHowItWorks,
   onOpenPrivacy,
   onResetDemo,
+  onClearMap,
   onSignOut,
 }: {
   isSupabaseConfigured: boolean;
@@ -2023,8 +2079,10 @@ function MoreView({
   onOpenHowItWorks: () => void;
   onOpenPrivacy: () => void;
   onResetDemo: () => void;
+  onClearMap?: () => void;
   onSignOut: () => void;
 }) {
+  const [clearMapConfirmOpen, setClearMapConfirmOpen] = useState(false);
   return (
     <section className="workspace more-workspace" aria-labelledby="more-title">
       <header className="topbar compact-topbar">
@@ -2249,16 +2307,38 @@ function MoreView({
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
           {isSupabaseConfigured ? (
-            <button className="more-row" type="button" onClick={onSignOut}>
-              <span className="more-row-icon">
-                <UserRoundCheck size={18} />
-              </span>
-              <span className="more-row-copy">
-                <strong>Sign out</strong>
-                <span>{sessionEmail ?? "Signed in with Supabase"}</span>
-              </span>
-              <ChevronRight className="more-row-chevron" size={18} />
-            </button>
+            <>
+              <button className="more-row" type="button" onClick={onSignOut}>
+                <span className="more-row-icon">
+                  <UserRoundCheck size={18} />
+                </span>
+                <span className="more-row-copy">
+                  <strong>Sign out</strong>
+                  <span>{sessionEmail ?? "Signed in with Supabase"}</span>
+                </span>
+                <ChevronRight className="more-row-chevron" size={18} />
+              </button>
+              {onClearMap ? (
+                <button
+                  aria-label="Clear my map · start fresh"
+                  className="more-row more-row-danger"
+                  type="button"
+                  onClick={() => setClearMapConfirmOpen(true)}
+                >
+                  <span className="more-row-icon">
+                    <Trash2 size={18} />
+                  </span>
+                  <span className="more-row-copy">
+                    <strong>Clear my map · start fresh</strong>
+                    <span>
+                      Permanently delete your records and start with a blank
+                      LifeMap.
+                    </span>
+                  </span>
+                  <ChevronRight className="more-row-chevron" size={18} />
+                </button>
+              ) : null}
+            </>
           ) : (
             <>
               <article className="more-row more-row-static">
@@ -2289,6 +2369,47 @@ function MoreView({
           )}
         </section>
       </div>
+      {clearMapConfirmOpen && onClearMap ? (
+        <ModalBackdrop onClose={() => setClearMapConfirmOpen(false)}>
+          <section
+            aria-labelledby="clear-map-dialog-title"
+            aria-modal="true"
+            className="review-dialog action-dialog"
+            role="dialog"
+            tabIndex={-1}
+          >
+            <div className="review-dialog-top">
+              <div>
+                <h2 id="clear-map-dialog-title">Clear my map?</h2>
+                <p>
+                  This permanently deletes your family members, events, vault
+                  items, and recurring care — plus your intake, analysis, and
+                  daily brief. This can&apos;t be undone.
+                </p>
+              </div>
+            </div>
+            <div className="action-dialog-buttons">
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => setClearMapConfirmOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="danger-button"
+                type="button"
+                onClick={() => {
+                  setClearMapConfirmOpen(false);
+                  onClearMap();
+                }}
+              >
+                Clear my map
+              </button>
+            </div>
+          </section>
+        </ModalBackdrop>
+      ) : null}
     </section>
   );
 }
