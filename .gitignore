@@ -8,7 +8,9 @@ worker/.dev.vars
 supabase/.temp/
 .worktrees/
 
-# Playwright E2E
+# Playwright E2E + visual regression
+# (test-results/ + playwright-report/ cover both suites; the committed visual
+# baselines under tests/visual/**/*.png are deliberately NOT ignored)
 /test-results/
 /playwright-report/
 /playwright/.cache/

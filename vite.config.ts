@@ -17,7 +17,12 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: "./src/test/setup.ts",
-    // Keep Playwright E2E specs out of the Vitest/jsdom run.
-    exclude: [...configDefaults.exclude, ".worktrees/**", "tests/e2e/**"],
+    // Keep Playwright E2E + visual specs out of the Vitest/jsdom run.
+    exclude: [
+      ...configDefaults.exclude,
+      ".worktrees/**",
+      "tests/e2e/**",
+      "tests/visual/**",
+    ],
   },
 });
