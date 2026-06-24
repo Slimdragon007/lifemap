@@ -4,7 +4,6 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
-  MessageCircle,
   Plus,
   RefreshCw,
 } from "lucide-react";
@@ -43,7 +42,6 @@ type TodayViewProps = {
   onOpenApprovals: () => void;
   onOpenPriority: (priority: BriefPriority) => void;
   onTogglePriorityDone: (id: string) => void;
-  onOpenFeedback: () => void;
 };
 
 const COACH_KEY = "lm-coach-seen";
@@ -82,7 +80,6 @@ function TodayView({
   onOpenApprovals,
   onOpenPriority,
   onTogglePriorityDone,
-  onOpenFeedback,
 }: TodayViewProps) {
   const [showMore, setShowMore] = useState(false);
   const [coachSeen, setCoachSeen] = useState(readCoachSeen);
@@ -195,14 +192,6 @@ function TodayView({
               {approvalCount > 0 ? <span aria-hidden="true" /> : null}
             </button>
             <ThemeToggle />
-            <button
-              className="atlas-icon-button"
-              type="button"
-              aria-label="Send feedback"
-              onClick={onOpenFeedback}
-            >
-              <MessageCircle size={15} />
-            </button>
             <span className="atlas-avatar" aria-label={identity.name}>
               {identity.initials}
             </span>

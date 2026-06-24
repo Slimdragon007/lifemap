@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { MessageCircle, X } from "lucide-react";
 import { useState } from "react";
 import { sendFeedback } from "./api";
 import { getAccessToken } from "./supabaseClient";
@@ -113,6 +113,19 @@ export function FeedbackPanel({
         </form>
       )}
     </section>
+  );
+}
+
+export function FeedbackTrigger({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      className="feedback-trigger"
+      type="button"
+      aria-label="Send feedback"
+      onClick={onOpen}
+    >
+      <MessageCircle size={18} aria-hidden="true" />
+    </button>
   );
 }
 

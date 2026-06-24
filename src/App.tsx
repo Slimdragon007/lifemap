@@ -52,7 +52,7 @@ import CalendarView from "./CalendarView";
 import AuthScreen from "./auth-screen";
 import OnboardingView, { type OnboardingPerson } from "./onboarding-view";
 import SetNewPasswordScreen from "./set-new-password-screen";
-import { FeedbackPanel } from "./feedback-bubble";
+import { FeedbackPanel, FeedbackTrigger } from "./feedback-bubble";
 import ModalBackdrop from "./modal-backdrop";
 import BucketDetailView from "./BucketDetailView";
 import LaunchPlanView from "./LaunchPlanView";
@@ -1340,7 +1340,6 @@ function App() {
               setSelectedSetupBucketId(bucket.id);
               setView("bucket");
             }}
-            onOpenFeedback={() => setFeedbackOpen(true)}
           />
         ) : view === "bucket" && selectedSetupBucket ? (
           <BucketDetailView
@@ -1744,7 +1743,10 @@ function App() {
           }
         />
       ) : null}
-      {session ? (
+      {session || isLoggedIn ? (
+        <FeedbackTrigger onOpen={() => setFeedbackOpen(true)} />
+      ) : null}
+      {session || isLoggedIn ? (
         <FeedbackPanel
           open={feedbackOpen}
           onClose={() => setFeedbackOpen(false)}
