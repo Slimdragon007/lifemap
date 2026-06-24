@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { viewerIdentity } from "./viewer";
+import { nameFromLocalPart, viewerIdentity } from "./viewer";
 
 describe("viewerIdentity", () => {
   test("demo mode always returns the Alex Kim identity", () => {
@@ -12,22 +12,22 @@ describe("viewerIdentity", () => {
     ).toEqual({ name: "Alex Kim", initials: "AK" });
   });
 
-  test("real mode derives name and initials from a dotted email local-part", () => {
+  test("real mode greets with a humanized name, initials from the local-part", () => {
     expect(
       viewerIdentity({ user: { email: "m.haslim@gmail.com" } }, false),
-    ).toEqual({ name: "m.haslim", initials: "MH" });
+    ).toEqual({ name: "Haslim", initials: "MH" });
   });
 
-  test("real mode derives initials from a single-token local-part", () => {
+  test("real mode derives name + initials from a single-token local-part", () => {
     expect(
       viewerIdentity({ user: { email: "casey@example.com" } }, false),
-    ).toEqual({ name: "casey", initials: "CA" });
+    ).toEqual({ name: "Casey", initials: "CA" });
   });
 
-  test("real mode uses the first two tokens for initials", () => {
+  test("real mode greets with the first real name token", () => {
     expect(
       viewerIdentity({ user: { email: "jordan.lee.smith@x.com" } }, false),
-    ).toEqual({ name: "jordan.lee.smith", initials: "JL" });
+    ).toEqual({ name: "Jordan", initials: "JL" });
   });
 
   test("real mode with no session falls back to a neutral viewer", () => {
@@ -39,5 +39,26 @@ describe("viewerIdentity", () => {
       name: "You",
       initials: "",
     });
+  });
+});
+
+describe("nameFromLocalPart", () => {
+  test("greets by the first real-word token", () => {
+    expect(nameFromLocalPart("jane.doe")).toBe("Jane");
+    expect(nameFromLocalPart("al.thompson")).toBe("Al");
+  });
+
+  test("skips a lone leading initial for a real word", () => {
+    expect(nameFromLocalPart("m.haslim")).toBe("Haslim");
+    expect(nameFromLocalPart("j_smith")).toBe("Smith");
+  });
+
+  test("strips digits and separators", () => {
+    expect(nameFromLocalPart("bob123")).toBe("Bob");
+    expect(nameFromLocalPart("mary-jane")).toBe("Mary");
+  });
+
+  test("falls back to the raw value when there is no alpha token", () => {
+    expect(nameFromLocalPart("123")).toBe("123");
   });
 });

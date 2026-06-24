@@ -17,7 +17,25 @@ export function viewerIdentity(
   }
 
   const localPart = email.split("@")[0];
-  return { name: localPart, initials: initialsFromName(localPart) };
+  return {
+    name: nameFromLocalPart(localPart),
+    initials: initialsFromName(localPart),
+  };
+}
+
+// Friendly first-name-ish label from an email local-part when no display name is
+// set: "jane.doe" -> "Jane", "m.haslim" -> "Haslim" (skips a lone initial),
+// "bob123" -> "Bob". Beats greeting someone by their raw email.
+export function nameFromLocalPart(localPart: string): string {
+  const tokens = localPart.split(/[._\-+0-9]+/).filter(Boolean);
+  if (tokens.length === 0) {
+    return localPart;
+  }
+  const pick =
+    tokens[0].length >= 2
+      ? tokens[0]
+      : tokens.reduce((a, b) => (b.length > a.length ? b : a), tokens[0]);
+  return pick.charAt(0).toUpperCase() + pick.slice(1);
 }
 
 // Initials = first letters of up to two tokens. Splits on whitespace AND
