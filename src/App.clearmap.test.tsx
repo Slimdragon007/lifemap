@@ -133,7 +133,9 @@ describe("LifeMap real-mode Clear my map", () => {
     await waitFor(() => {
       expect(deleteAllFamilyDataMock).toHaveBeenCalledTimes(1);
     });
-    expect(deleteAllFamilyDataMock.mock.calls[0][0]).toBe("user-123");
+    expect((deleteAllFamilyDataMock.mock.calls[0] as unknown[])[0]).toBe(
+      "user-123",
+    );
 
     await waitFor(() => {
       expect(saveRemoteStateMock).toHaveBeenCalledWith(

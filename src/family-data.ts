@@ -62,12 +62,10 @@ export type FamilyDataClient = {
       };
     };
     delete: () => {
-      // The first .eq() is itself awaitable (the Supabase builder is a thenable
-      // at every stage) AND chains into a second .eq() for the per-id deletes.
       eq: (
         column: string,
         value: string,
-      ) => Promise<QueryResult> & {
+      ) => {
         eq: (column: string, value: string) => Promise<QueryResult>;
       };
     };
@@ -263,8 +261,14 @@ export async function deleteAllFamilyData(
   client: FamilyDataClient,
 ): Promise<DeleteResult> {
   const results = await Promise.all(
-    FAMILY_TABLES.map((table) =>
-      client.from(table).delete().eq("user_id", userId),
+    // The single .eq("user_id") filter is itself the awaitable query (the
+    // Supabase builder is a thenable at each stage); cast to the awaited result.
+    FAMILY_TABLES.map(
+      (table) =>
+        client
+          .from(table)
+          .delete()
+          .eq("user_id", userId) as unknown as Promise<QueryResult>,
     ),
   );
 
