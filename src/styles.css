@@ -9865,8 +9865,8 @@ button.notebook-row:active {
 
 .feedback-trigger {
   position: fixed;
-  top: 68px;
-  right: 10px;
+  right: 16px;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   z-index: 55;
   display: inline-grid;
   place-items: center;
