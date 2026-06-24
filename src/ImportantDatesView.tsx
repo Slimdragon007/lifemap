@@ -1,8 +1,8 @@
 import { CalendarHeart, ChevronLeft, Trash2 } from "lucide-react";
-import { useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import ModalBackdrop from "./modal-backdrop";
 import { DATE_CATEGORIES, dateCategoryMeta } from "./dateCategories";
-import { nextOccurrence, daysUntil, relativeDayLabel } from "./importantDates";
+import { upcomingDates, relativeDayLabel } from "./importantDates";
 import type { DateCategory, FamilyEvent, FamilyMember } from "./familyOS";
 
 const OTHER_OWNER = "__other__";
@@ -23,25 +23,8 @@ function ImportantDatesView({
   onDeleteDate,
 }: ImportantDatesViewProps) {
   const [activeCategory, setActiveCategory] = useState<DateCategory>();
-  const today = new Date();
-
-  // Only the dates the user logged here (carry an eventCategory), sorted by the
-  // soonest next occurrence so "what's coming" reads top-down.
-  const savedDates = useMemo(() => {
-    return familyEvents
-      .filter((event) => Boolean(event.eventCategory))
-      .map((event) => {
-        const nextDate = nextOccurrence(
-          event.date,
-          event.isAnnual ?? false,
-          today,
-        );
-        return { event, nextDate, days: daysUntil(nextDate, today) };
-      })
-      .sort((a, b) => a.nextDate.localeCompare(b.nextDate));
-    // today is recomputed each render; intentionally not a dep (date-only).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [familyEvents]);
+  // All logged Important Dates sorted by next occurrence; past one-offs age out naturally.
+  const savedDates = upcomingDates(familyEvents, new Date(), Infinity);
 
   return (
     <section
@@ -96,7 +79,7 @@ function ImportantDatesView({
           </p>
         ) : (
           <ul className="dates-list">
-            {savedDates.map(({ event, days }) => {
+            {savedDates.map(({ event, daysUntil: days }) => {
               const meta = dateCategoryMeta(event.eventCategory ?? "custom");
               const Icon = meta.icon;
               return (

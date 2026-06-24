@@ -417,11 +417,12 @@ function App() {
   // True only when a remote load actually failed — lets data-backed views show a
   // "couldn't load" banner instead of an empty state that reads as "no records".
   const [recordsLoadFailed, setRecordsLoadFailed] = useState(false);
-  // Important Dates surfacing on Today: the next ~30 days of logged dates,
-  // computed live from current events (never persisted/stale). Quiet by design.
-  const todayUpcomingDates = useMemo(
-    () => upcomingDates(collections.familyEvents, new Date(), 30),
-    [collections.familyEvents],
+  // Inline so new Date() is always fresh (memoizing only on familyEvents would
+  // go stale across midnight).
+  const todayUpcomingDates = upcomingDates(
+    collections.familyEvents,
+    new Date(),
+    30,
   );
   const storedState = useMemo<StoredDemoState>(
     () => ({
@@ -1083,9 +1084,7 @@ function App() {
     }));
   }
 
-  // Important Dates: persist a logged date. Real mode writes the row to Supabase
-  // (RLS-scoped) then folds the durable row into state; demo/local mode just keeps
-  // it in memory. Mirrors the family-member save path above.
+  // Mirrors the family-member save path above.
   async function handleSaveImportantDate(event: FamilyEvent): Promise<void> {
     if (isSupabaseConfigured && session) {
       const userId = session.user.id;

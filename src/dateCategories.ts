@@ -10,9 +10,7 @@ import {
 } from "lucide-react";
 import type { CalendarLayer, DateCategory } from "./familyOS";
 
-// The Important Dates icon grid. Each category carries a label, a lucide icon,
-// and the CalendarLayer it slots into so a saved date still belongs to the
-// Calendar's layered model. Calm tiles, no counts — just a tap target.
+// Each category carries the CalendarLayer it slots into so a saved date still belongs to the Calendar's layered model.
 export type DateCategoryMeta = {
   id: DateCategory;
   label: string;

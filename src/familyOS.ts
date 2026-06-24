@@ -18,10 +18,7 @@ export type CalendarLayer =
   | "meals"
   | "admin";
 
-// "Important Dates" categories — the icon-grid the user taps to log a date they
-// never want to forget. Each maps to a CalendarLayer (see dateCategories.ts) so
-// the event still slots into the Calendar. Persisted on family_events via the
-// event_category column; "generic" is the default for pre-existing rows.
+// Persisted on family_events.event_category; 'generic' = default for pre-existing rows.
 export type DateCategory =
   | "birthday"
   | "anniversary"

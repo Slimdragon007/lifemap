@@ -45,6 +45,14 @@ describe("nextOccurrence", () => {
   test("annual landing exactly on today counts as today (0 days)", () => {
     expect(nextOccurrence("2000-06-23", true, TODAY)).toBe("2026-06-23");
   });
+
+  test("annual Feb-29 in a non-leap year normalizes to Mar-01", () => {
+    // 2027 is not a leap year; Feb-29 must roll to Mar-01, not emit "2027-02-29".
+    const feb29Today = new Date("2027-01-01T00:00:00Z");
+    const result = nextOccurrence("2000-02-29", true, feb29Today);
+    expect(result).toBe("2027-03-01");
+    expect(daysUntil(result, feb29Today)).toBe(59);
+  });
 });
 
 describe("daysUntil", () => {

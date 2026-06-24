@@ -1,13 +1,12 @@
 import type { FamilyEvent } from "./familyOS";
 
-// Pure, compute-on-read helpers for Important Dates. No stored future rows, no
-// cron — the next occurrence of an annual date is derived each render. All date
-// math is UTC-based: we parse "YYYY-MM-DD" as a date-only value and build dates
-// with Date.UTC so a user's local timezone can never shift the day (the classic
-// "new Date('2026-06-30')" → off-by-one-in-the-Pacific bug).
+// UTC-based date math: we parse "YYYY-MM-DD" with Date.UTC to avoid the
+// classic "new Date('2026-06-30')" → off-by-one-in-the-Pacific bug.
 
-// Parse a calendar date string ("YYYY-MM-DD", optionally with a time suffix we
-// ignore) into UTC y/m/d parts. Returns undefined if it isn't a valid date.
+export function isImportantDate(event: FamilyEvent): boolean {
+  return Boolean(event.eventCategory);
+}
+
 function parseYmd(
   dateISO: string,
 ): { year: number; month: number; day: number } | undefined {
@@ -56,9 +55,18 @@ export function nextOccurrence(
   }
   const todayStart = utcDayStart(today);
   const thisYear = today.getUTCFullYear();
-  const candidate = Date.UTC(thisYear, parts.month - 1, parts.day);
-  const year = candidate < todayStart ? thisYear + 1 : thisYear;
-  return toIso(year, parts.month, parts.day);
+  const candidateMs = Date.UTC(thisYear, parts.month - 1, parts.day);
+  const yearOffset = candidateMs < todayStart ? 1 : 0;
+  // Build via Date so Feb-29 in a non-leap year normalizes to Mar-01 — using
+  // the raw stored day would produce "YYYY-02-29" which is an invalid ISO string.
+  const normalized = new Date(
+    Date.UTC(thisYear + yearOffset, parts.month - 1, parts.day),
+  );
+  return toIso(
+    normalized.getUTCFullYear(),
+    normalized.getUTCMonth() + 1,
+    normalized.getUTCDate(),
+  );
 }
 
 // Whole calendar days from `today` until `dateISO` (negative if already past).
@@ -88,7 +96,7 @@ export function upcomingDates(
   withinDays: number,
 ): UpcomingDate[] {
   return events
-    .filter((event) => Boolean(event.eventCategory) && Boolean(event.date))
+    .filter((event) => isImportantDate(event) && Boolean(event.date))
     .map((event) => {
       const nextDate = nextOccurrence(
         event.date,

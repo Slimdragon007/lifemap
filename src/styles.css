@@ -10762,10 +10762,7 @@ button.notebook-row:active {
   height: 34px;
 }
 
-/* ── Important Dates ───────────────────────────────────────────────────
-   Calm, token-styled surface: an icon-category grid to add a date you never
-   want to forget, then the saved dates sorted by next occurrence. Leans on the
-   shared tokens so light + dark stay in register (no hard-coded colors). */
+/* ── Important Dates ─────────────────────────────────────────── no hard-coded colors */
 .dates-workspace {
   display: flex;
   flex-direction: column;
