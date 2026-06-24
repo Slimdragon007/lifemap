@@ -33,6 +33,9 @@ type OnboardingViewProps = {
     people: OnboardingPerson[];
   }) => void;
   onSkip: () => void;
+  // Prefill for step 1 — App passes the name captured at signup
+  // (user_metadata.first_name) so onboarding doesn't re-ask.
+  initialName?: string;
 };
 
 const PEOPLE_CHIPS: ReadonlyArray<{ label: string; role: OnboardingRole }> = [
@@ -61,12 +64,16 @@ const AREAS = [
 
 const TOTAL_STEPS = 5;
 
-function OnboardingView({ onComplete, onSkip }: OnboardingViewProps) {
+function OnboardingView({
+  onComplete,
+  onSkip,
+  initialName = "",
+}: OnboardingViewProps) {
   // Identity cover shown first: state what LifeMap is in one calm screen before
   // the setup wizard. "Continue" drops into step 1; "Skip" exits the whole flow.
   const [showIntro, setShowIntro] = useState(true);
   const [step, setStep] = useState(1);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(initialName);
   // "Your people" is a structured, scalable list (not a fixed Set) so any number
   // of adults/children/pets persist into family_members later. Seeded with "You".
   const [people, setPeople] = useState<PersonRow[]>([

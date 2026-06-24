@@ -21,6 +21,35 @@ async function finishFromPeopleStep(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Enter LifeMap" }));
 }
 
+describe("OnboardingView step 1 name", () => {
+  test("step-1 Continue is disabled until a name is entered", async () => {
+    const user = userEvent.setup();
+    render(<OnboardingView onComplete={vi.fn()} onSkip={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Continue" })); // intro
+
+    const continueButton = screen.getByRole("button", { name: "Continue" });
+    expect(continueButton).toBeDisabled();
+
+    await user.type(screen.getByLabelText("Your name"), "Alex");
+    expect(continueButton).toBeEnabled();
+  });
+
+  test("prefills the name from initialName", async () => {
+    const user = userEvent.setup();
+    render(
+      <OnboardingView
+        initialName="Michael"
+        onComplete={vi.fn()}
+        onSkip={vi.fn()}
+      />,
+    );
+    // Step through the intro cover to reach step 1.
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByLabelText("Your name")).toHaveValue("Michael");
+  });
+});
+
 describe("OnboardingView 'Your people' step", () => {
   test("emits every chosen person — 3+ kids and a custom add — through onComplete", async () => {
     const user = userEvent.setup();

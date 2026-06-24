@@ -1,7 +1,12 @@
 export type ViewerIdentity = { name: string; initials: string };
 
 // Structural shape — accepts a Supabase Session or a hand-built test stub.
-export type ViewerSession = { user: { email?: string | null } } | null;
+export type ViewerSession = {
+  user: {
+    email?: string | null;
+    user_metadata?: { first_name?: string | null } | null;
+  };
+} | null;
 
 export function viewerIdentity(
   session: ViewerSession,
@@ -9,6 +14,15 @@ export function viewerIdentity(
 ): ViewerIdentity {
   if (demoMode) {
     return { name: "Alex Kim", initials: "AK" };
+  }
+
+  // A name captured at signup (stored to user_metadata.first_name) wins over the
+  // email-local-part guess. Existing accounts with no metadata name still fall
+  // back to the guess (or the Settings displayName override above this in App).
+  const firstName = session?.user.user_metadata?.first_name;
+  if (typeof firstName === "string" && firstName.trim()) {
+    const trimmed = firstName.trim();
+    return { name: trimmed, initials: initialsFromName(trimmed) };
   }
 
   const email = session?.user.email;

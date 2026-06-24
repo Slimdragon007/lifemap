@@ -11,6 +11,7 @@ type Mode = "signin" | "signup" | "reset";
 // quiet warm cream, one coral accent, no decorative motion.
 function AuthScreen() {
   const [mode, setMode] = useState<Mode>("signin");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "loading">("idle");
@@ -43,10 +44,20 @@ function AuthScreen() {
       return;
     }
 
+    const trimmedName = name.trim();
+    if (mode === "signup" && !trimmedName) {
+      setError("Please enter your name.");
+      setStatus("idle");
+      return;
+    }
+
     const credentials = { email: trimmedEmail, password };
     const { data, error: authError } =
       mode === "signup"
-        ? await supabase.auth.signUp(credentials)
+        ? await supabase.auth.signUp({
+            ...credentials,
+            options: { data: { first_name: trimmedName } },
+          })
         : await supabase.auth.signInWithPassword(credentials);
 
     if (authError) {
@@ -91,6 +102,21 @@ function AuthScreen() {
         <p className="auth-lede">{lede}</p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
+          {mode === "signup" ? (
+            <label className="auth-field">
+              <span>First name</span>
+              <input
+                autoComplete="given-name"
+                id="auth-name"
+                name="first_name"
+                placeholder="Alex"
+                required
+                type="text"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+            </label>
+          ) : null}
           <label className="auth-field">
             <span>Email</span>
             <input

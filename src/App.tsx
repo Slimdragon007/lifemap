@@ -1218,6 +1218,7 @@ function App() {
   if (view === "onboarding") {
     return (
       <OnboardingView
+        initialName={session?.user.user_metadata?.first_name ?? ""}
         onComplete={(result) => completeOnboarding(result)}
         onSkip={() => completeOnboarding()}
       />

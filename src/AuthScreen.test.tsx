@@ -56,11 +56,18 @@ describe("AuthScreen", () => {
     await user.click(
       screen.getByRole("button", { name: /create an account/i }),
     );
+    await user.type(screen.getByLabelText("First name"), "Alex");
     await user.type(screen.getByLabelText("Email"), "new@example.com");
     await user.type(screen.getByLabelText("Password"), "supersecret");
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
 
-    await waitFor(() => expect(mocks.signUp).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(mocks.signUp).toHaveBeenCalledWith({
+        email: "new@example.com",
+        password: "supersecret",
+        options: { data: { first_name: "Alex" } },
+      }),
+    );
     expect(screen.queryByText(/check your email/i)).not.toBeInTheDocument();
   });
 
@@ -76,12 +83,33 @@ describe("AuthScreen", () => {
     await user.click(
       screen.getByRole("button", { name: /create an account/i }),
     );
+    await user.type(screen.getByLabelText("First name"), "Alex");
     await user.type(screen.getByLabelText("Email"), "new@example.com");
     await user.type(screen.getByLabelText("Password"), "supersecret");
     await user.click(screen.getByRole("button", { name: /^sign up$/i }));
 
     await waitFor(() => expect(mocks.signUp).toHaveBeenCalled());
     expect(await screen.findByText(/check your email/i)).toBeInTheDocument();
+  });
+
+  test("requires a name to sign up", async () => {
+    const user = userEvent.setup();
+    render(<AuthScreen />);
+
+    await user.click(
+      screen.getByRole("button", { name: /create an account/i }),
+    );
+    // A whitespace-only name satisfies the native `required` attribute but is
+    // empty after trim() — exercising the JS guard in handleSubmit.
+    await user.type(screen.getByLabelText("First name"), "   ");
+    await user.type(screen.getByLabelText("Email"), "new@example.com");
+    await user.type(screen.getByLabelText("Password"), "supersecret");
+    await user.click(screen.getByRole("button", { name: /^sign up$/i }));
+
+    expect(
+      await screen.findByText(/please enter your name/i),
+    ).toBeInTheDocument();
+    expect(mocks.signUp).not.toHaveBeenCalled();
   });
 
   test("sends a password reset link from the forgot-password flow", async () => {
