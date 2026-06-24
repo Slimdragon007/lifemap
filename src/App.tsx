@@ -1047,6 +1047,20 @@ function App() {
     setView("today");
   }
 
+  function handleSetName(value: string) {
+    const name = value.trim();
+    setDisplayName(name);
+    try {
+      if (name) {
+        window.localStorage.setItem("lifemap-display-name", name);
+      } else {
+        window.localStorage.removeItem("lifemap-display-name");
+      }
+    } catch {
+      // Storage unavailable in private mode.
+    }
+  }
+
   async function persistOnboardingPeople(
     people: OnboardingPerson[],
   ): Promise<void> {
@@ -1673,6 +1687,8 @@ function App() {
           <MoreView
             isSupabaseConfigured={isSupabaseConfigured}
             sessionEmail={session?.user.email}
+            displayName={displayName}
+            onSetName={handleSetName}
             onOpenFamilyMap={() => setView("family")}
             onOpenCapture={() => openCapture()}
             onOpenCalendar={() => setView("calendar")}
@@ -2127,6 +2143,8 @@ function pluralize(label: string, count: number) {
 function MoreView({
   isSupabaseConfigured,
   sessionEmail,
+  displayName = "",
+  onSetName,
   onOpenFamilyMap,
   onOpenCapture,
   onOpenCalendar,
@@ -2144,6 +2162,8 @@ function MoreView({
 }: {
   isSupabaseConfigured: boolean;
   sessionEmail?: string;
+  displayName?: string;
+  onSetName?: (value: string) => void;
   onOpenFamilyMap: () => void;
   onOpenCapture: () => void;
   onOpenCalendar: () => void;
@@ -2190,6 +2210,21 @@ function MoreView({
             </span>
             <ThemeToggle />
           </div>
+          {isSupabaseConfigured && sessionEmail && onSetName ? (
+            <div className="settings-name-field">
+              <label htmlFor="settings-name-input">Your name</label>
+              <input
+                id="settings-name-input"
+                type="text"
+                value={displayName}
+                placeholder="What should we call you?"
+                onChange={(e) => onSetName(e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <span>Used for your greeting.</span>
+            </div>
+          ) : null}
         </section>
         <section
           aria-labelledby="more-start-title"

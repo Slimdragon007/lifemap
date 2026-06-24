@@ -46,7 +46,7 @@ export default defineConfig({
   webServer: {
     command: `npx vite build --config tests/e2e/vite.demo.config.ts && npx vite preview --config tests/e2e/vite.demo.config.ts --host 127.0.0.1 --port ${PORT} --strictPort`,
     url: URL,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 180_000,
   },
 });
