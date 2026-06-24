@@ -9736,42 +9736,9 @@ button.notebook-row:active {
 }
 
 /* ── Feedback bubble + panel ───────────────────────────────────────── */
-.feedback-bubble {
-  position: fixed;
-  right: max(16px, env(safe-area-inset-right));
-  /* Sit just above the fixed 3-tab bottom-nav shell (~142px tall incl. its
-     12px offset) in the bottom-right corner — not floating mid-content. (The
-     old dump bar this used to clear was removed.) */
-  bottom: calc(154px + env(safe-area-inset-bottom));
-  z-index: 50;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--rule, #e7ddc9);
-  border-radius: 999px;
-  background: var(--accent, #cf7a52);
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
-  transition:
-    transform 140ms ease,
-    box-shadow 140ms ease;
-}
-.feedback-bubble:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 9px 24px rgba(0, 0, 0, 0.18);
-}
-.feedback-bubble:active {
-  transform: scale(0.96);
-}
-
-/* Desktop (≥1100px): the nav is a left sidebar and there's no bottom dump bar,
-   so the FAB + its panel return to the bottom-right corner. */
+/* Desktop (≥1100px): the nav is a left sidebar; keep the panel near the
+   bottom-right corner. */
 @media (min-width: 1100px) {
-  .feedback-bubble {
-    bottom: max(20px, env(safe-area-inset-bottom));
-  }
   .feedback-panel {
     bottom: calc(76px + env(safe-area-inset-bottom));
   }
@@ -9780,7 +9747,7 @@ button.notebook-row:active {
 .feedback-panel {
   position: fixed;
   right: max(16px, env(safe-area-inset-right));
-  bottom: calc(284px + env(safe-area-inset-bottom));
+  bottom: max(20px, env(safe-area-inset-bottom));
   z-index: 60;
   display: flex;
   flex-direction: column;

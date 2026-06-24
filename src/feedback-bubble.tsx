@@ -1,17 +1,27 @@
-import { MessageCircle, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useState } from "react";
 import { sendFeedback } from "./api";
 import { getAccessToken } from "./supabaseClient";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
-// Floating feedback button for the authenticated app. Opens a small panel;
-// submitting routes to the Worker (email + Notion). Mounted only when signed in.
-function FeedbackBubble() {
-  const [open, setOpen] = useState(false);
+// Controlled feedback panel. Shown when `open` is true; calls `onClose` when
+// the user dismisses it or after a successful send. Mounting/unmounting is the
+// caller's responsibility.
+export function FeedbackPanel({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string>();
+
+  if (!open) {
+    return null;
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -42,26 +52,13 @@ function FeedbackBubble() {
       setStatus("sent");
       setMessage("");
       window.setTimeout(() => {
-        setOpen(false);
         setStatus("idle");
+        onClose();
       }, 1600);
     } else {
       setStatus("error");
       setError(result.error);
     }
-  }
-
-  if (!open) {
-    return (
-      <button
-        className="feedback-bubble"
-        type="button"
-        aria-label="Send feedback"
-        onClick={() => setOpen(true)}
-      >
-        <MessageCircle size={20} aria-hidden="true" />
-      </button>
-    );
   }
 
   return (
@@ -73,7 +70,7 @@ function FeedbackBubble() {
           type="button"
           aria-label="Close feedback"
           onClick={() => {
-            setOpen(false);
+            onClose();
             setStatus("idle");
             setError(undefined);
           }}
@@ -119,4 +116,4 @@ function FeedbackBubble() {
   );
 }
 
-export default FeedbackBubble;
+export default FeedbackPanel;

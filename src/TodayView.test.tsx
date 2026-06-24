@@ -64,6 +64,7 @@ function renderToday(overrides: TodayOverrides = {}) {
       onTogglePriorityDone={vi.fn()}
       onOpenSetup={vi.fn()}
       onOpenSetupBucket={vi.fn()}
+      onOpenFeedback={vi.fn()}
     />,
   );
 }
