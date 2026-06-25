@@ -102,6 +102,11 @@ function TodayView({
     setCoachSeen(true);
   }
 
+  // No real priorities yet -> first-run/empty state. Reuse this signal (rather
+  // than re-deriving "real vs seeded data") to surface a persistent, always-
+  // available "add your first thing" CTA, independent of the one-time coach.
+  const isEmptyBrief = brief.topPriorities.length === 0;
+
   const topPriorities =
     brief.topPriorities.length > 0
       ? brief.topPriorities.slice(0, 3)
@@ -225,7 +230,7 @@ function TodayView({
             </p>
             <ul className="calm-coach-steps">
               <li>
-                Dump anything with the <strong>+</strong>
+                Tap <strong>Add</strong> to dump anything — the AI sorts it
               </li>
               <li>The AI sorts it into calendar, vault &amp; reminders</li>
               <li>You only see what needs your yes</li>
@@ -311,6 +316,18 @@ function TodayView({
               );
             })}
           </div>
+
+          {isEmptyBrief ? (
+            <button
+              className="calm-first-add"
+              type="button"
+              onClick={() => onOpenBrainDump()}
+            >
+              <Plus size={16} />
+              <span>Add your first thing</span>
+              <ChevronRight size={15} />
+            </button>
+          ) : null}
 
           {approvalCount > 0 ? (
             <button

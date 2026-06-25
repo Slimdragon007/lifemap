@@ -26,6 +26,9 @@ export type StoredDemoState = {
   dismissedSuggestionIds?: string[];
   setupProfile?: SetupProfile;
   setupBucketIds?: SetupBucketId[];
+  // Per-account first-run flag. Persisted in the remote user_memory blob so a
+  // completed/skipped onboarding follows the account across devices.
+  onboarded?: boolean;
 };
 
 export function loadStoredDemoState(): StoredDemoState {
@@ -74,6 +77,10 @@ export function normalizeStoredDemoState(value: unknown): StoredDemoState {
 
   if (typeof value.isLoggedIn === "boolean") {
     state.isLoggedIn = value.isLoggedIn;
+  }
+
+  if (typeof value.onboarded === "boolean") {
+    state.onboarded = value.onboarded;
   }
 
   if (typeof value.intake === "string") {
@@ -182,6 +189,34 @@ export function authoritativeRemoteState(
   remote: StoredDemoState,
 ): StoredDemoState {
   return { ...emptyPersistedState(), ...remote };
+}
+
+// First-run gate decision (pure, so it's unit-testable). Evaluate only AFTER the
+// remote state has loaded — `state` is the account's authoritative stored state.
+//
+// Show onboarding when the account is genuinely new:
+//   - persisted `onboarded === true`  -> already onboarded, never show.
+//   - localStorage flag set (offline/fast-path cache, and the legacy signal for
+//     accounts that onboarded before the per-account flag existed) -> don't show.
+//   - legacy accounts with real setup data (a profile or any buckets) are treated
+//     as already onboarded, so existing users are never re-interrupted.
+//   - otherwise (brand-new account, no flag, no data) -> show once.
+export function shouldShowOnboarding(
+  state: StoredDemoState,
+  localFlag: boolean,
+): boolean {
+  if (state.onboarded === true) {
+    return false;
+  }
+  if (localFlag) {
+    return false;
+  }
+  const hasLegacyData =
+    (state.setupBucketIds?.length ?? 0) > 0 || state.setupProfile !== undefined;
+  if (hasLegacyData) {
+    return false;
+  }
+  return true;
 }
 
 export type InitialAppState = StoredDemoState & {

@@ -8095,6 +8095,41 @@ button.calm-row:active {
   transform: scale(0.99);
 }
 
+/* Persistent first-run CTA: the always-available "add your first thing" path,
+   shown whenever the brief is empty — independent of the one-time coach. */
+.calm-first-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: var(--radius-panel);
+  background: var(--color-accent-blue);
+  color: var(--color-text-inverse);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    filter var(--motion-state) var(--ease-out),
+    transform var(--motion-press) var(--ease);
+}
+
+.calm-first-add svg {
+  color: var(--color-text-inverse);
+}
+
+.calm-first-add:hover {
+  filter: brightness(1.06);
+}
+
+.calm-first-add:active {
+  transform: scale(0.99);
+}
+
 /* ── Section 3 · Handled today ─────────────────────────────────────── */
 .calm-handled .lowstim-showmore {
   justify-content: flex-start;

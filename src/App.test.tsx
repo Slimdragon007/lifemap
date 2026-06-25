@@ -118,8 +118,8 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Capture" })).toBeInTheDocument();
-    // Primary nav is now Today · "+" Capture · Settings — Calendar, Vault, and
+    expect(screen.getByRole("button", { name: "Add" })).toBeInTheDocument();
+    // Primary nav is now Today · "+" Add · Settings — Calendar, Vault, and
     // Review are demoted to contextual entries (Today affordances + Settings),
     // so they no longer appear as bottom-nav tabs.
     const primaryNav = screen.getByRole("navigation", {
@@ -129,7 +129,7 @@ describe("LifeMap MVP app", () => {
       within(primaryNav).getByRole("button", { name: "Today" }),
     ).toBeInTheDocument();
     expect(
-      within(primaryNav).getByRole("button", { name: "Capture" }),
+      within(primaryNav).getByRole("button", { name: "Add" }),
     ).toBeInTheDocument();
     expect(
       within(primaryNav).getByRole("button", { name: "Settings" }),
@@ -143,7 +143,7 @@ describe("LifeMap MVP app", () => {
     expect(
       within(primaryNav).queryByRole("button", { name: "Review" }),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Capture" }));
+    await user.click(screen.getByRole("button", { name: "Add" }));
     expect(
       screen.getByRole("heading", { name: "Brain dump" }),
     ).toBeInTheDocument();
@@ -606,7 +606,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Capture" }));
+    await user.click(screen.getByRole("button", { name: "Add" }));
 
     const capture = screen
       .getByRole("heading", { name: "Brain dump" })
@@ -635,7 +635,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Capture" }));
+    await user.click(screen.getByRole("button", { name: "Add" }));
 
     const capture = screen.getByRole("region", { name: "Brain dump" });
     expect(
@@ -662,7 +662,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Capture" }));
+    await user.click(screen.getByRole("button", { name: "Add" }));
 
     const capture = screen.getByRole("region", { name: "Brain dump" });
     const captureTypePicker = within(capture).getByRole("region", {
@@ -707,7 +707,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Capture" }));
+    await user.click(screen.getByRole("button", { name: "Add" }));
 
     const capture = screen.getByRole("region", { name: "Brain dump" });
     await user.click(
@@ -741,7 +741,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Capture" }));
+    await user.click(screen.getByRole("button", { name: "Add" }));
 
     const capture = screen
       .getByRole("heading", { name: "Brain dump" })
@@ -965,7 +965,7 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
 
     // Capture: the nav "Capture" action opens the AI capture flow.
-    await user.click(screen.getByRole("button", { name: "Capture" }));
+    await user.click(screen.getByRole("button", { name: "Add" }));
     expect(
       screen.getByRole("heading", { name: "Brain dump" }),
     ).toBeInTheDocument();

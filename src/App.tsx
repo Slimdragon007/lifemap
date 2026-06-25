@@ -14,6 +14,7 @@ import {
   Map,
   ListChecks,
   MessageSquare,
+  Plus,
   Sparkles,
   Send,
   Settings,
@@ -24,7 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { analyzeWithAi, generateBriefWithAi, sendDraftEmail } from "./api";
 import { clearFieldCrypto, ensureFieldCrypto } from "./field-crypto";
 import {
@@ -47,6 +48,7 @@ import {
   initialAppState,
   loadStoredDemoState,
   saveStoredDemoState,
+  shouldShowOnboarding,
 } from "./storage";
 import CalendarView from "./CalendarView";
 import AuthScreen from "./auth-screen";
@@ -325,6 +327,15 @@ function App() {
   const [setupBucketIds, setSetupBucketIds] = useState<SetupBucketId[]>(
     () => initialState.setupBucketIds ?? [],
   );
+  // Per-account first-run flag, mirrored into the persisted state so a completed
+  // or skipped onboarding follows the account across devices. Seeded from the
+  // remote load (see the first-run gate effect) and set true by completeOnboarding.
+  const [onboarded, setOnboarded] = useState<boolean>(
+    () => initialState.onboarded ?? false,
+  );
+  // One-shot guard so the first-run gate fires at most once per signed-in
+  // session (it must not re-show onboarding after the user navigates away).
+  const onboardingGateChecked = useRef<string | undefined>(undefined);
   // The display name the user typed in onboarding (persisted separately from the
   // Supabase session so it survives reloads and overrides the email-derived name).
   const [displayName, setDisplayName] = useState<string>(() => {
@@ -437,6 +448,7 @@ function App() {
       dismissedSuggestionIds: Array.from(dismissedSuggestionIds),
       setupProfile,
       setupBucketIds,
+      onboarded,
     }),
     [
       approvalBodyEdits,
@@ -449,6 +461,7 @@ function App() {
       savedSuggestionIds,
       setupBucketIds,
       setupProfile,
+      onboarded,
     ],
   );
 
@@ -512,9 +525,14 @@ function App() {
 
         if (result.ok) {
           applyStoredState(result.state);
+          // First-run gate: decide AFTER the remote load settles (so it can't
+          // race the state populate) and key it on the account, not the device.
+          maybeShowOnboarding(userId, result.state);
         } else {
           console.warn("LifeMap remote load failed", result.error);
           setToastMessage("Couldn't sync your saved data — using local copy.");
+          // Remote unavailable: fall back to the offline localStorage flag only.
+          maybeShowOnboarding(userId, {});
         }
         setRemoteLoadedFor(userId);
       })
@@ -589,23 +607,32 @@ function App() {
     };
   }, [session]);
 
-  // First-run gate (real mode only — demo never triggers this): a brand-new
-  // signed-in user with no buckets and no "onboarded" flag sees the wizard once.
-  useEffect(() => {
-    if (!isSupabaseConfigured || !session) {
+  // First-run gate (real mode only — demo never triggers this). Called once the
+  // remote state has settled so it can't race the state populate. Per-ACCOUNT:
+  // brand-new accounts see onboarding once; onboarded accounts never do, on any
+  // device. The localStorage flag is only an offline/fast-path + legacy fallback.
+  // Guarded by a ref so it fires at most once per signed-in session.
+  function maybeShowOnboarding(userId: string, remote: StoredDemoState) {
+    if (onboardingGateChecked.current === userId) {
       return;
     }
-    let onboarded = true;
+    onboardingGateChecked.current = userId;
+    let localFlag = false;
     try {
-      onboarded = window.localStorage.getItem("lifemap-onboarded") === "1";
+      localFlag = window.localStorage.getItem("lifemap-onboarded") === "1";
     } catch {
-      onboarded = true;
+      // Storage unavailable (private mode): treat as no local cache.
+      localFlag = false;
     }
-    if (!onboarded && setupBucketIds.length === 0) {
+    if (shouldShowOnboarding(remote, localFlag)) {
       setView("onboarding");
     }
-    // Intentionally keyed on session id: run once when a session appears.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }
+
+  // Reset the one-shot gate guard when the signed-in account changes, so a
+  // different account on the same tab can still be gated.
+  useEffect(() => {
+    onboardingGateChecked.current = undefined;
   }, [session?.user.id]);
 
   useEffect(() => {
@@ -647,6 +674,7 @@ function App() {
       normalizeSetupProfile(full.setupProfile ?? defaultSetupProfile),
     );
     setSetupBucketIds(normalizeSetupBucketIds(full.setupBucketIds ?? []));
+    setOnboarded(state.onboarded === true);
   }
 
   function saveSuggestion(id: string) {
@@ -1039,6 +1067,10 @@ function App() {
         void persistOnboardingPeople(result.people);
       }
     }
+    // Per-account: mark onboarded in persisted state (saved to remote via the
+    // storedState save effect) so it follows the account across devices...
+    setOnboarded(true);
+    // ...and keep the localStorage write as a fast-path / offline cache.
     try {
       window.localStorage.setItem("lifemap-onboarded", "1");
     } catch {
@@ -1259,7 +1291,7 @@ function App() {
               <span>Today</span>
             </button>
             <button
-              aria-label="Capture"
+              aria-label="Add"
               className={
                 view === "capture"
                   ? "nav-capture-button active"
@@ -1268,8 +1300,8 @@ function App() {
               type="button"
               onClick={() => openCapture()}
             >
-              <Inbox size={22} />
-              <span>Capture</span>
+              <Plus size={22} />
+              <span>Add</span>
             </button>
             <button
               className={

@@ -6,7 +6,10 @@ import {
   initialAppState,
   loadStoredDemoState,
   saveStoredDemoState,
+  shouldShowOnboarding,
+  normalizeStoredDemoState,
 } from "./storage";
+import { defaultSetupProfile } from "./setupBuckets";
 import {
   presentationAnalysis,
   presentationBrief,
@@ -188,5 +191,38 @@ describe("initialAppState", () => {
 
     expect(result.intake).toBe("my own notes");
     expect(result.analysis).toEqual(presentationAnalysis);
+  });
+});
+
+describe("shouldShowOnboarding", () => {
+  test("shows for a brand-new account: no flag, no data, no localStorage", () => {
+    expect(shouldShowOnboarding({}, false)).toBe(true);
+  });
+
+  test("hides when persisted onboarded === true (any device, no localStorage)", () => {
+    expect(shouldShowOnboarding({ onboarded: true }, false)).toBe(false);
+  });
+
+  test("falls back to the localStorage flag when remote has no onboarded flag", () => {
+    expect(shouldShowOnboarding({}, true)).toBe(false);
+  });
+
+  test("does not re-onboard legacy accounts with real setup data", () => {
+    // Existing users predate the onboarded flag; presence of a setup profile or
+    // buckets means they already used the app and must not be interrupted.
+    expect(
+      shouldShowOnboarding({ setupProfile: defaultSetupProfile }, false),
+    ).toBe(false);
+    expect(shouldShowOnboarding({ setupBucketIds: ["money-admin"] }, false)).toBe(
+      false,
+    );
+  });
+
+  test("onboarded survives a normalize round-trip (persisted to remote state)", () => {
+    expect(normalizeStoredDemoState({ onboarded: true }).onboarded).toBe(true);
+    expect(normalizeStoredDemoState({ onboarded: false }).onboarded).toBe(
+      false,
+    );
+    expect(normalizeStoredDemoState({}).onboarded).toBeUndefined();
   });
 });
