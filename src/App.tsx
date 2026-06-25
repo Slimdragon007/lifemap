@@ -89,8 +89,11 @@ import {
   isSupabaseConfigured,
 } from "./supabaseClient";
 import TodayView from "./TodayView";
-import VaultView from "./VaultView";
-import ImportantDatesView from "./ImportantDatesView";
+import VaultView, { AddDocumentModal } from "./VaultView";
+import ImportantDatesView, { AddDateModal } from "./ImportantDatesView";
+import { AddPersonModal } from "./add-person-modal";
+import { AddActionSheet, type QuickAddKind } from "./add-action-sheet";
+import { DOCUMENT_TYPES } from "./documentTypes";
 import { upcomingDates } from "./importantDates";
 import EmptyState from "./empty-state";
 import {
@@ -403,6 +406,11 @@ function App() {
   );
   const [captureRoute, setCaptureRoute] = useState<CaptureRoute>();
   const [remoteLoadedFor, setRemoteLoadedFor] = useState<string>();
+  // Family-first home: which member's stuff is shown, and the tap-to-add sheet.
+  const [selectedMemberId, setSelectedMemberId] = useState<string>();
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
+  const [addSheetOwner, setAddSheetOwner] = useState<string>();
+  const [quickAdd, setQuickAdd] = useState<"document" | "date" | "person">();
   const {
     session,
     loading: sessionLoading,
@@ -1200,6 +1208,27 @@ function App() {
     }));
   }
 
+  // Family-first tap-to-add: the "+" fans out a scoped action sheet; each tile
+  // routes into an existing add flow (document/date/person) or the AI capture.
+  function openAddSheet(owner?: string) {
+    setAddSheetOwner(owner);
+    setAddSheetOpen(true);
+  }
+
+  function handleSheetPick(kind: QuickAddKind) {
+    setAddSheetOpen(false);
+    if (kind === "brainDump") {
+      openCapture();
+      return;
+    }
+    setQuickAdd(kind);
+  }
+
+  async function handleAddPerson(person: OnboardingPerson): Promise<void> {
+    await persistOnboardingPeople([person]);
+    setQuickAdd(undefined);
+  }
+
   // Today map-hero: tapping a trunk node checks the task off (or un-checks it).
   function togglePriorityDone(id: string) {
     setPriorityActionStates((current) => {
@@ -1319,16 +1348,27 @@ function App() {
               <span>Today</span>
             </button>
             <button
-              aria-label="Add"
+              aria-label={addSheetOpen ? "Close add menu" : "Add"}
+              aria-expanded={addSheetOpen}
               className={
-                view === "capture"
+                addSheetOpen || view === "capture"
                   ? "nav-capture-button active"
                   : "nav-capture-button"
               }
               type="button"
-              onClick={() => openCapture()}
+              onClick={() =>
+                addSheetOpen
+                  ? setAddSheetOpen(false)
+                  : openAddSheet(
+                      (
+                        collections.familyMembers.find(
+                          (member) => member.id === selectedMemberId,
+                        ) ?? collections.familyMembers[0]
+                      )?.name,
+                    )
+              }
             >
-              <Plus size={22} />
+              {addSheetOpen ? <X size={22} /> : <Plus size={22} />}
               <span>Add</span>
             </button>
             <button
@@ -1416,6 +1456,13 @@ function App() {
               setSelectedSetupBucketId(bucket.id);
               setView("bucket");
             }}
+            familyMembers={collections.familyMembers}
+            vaultItems={collections.vaultItems}
+            familyEvents={collections.familyEvents}
+            selectedMemberId={selectedMemberId}
+            onSelectMember={setSelectedMemberId}
+            onAddForMember={(member) => openAddSheet(member.name)}
+            onAddMember={() => setQuickAdd("person")}
           />
         ) : view === "bucket" && selectedSetupBucket ? (
           <BucketDetailView
@@ -1826,6 +1873,46 @@ function App() {
         <FeedbackPanel
           open={feedbackOpen}
           onClose={() => setFeedbackOpen(false)}
+        />
+      ) : null}
+      {addSheetOpen ? (
+        <AddActionSheet
+          owner={addSheetOwner}
+          onPick={handleSheetPick}
+          onClose={() => setAddSheetOpen(false)}
+        />
+      ) : null}
+      {quickAdd === "document" ? (
+        <AddDocumentModal
+          docType={
+            DOCUMENT_TYPES.find((type) => type.key === "other") ??
+            DOCUMENT_TYPES[0]
+          }
+          familyMembers={collections.familyMembers}
+          presetOwner={addSheetOwner}
+          onClose={() => setQuickAdd(undefined)}
+          onSave={(item) => {
+            handleAddDocument(item);
+            setQuickAdd(undefined);
+          }}
+        />
+      ) : null}
+      {quickAdd === "date" ? (
+        <AddDateModal
+          category="custom"
+          familyMembers={collections.familyMembers}
+          presetOwner={addSheetOwner}
+          onClose={() => setQuickAdd(undefined)}
+          onSave={(event) => {
+            handleSaveImportantDate(event);
+            setQuickAdd(undefined);
+          }}
+        />
+      ) : null}
+      {quickAdd === "person" ? (
+        <AddPersonModal
+          onClose={() => setQuickAdd(undefined)}
+          onSave={handleAddPerson}
         />
       ) : null}
     </>

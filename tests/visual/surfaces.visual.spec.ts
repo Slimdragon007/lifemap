@@ -90,6 +90,7 @@ for (const theme of ["dark", "light"] as const) {
       await prepare(page, theme);
       await enterApp(page);
       await page.getByRole("button", { name: "Add", exact: true }).click();
+      await page.getByRole("button", { name: /Brain dump/ }).click();
       await expect(
         page.getByRole("heading", { name: "Brain dump" }),
       ).toBeVisible();

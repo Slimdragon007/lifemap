@@ -4,6 +4,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  FileText,
   MessageCircle,
   Plus,
   RefreshCw,
@@ -15,6 +16,8 @@ import type { BriefPriority, DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
 import type { RecommendedBucket, SetupProfile } from "./setupBuckets";
 import type { ViewerIdentity } from "./viewer";
+import type { FamilyEvent, FamilyMember, VaultItem } from "./familyOS";
+import { memberAccent, memberStuff } from "./familyToday";
 import { dateCategoryMeta } from "./dateCategories";
 import { relativeDayLabel, type UpcomingDate } from "./importantDates";
 
@@ -44,6 +47,14 @@ type TodayViewProps = {
   onOpenApprovals: () => void;
   onOpenPriority: (priority: BriefPriority) => void;
   onTogglePriorityDone: (id: string) => void;
+  // Family-first home (optional: absent = the classic calm-spine Today).
+  familyMembers?: FamilyMember[];
+  vaultItems?: VaultItem[];
+  familyEvents?: FamilyEvent[];
+  selectedMemberId?: string;
+  onSelectMember?: (id: string) => void;
+  onAddForMember?: (member: FamilyMember) => void;
+  onAddMember?: () => void;
 };
 
 const COACH_KEY = "lm-coach-seen";
@@ -83,11 +94,32 @@ function TodayView({
   onOpenApprovals,
   onOpenPriority,
   onTogglePriorityDone,
+  familyMembers,
+  vaultItems,
+  familyEvents,
+  selectedMemberId,
+  onSelectMember,
+  onAddForMember,
+  onAddMember,
 }: TodayViewProps) {
   const [showMore, setShowMore] = useState(false);
   const [coachSeen, setCoachSeen] = useState(readCoachSeen);
 
   const greeting = greetingForHour(new Date().getHours());
+
+  // Family-first: only render the member row when App supplies people. The
+  // selected member falls back to the first one so the card always has content.
+  const members = familyMembers ?? [];
+  const selectedMember =
+    members.find((member) => member.id === selectedMemberId) ?? members[0];
+  const stuff = selectedMember
+    ? memberStuff(
+        selectedMember,
+        vaultItems ?? [],
+        familyEvents ?? [],
+        new Date(),
+      )
+    : undefined;
 
   // First-run orientation: shown once to anyone who hasn't dismissed it, then
   // gone for good. (Gating on empty data doesn't work — new accounts still get
@@ -220,6 +252,101 @@ function TodayView({
           <p className="calm-status-line">{statusLine}</p>
         </div>
       </header>
+
+      {selectedMember && stuff ? (
+        <section
+          className="calm-section calm-family"
+          aria-labelledby="family-title"
+        >
+          <div className="atlas-trunk-head">
+            <span className="atlas-eyebrow" id="family-title">
+              Who is this for?
+            </span>
+          </div>
+          <div className="calm-family-row">
+            {members.map((member) => {
+              const isSelected = member.id === selectedMember.id;
+              return (
+                <button
+                  key={member.id}
+                  type="button"
+                  className={`calm-person${isSelected ? " sel" : ""}`}
+                  aria-pressed={isSelected}
+                  aria-label={`Show ${member.name}'s stuff`}
+                  onClick={() => onSelectMember?.(member.id)}
+                >
+                  <span
+                    className={`calm-av calm-av-${memberAccent(member.id)}`}
+                    aria-hidden="true"
+                  >
+                    {member.initials}
+                  </span>
+                  <span className="calm-person-name">{member.name}</span>
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              className="calm-person calm-person-add"
+              aria-label="Add a family member"
+              onClick={() => onAddMember?.()}
+            >
+              <span className="calm-av calm-av-add" aria-hidden="true">
+                <Plus size={20} />
+              </span>
+              <span className="calm-person-name">Add</span>
+            </button>
+          </div>
+
+          <div className="calm-member-card">
+            <h2 className="calm-member-title">
+              {selectedMember.name}&apos;s stuff
+            </h2>
+            {stuff.documents.length === 0 && stuff.dates.length === 0 ? (
+              <p className="calm-member-empty">
+                Nothing yet. Tap + to add {selectedMember.name}&apos;s first
+                thing.
+              </p>
+            ) : (
+              <ul className="calm-member-list">
+                {stuff.documents.map((doc) => (
+                  <li key={doc.id} className="calm-member-row">
+                    <span className="calm-member-icon" aria-hidden="true">
+                      <FileText size={16} />
+                    </span>
+                    <span className="calm-member-text">{doc.title}</span>
+                    <span className="calm-member-status">{doc.status}</span>
+                  </li>
+                ))}
+                {stuff.dates.map(({ event, daysUntil }) => {
+                  const Icon = dateCategoryMeta(
+                    event.eventCategory ?? "custom",
+                  ).icon;
+                  return (
+                    <li key={event.id} className="calm-member-row">
+                      <span className="calm-member-icon" aria-hidden="true">
+                        <Icon size={16} />
+                      </span>
+                      <span className="calm-member-text">{event.title}</span>
+                      <span className="calm-member-status">
+                        {relativeDayLabel(daysUntil)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <button
+              type="button"
+              className="calm-add-for"
+              onClick={() => onAddForMember?.(selectedMember)}
+            >
+              <Plus size={16} />
+              <span>Add for {selectedMember.name}</span>
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <div className="lowstim-today calm-spine">
         {showCoach ? (

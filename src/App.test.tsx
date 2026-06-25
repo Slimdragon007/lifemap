@@ -144,6 +144,7 @@ describe("LifeMap MVP app", () => {
       within(primaryNav).queryByRole("button", { name: "Review" }),
     ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(screen.getByRole("button", { name: /Brain dump/ }));
     expect(
       screen.getByRole("heading", { name: "Brain dump" }),
     ).toBeInTheDocument();
@@ -607,6 +608,7 @@ describe("LifeMap MVP app", () => {
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
     await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(screen.getByRole("button", { name: /Brain dump/ }));
 
     const capture = screen
       .getByRole("heading", { name: "Brain dump" })
@@ -636,6 +638,7 @@ describe("LifeMap MVP app", () => {
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
     await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(screen.getByRole("button", { name: /Brain dump/ }));
 
     const capture = screen.getByRole("region", { name: "Brain dump" });
     expect(
@@ -663,6 +666,7 @@ describe("LifeMap MVP app", () => {
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
     await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(screen.getByRole("button", { name: /Brain dump/ }));
 
     const capture = screen.getByRole("region", { name: "Brain dump" });
     const captureTypePicker = within(capture).getByRole("region", {
@@ -708,6 +712,7 @@ describe("LifeMap MVP app", () => {
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
     await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(screen.getByRole("button", { name: /Brain dump/ }));
 
     const capture = screen.getByRole("region", { name: "Brain dump" });
     await user.click(
@@ -742,6 +747,7 @@ describe("LifeMap MVP app", () => {
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
     await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(screen.getByRole("button", { name: /Brain dump/ }));
 
     const capture = screen
       .getByRole("heading", { name: "Brain dump" })
@@ -966,6 +972,7 @@ describe("LifeMap MVP app", () => {
 
     // Capture: the nav "Capture" action opens the AI capture flow.
     await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(screen.getByRole("button", { name: /Brain dump/ }));
     expect(
       screen.getByRole("heading", { name: "Brain dump" }),
     ).toBeInTheDocument();

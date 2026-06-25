@@ -1427,11 +1427,19 @@ a:focus-visible {
   max-height: min(720px, calc(100vh - 40px));
   overflow: auto;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.74);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--color-surface-panel);
   box-shadow: var(--shadow);
   animation: rise-in 220ms var(--ease) both;
+}
+
+/* Cancel/secondary action reads against the themed dialog surface (the global
+   warm-white pill vanished on the old white card). */
+.review-dialog .secondary-button {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface-row);
+  color: var(--color-text-secondary);
 }
 
 .review-dialog-top {
@@ -8128,6 +8136,255 @@ button.calm-row:active {
 
 .calm-first-add:active {
   transform: scale(0.99);
+}
+
+/* ── Family-first home (member avatars + tap-to-add) ───────────────── */
+.calm-family-row {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 4px 2px 6px;
+  margin-top: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.calm-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  border: 0;
+  background: none;
+  padding: 2px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.calm-av {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  color: var(--color-text-inverse);
+  font-size: 20px;
+  font-weight: 800;
+  transition:
+    box-shadow var(--motion-state) var(--ease-out),
+    border-color var(--motion-state) var(--ease-out);
+}
+
+.calm-person.sel .calm-av {
+  border-color: var(--color-surface-panel);
+  box-shadow: 0 0 0 3px var(--member-ring, var(--color-accent-blue));
+}
+
+.calm-person-name {
+  max-width: 64px;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--color-text-quiet);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calm-person.sel .calm-person-name {
+  color: var(--color-text-primary);
+  font-weight: 650;
+}
+
+.calm-av-blue {
+  background: var(--color-accent-blue);
+  --member-ring: var(--color-accent-blue);
+}
+.calm-av-clay {
+  background: var(--color-accent-clay);
+  --member-ring: var(--color-accent-clay);
+}
+.calm-av-plum {
+  background: var(--color-accent-plum);
+  --member-ring: var(--color-accent-plum);
+}
+.calm-av-sage {
+  background: var(--color-accent-sage);
+  --member-ring: var(--color-accent-sage);
+}
+.calm-av-amber {
+  background: var(--color-accent-amber);
+  --member-ring: var(--color-accent-amber);
+}
+
+.calm-av-add {
+  background: var(--color-surface-row);
+  border: 1px dashed var(--color-border-strong);
+  color: var(--color-text-quiet);
+}
+
+.calm-member-card {
+  margin-top: 14px;
+  padding: 16px;
+  background: var(--color-surface-panel);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+}
+
+.calm-member-title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.calm-member-empty {
+  margin: 12px 0 4px;
+  color: var(--color-text-quiet);
+  font-size: 13.5px;
+}
+
+.calm-member-list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.calm-member-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+  font-size: 13.5px;
+}
+
+.calm-member-row:last-child {
+  border-bottom: 0;
+}
+
+.calm-member-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--color-surface-row);
+  color: var(--color-text-secondary);
+}
+
+.calm-member-text {
+  flex: 1 1 auto;
+}
+
+.calm-member-status {
+  margin-left: auto;
+  color: var(--color-text-quiet);
+  font-size: 11px;
+}
+
+.calm-add-for {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: var(--radius-panel);
+  background: var(--color-accent-blue);
+  color: var(--color-text-inverse);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    filter var(--motion-state) var(--ease-out),
+    transform var(--motion-press) var(--ease);
+}
+
+.calm-add-for svg {
+  color: var(--color-text-inverse);
+}
+
+.calm-add-for:hover {
+  filter: brightness(1.06);
+}
+
+.calm-add-for:active {
+  transform: scale(0.99);
+}
+
+/* ── Tap-to-add fan-out sheet ──────────────────────────────────────── */
+.add-sheet {
+  width: min(92vw, 420px);
+  padding: 18px;
+  background: var(--color-surface-panel);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.add-sheet-eyebrow {
+  margin: 0 0 12px;
+  color: var(--color-text-quiet);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.add-sheet-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+}
+
+.add-sheet-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  background: var(--color-surface-row);
+  color: var(--color-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    filter var(--motion-state) var(--ease-out),
+    transform var(--motion-press) var(--ease);
+}
+
+.add-sheet-tile:hover {
+  filter: brightness(1.05);
+}
+
+.add-sheet-tile:active {
+  transform: scale(0.99);
+}
+
+.add-sheet-tile-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 5px;
+  border-radius: 11px;
+  background: var(--color-accent-blue);
+  color: var(--color-text-inverse);
+}
+
+.add-sheet-tile-label {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.add-sheet-tile-hint {
+  color: var(--color-text-quiet);
+  font-size: 11px;
 }
 
 /* ── Section 3 · Handled today ─────────────────────────────────────── */
