@@ -103,6 +103,7 @@ function TodayView({
   onAddMember,
 }: TodayViewProps) {
   const [showMore, setShowMore] = useState(false);
+  const [showNeedsRest, setShowNeedsRest] = useState(false);
   const [coachSeen, setCoachSeen] = useState(readCoachSeen);
 
   const greeting = greetingForHour(new Date().getHours());
@@ -121,10 +122,6 @@ function TodayView({
       )
     : undefined;
 
-  // First-run orientation: shown once to anyone who hasn't dismissed it, then
-  // gone for good. (Gating on empty data doesn't work — new accounts still get
-  // a seeded sample brief, so an "empty brief" almost never occurs.)
-  const showCoach = !coachSeen;
   function dismissCoach() {
     try {
       localStorage.setItem(COACH_KEY, "1");
@@ -139,6 +136,11 @@ function TodayView({
   // available "add your first thing" CTA, independent of the one-time coach.
   const isEmptyBrief = brief.topPriorities.length === 0;
 
+  // Calm home: the coach only greets a genuinely empty first-run account (no
+  // people, no priorities). Once there is anything to show, it stays out of the
+  // way so Today never reads as a wall.
+  const showCoach = !coachSeen && members.length === 0 && isEmptyBrief;
+
   const topPriorities =
     brief.topPriorities.length > 0
       ? brief.topPriorities.slice(0, 3)
@@ -149,6 +151,11 @@ function TodayView({
             reason: "LifeMap will turn it into your next calm move.",
           },
         ];
+
+  // One thing in focus; the rest folds behind a quiet line until asked.
+  const focusPriority = topPriorities[0];
+  const restPriorities = topPriorities.slice(1);
+  const restCount = restPriorities.length;
 
   // "Handled today" — quiet, filed rows that need nothing from you right now.
   // Open loops first (waiting on clarity), then the items that can wait.
@@ -187,15 +194,14 @@ function TodayView({
   ).length;
   const litCount = lifeAreas.filter((area) => area.isLit).length;
 
-  // The calm "you're handled" status line: prefer the AI brief summary; otherwise
-  // narrate progress so the greeting always lands on something reassuring.
-  const statusLine = brief.todaySummary?.trim()
-    ? brief.todaySummary
-    : approvalCount > 0
-      ? `${approvalCount} thing${approvalCount === 1 ? "" : "s"} need a quick yes from you.`
-      : doneCount > 0
-        ? `${doneCount} of ${topPriorities.length} handled — you're on top of today.`
-        : "You're handled. Capture anything new before it turns into background stress.";
+  // Calm reassurance, never a task to dread. The single focus item below carries
+  // "what to do"; the greeting only sets a settled tone.
+  const statusLine =
+    doneCount > 0
+      ? `${doneCount} of ${topPriorities.length} handled.`
+      : approvalCount > 0
+        ? `${approvalCount} waiting, whenever you're ready.`
+        : "You're handled. Nothing urgent.";
 
   return (
     <section
@@ -392,56 +398,54 @@ function TodayView({
         >
           <div className="atlas-trunk-head">
             <span className="atlas-eyebrow" id="needs-title">
-              Needs you
+              {isEmptyBrief ? "Needs you" : "One thing, when you're ready"}
             </span>
-            {doneCount > 0 ? (
-              <span className="atlas-progress">
-                {doneCount} of {topPriorities.length} done
-              </span>
-            ) : null}
           </div>
           <h2 className="sr-only">Top Priorities</h2>
           <div className="atlas-trunk">
             <span className="atlas-spine" aria-hidden="true" />
-            {topPriorities.map((priority, index) => {
-              const isDone = priorityActionStates[priority.id] === "completed";
-              const isNeeds = index === 0 && !isDone;
-              const className = [
-                "atlas-task",
-                isNeeds ? "needs" : "",
-                isDone ? "done" : "",
-              ]
-                .filter(Boolean)
-                .join(" ");
-              return (
-                <div className={className} key={priority.id}>
-                  <button
-                    aria-label={
-                      isDone
-                        ? `Mark ${priority.label} not done`
-                        : `Check off ${priority.label}`
-                    }
-                    aria-pressed={isDone}
-                    className="atlas-node"
-                    type="button"
-                    onClick={() => onTogglePriorityDone(priority.id)}
-                  >
-                    {isDone ? <Check size={13} strokeWidth={3} /> : null}
-                  </button>
-                  <button
-                    aria-label={`Open priority ${priority.label}`}
-                    className="atlas-task-card"
-                    type="button"
-                    onClick={() => onOpenPriority(priority)}
-                  >
-                    <span className="atlas-task-text">{priority.label}</span>
-                    {isNeeds ? (
-                      <span className="atlas-needs-pill">Needs you</span>
-                    ) : null}
-                  </button>
-                </div>
-              );
-            })}
+            {(showNeedsRest ? topPriorities : [focusPriority]).map(
+              (priority, index) => {
+                const isDone =
+                  priorityActionStates[priority.id] === "completed";
+                const isNeeds = index === 0 && !isDone;
+                const className = [
+                  "atlas-task",
+                  isNeeds ? "needs" : "",
+                  isDone ? "done" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ");
+                return (
+                  <div className={className} key={priority.id}>
+                    <button
+                      aria-label={
+                        isDone
+                          ? `Mark ${priority.label} not done`
+                          : `Check off ${priority.label}`
+                      }
+                      aria-pressed={isDone}
+                      className="atlas-node"
+                      type="button"
+                      onClick={() => onTogglePriorityDone(priority.id)}
+                    >
+                      {isDone ? <Check size={13} strokeWidth={3} /> : null}
+                    </button>
+                    <button
+                      aria-label={`Open priority ${priority.label}`}
+                      className="atlas-task-card"
+                      type="button"
+                      onClick={() => onOpenPriority(priority)}
+                    >
+                      <span className="atlas-task-text">{priority.label}</span>
+                      {isNeeds ? (
+                        <span className="atlas-needs-pill">Needs you</span>
+                      ) : null}
+                    </button>
+                  </div>
+                );
+              },
+            )}
           </div>
 
           {isEmptyBrief ? (
@@ -456,7 +460,30 @@ function TodayView({
             </button>
           ) : null}
 
-          {approvalCount > 0 ? (
+          {restCount > 0 || approvalCount > 0 ? (
+            <button
+              aria-expanded={showNeedsRest}
+              className="calm-rest-link"
+              type="button"
+              onClick={() => setShowNeedsRest((value) => !value)}
+            >
+              <span>
+                {showNeedsRest
+                  ? "Show less"
+                  : [
+                      restCount > 0 ? `${restCount} more` : null,
+                      approvalCount > 0
+                        ? `${approvalCount} waiting for your yes`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+              </span>
+              <ChevronRight size={15} />
+            </button>
+          ) : null}
+
+          {showNeedsRest && approvalCount > 0 ? (
             <button
               className="calm-approvals-opener"
               type="button"
@@ -586,13 +613,13 @@ function TodayView({
               ))}
             </div>
           </div>
-
-          <BriefNotice
-            status={status}
-            error={error}
-            onOpenBrainDump={onOpenBrainDump}
-          />
         </section>
+
+        <BriefNotice
+          status={status}
+          error={error}
+          onOpenBrainDump={onOpenBrainDump}
+        />
       </div>
     </section>
   );

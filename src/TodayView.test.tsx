@@ -152,11 +152,14 @@ describe("TodayView Needs you", () => {
     const onOpenApprovals = vi.fn();
     renderToday({ approvalCount: 3, onOpenApprovals });
 
-    // A dedicated opener folds Review in, surfacing the count + calling onOpenApprovals.
-    const opener = screen.getByRole("button", {
-      name: /Review 3 waiting for your yes/i,
-    });
-    await user.click(opener);
+    // Calm home: the rest folds behind a quiet line. Expand it, then the Review
+    // opener surfaces and routes to approvals.
+    await user.click(
+      screen.getByRole("button", { name: /^3 waiting for your yes$/i }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: /Review 3 waiting for your yes/i }),
+    );
     expect(onOpenApprovals).toHaveBeenCalledTimes(1);
   });
 
@@ -198,7 +201,7 @@ describe("TodayView coach", () => {
     expect(localStorage.getItem("lm-coach-seen")).toBe("1");
   });
 
-  test("shows on first run even when the account already has priorities", () => {
+  test("stays out of the way once there is anything to show (calm home)", () => {
     localStorage.removeItem("lm-coach-seen");
     const seededBrief: DailyBrief = {
       ...emptyBrief,
@@ -208,8 +211,9 @@ describe("TodayView coach", () => {
     };
     renderToday({ brief: seededBrief });
 
-    // Trigger is first-run (not empty-data), so it appears regardless of brief.
-    expect(screen.getByText("New here?")).toBeInTheDocument();
+    // Calm home: the coach only greets a genuinely empty first-run account, so
+    // a populated brief never adds the orientation block to the wall.
+    expect(screen.queryByText("New here?")).toBeNull();
   });
 
   test("stays hidden once dismissed", () => {

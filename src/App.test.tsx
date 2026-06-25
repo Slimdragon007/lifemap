@@ -100,6 +100,20 @@ async function openFamilyMap(user: ReturnType<typeof userEvent.setup>) {
   );
 }
 
+// Calm home folds everything past the single focus priority behind a quiet
+// "N more · M waiting for your yes" line. Tests that reach folded priorities or
+// the review opener expand it first.
+async function revealNeedsRest(user: ReturnType<typeof userEvent.setup>) {
+  const links = screen.queryAllByRole("button", {
+    name: (name) =>
+      (/waiting for your yes/i.test(name) || /\bmore\b/i.test(name)) &&
+      !/review|this week|^show/i.test(name),
+  });
+  if (links[0]) {
+    await user.click(links[0]);
+  }
+}
+
 describe("LifeMap MVP app", () => {
   afterEach(() => {
     localStorage.clear();
@@ -163,6 +177,7 @@ describe("LifeMap MVP app", () => {
 
     // Review folds into Today's "Needs you" opener.
     await user.click(screen.getByRole("button", { name: "Today" }));
+    await revealNeedsRest(user);
     await user.click(
       screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
     );
@@ -363,6 +378,7 @@ describe("LifeMap MVP app", () => {
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
     expect(screen.getByText("Field trip permission slip")).toBeInTheDocument();
+    await revealNeedsRest(user);
     expect(screen.getByText("Renew passport")).toBeInTheDocument();
     expect(screen.getByText("Milo vet appointment")).toBeInTheDocument();
     expect(
@@ -579,6 +595,7 @@ describe("LifeMap MVP app", () => {
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
     // Review is demoted out of the bottom-nav; reach it from Today's "Needs you".
+    await revealNeedsRest(user);
     await user.click(
       screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
     );
@@ -880,13 +897,10 @@ describe("LifeMap MVP app", () => {
       screen.getByRole("button", { name: "Refresh Daily Brief" }),
     );
 
+    // Calm home no longer surfaces the AI summary as a status line; the refreshed
+    // brief still drives the focus priority, which is what the user acts on.
     expect(
-      await screen.findByText(
-        "The field trip permission slip is the clearest thing to move today.",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Sign the field trip permission slip"),
+      await screen.findByText("Sign the field trip permission slip"),
     ).toBeInTheDocument();
   });
 
@@ -1002,6 +1016,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await revealNeedsRest(user);
     await user.click(
       screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
     );
@@ -1025,6 +1040,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await revealNeedsRest(user);
     await user.click(
       screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
     );
@@ -1110,6 +1126,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await revealNeedsRest(user);
     await user.click(
       screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
     );
@@ -1138,6 +1155,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
+    await revealNeedsRest(user);
     await user.click(
       screen.getByRole("button", { name: /Open priority Renew passport/i }),
     );
@@ -1313,7 +1331,8 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     expect(screen.getByRole("heading", { name: "Today" })).toBeInTheDocument();
-    expect(screen.getByText(aiBrief.todaySummary)).toBeInTheDocument();
+    // Calm home drops the AI summary line; the restored brief still drives the
+    // focus priority (asserted below) so we know state rehydrated.
     await openFamilyMap(user);
     expect(screen.getByDisplayValue("stored school note")).toBeInTheDocument();
     expect(screen.getByText("Field trip permission slip")).toBeInTheDocument();
@@ -1459,6 +1478,7 @@ describe("LifeMap MVP app", () => {
 
     render(<App />);
 
+    await revealNeedsRest(user);
     await user.click(
       screen.getByRole("button", { name: /Review \d+ waiting for your yes/ }),
     );

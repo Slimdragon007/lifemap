@@ -8387,6 +8387,56 @@ button.calm-row:active {
   font-size: 11px;
 }
 
+/* ── Calm home: quiet expanders that fold the rest away ────────────── */
+.calm-rest-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px 2px;
+  border: 0;
+  background: none;
+  color: var(--color-text-quiet);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: color var(--motion-state) var(--ease-out);
+}
+
+.calm-rest-link:hover {
+  color: var(--color-text-secondary);
+}
+
+.calm-rest-link svg {
+  flex: 0 0 auto;
+  color: var(--color-text-quiet);
+}
+
+.calm-rest-chev {
+  transition: transform var(--motion-state) var(--ease-out);
+}
+
+.calm-rest-chev.open {
+  transform: rotate(180deg);
+}
+
+.calm-else {
+  margin-top: 4px;
+}
+
+.calm-else-body {
+  display: grid;
+  gap: 18px;
+  margin-top: 4px;
+}
+
+.calm-subsection {
+  display: grid;
+  gap: 6px;
+}
+
 /* ── Section 3 · Handled today ─────────────────────────────────────── */
 .calm-handled .lowstim-showmore {
   justify-content: flex-start;
