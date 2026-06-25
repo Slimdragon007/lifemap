@@ -1,5 +1,11 @@
-import { CheckCircle2, ChevronDown, Eye, LockKeyhole } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  Eye,
+  LockKeyhole,
+  Plus,
+} from "lucide-react";
+import { useMemo, useState, type FormEvent } from "react";
 import {
   type FamilyMember,
   type VaultCategory,
@@ -8,6 +14,10 @@ import {
 import type { ViewerIdentity } from "./viewer";
 import ModalBackdrop from "./modal-backdrop";
 import EmptyState from "./empty-state";
+import { DOCUMENT_TYPES, type DocumentTypeMeta } from "./documentTypes";
+
+const OTHER_OWNER = "__other__";
+const WHOLE_FAMILY = "Whole family";
 
 const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
   { id: "all", label: "All" },
@@ -24,6 +34,7 @@ type VaultViewProps = {
   vaultItems: VaultItem[];
   identity: ViewerIdentity;
   onOpenCapture: () => void;
+  onAddDocument: (item: VaultItem) => void;
 };
 
 function VaultView({
@@ -31,6 +42,7 @@ function VaultView({
   vaultItems,
   identity,
   onOpenCapture,
+  onAddDocument,
 }: VaultViewProps) {
   const [activeCategory, setActiveCategory] = useState<VaultCategory | "all">(
     "all",
@@ -40,6 +52,28 @@ function VaultView({
   );
   const [selectedVaultItem, setSelectedVaultItem] = useState<VaultItem>();
   const [isSensitiveVisible, setIsSensitiveVisible] = useState(false);
+  // Add-document flow: the doc-type grid opens once "+ Add document" is tapped;
+  // tapping a type opens the modal. `presetOwner` pre-selects a kid when the add
+  // came from that member's profile.
+  const [isTypePickerOpen, setIsTypePickerOpen] = useState(false);
+  const [activeDocType, setActiveDocType] = useState<DocumentTypeMeta>();
+  const [presetOwner, setPresetOwner] = useState<string>();
+
+  function openTypePicker(owner?: string) {
+    setPresetOwner(owner);
+    setIsTypePickerOpen(true);
+  }
+
+  function openAddDocument(type: DocumentTypeMeta, owner?: string) {
+    setPresetOwner(owner);
+    setActiveDocType(type);
+    setIsTypePickerOpen(false);
+  }
+
+  function closeAddDocument() {
+    setActiveDocType(undefined);
+    setPresetOwner(undefined);
+  }
   const visibleItems = useMemo(
     () =>
       activeCategory === "all"
@@ -74,6 +108,40 @@ function VaultView({
           Your family's records and emergency info, safe and findable.
         </p>
       </header>
+
+      <button
+        className="primary-button vault-add-button"
+        type="button"
+        onClick={() => openTypePicker()}
+      >
+        <Plus size={16} />
+        Add document
+      </button>
+
+      {isTypePickerOpen ? (
+        <section
+          className="dates-grid vault-type-grid"
+          aria-label="Pick a document type"
+        >
+          {DOCUMENT_TYPES.map((type) => {
+            const Icon = type.icon;
+            return (
+              <button
+                key={type.key}
+                className="dates-tile"
+                type="button"
+                onClick={() => openAddDocument(type, presetOwner)}
+                aria-label={`Add a ${type.label.toLowerCase()}`}
+              >
+                <span className="dates-tile-icon">
+                  <Icon size={20} />
+                </span>
+                <strong>{type.label}</strong>
+              </button>
+            );
+          })}
+        </section>
+      ) : null}
 
       <h2 className="notebook-section-title">Family profiles</h2>
       <div className="notebook-list">
@@ -115,6 +183,13 @@ function VaultView({
                         <li key={note}>{note}</li>
                       ))}
                     </ul>
+                    <MemberDocuments
+                      documents={vaultItems.filter(
+                        (item) => item.owner === member.name,
+                      )}
+                      onOpenDetails={openVaultItem}
+                      onAddDocument={() => openTypePicker(member.name)}
+                    />
                   </div>
                 ) : null}
               </div>
@@ -209,7 +284,203 @@ function VaultView({
           onReveal={() => setIsSensitiveVisible(true)}
         />
       ) : null}
+
+      {activeDocType ? (
+        <AddDocumentModal
+          docType={activeDocType}
+          familyMembers={familyMembers}
+          presetOwner={presetOwner}
+          onClose={closeAddDocument}
+          onSave={(item) => {
+            onAddDocument(item);
+            closeAddDocument();
+          }}
+        />
+      ) : null}
     </section>
+  );
+}
+
+function MemberDocuments({
+  documents,
+  onOpenDetails,
+  onAddDocument,
+}: {
+  documents: VaultItem[];
+  onOpenDetails: (item: VaultItem) => void;
+  onAddDocument: () => void;
+}) {
+  return (
+    <div className="notebook-member-docs">
+      <span className="atlas-eyebrow">Documents</span>
+      {documents.length > 0 ? (
+        <ul className="notebook-member-doc-list">
+          {documents.map((item) => (
+            <li key={item.id}>
+              <button
+                className="notebook-member-doc"
+                type="button"
+                onClick={() => onOpenDetails(item)}
+                aria-label={`Open details for ${item.title}`}
+              >
+                <span className="notebook-row-title">{item.title}</span>
+                <span className="notebook-tag">{item.status}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="notebook-empty">No documents yet.</p>
+      )}
+      <button
+        className="secondary-button compact-button"
+        type="button"
+        onClick={onAddDocument}
+      >
+        <Plus size={14} />
+        Add document
+      </button>
+    </div>
+  );
+}
+
+function AddDocumentModal({
+  docType,
+  familyMembers,
+  presetOwner,
+  onClose,
+  onSave,
+}: {
+  docType: DocumentTypeMeta;
+  familyMembers: FamilyMember[];
+  presetOwner?: string;
+  onClose: () => void;
+  onSave: (item: VaultItem) => void;
+}) {
+  const [title, setTitle] = useState(docType.defaultTitle);
+  // Pre-select the kid when the add came from their profile.
+  const [whoFor, setWhoFor] = useState(presetOwner ?? "");
+  const [otherOwner, setOtherOwner] = useState("");
+  const [status, setStatus] = useState<VaultItem["status"]>("Current");
+  const [expiry, setExpiry] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const owner = whoFor === OTHER_OWNER ? otherOwner.trim() : whoFor.trim();
+  const canSave = title.trim().length > 0 && owner.length > 0;
+
+  function handleSubmit(formEvent: FormEvent) {
+    formEvent.preventDefault();
+    if (!canSave) {
+      return;
+    }
+    onSave({
+      id: crypto.randomUUID(),
+      title: title.trim(),
+      category: docType.category,
+      owner,
+      status,
+      detail: notes.trim(),
+      ...(expiry ? { renewalDate: expiry } : {}),
+    });
+  }
+
+  return (
+    <ModalBackdrop onClose={onClose}>
+      <section
+        aria-labelledby="add-document-title"
+        aria-modal="true"
+        className="review-dialog add-date-dialog"
+        role="dialog"
+        tabIndex={-1}
+      >
+        <div className="review-dialog-top">
+          <div>
+            <h2 id="add-document-title">Add {docType.label.toLowerCase()}</h2>
+            <p>Saved straight to your vault. No AI, no waiting.</p>
+          </div>
+        </div>
+        <form className="add-date-form" onSubmit={handleSubmit}>
+          <label className="add-date-field">
+            <span>What is it?</span>
+            <input
+              type="text"
+              value={title}
+              autoFocus
+              placeholder={`${docType.defaultTitle}…`}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </label>
+          <label className="add-date-field">
+            <span>Who is it for?</span>
+            <select value={whoFor} onChange={(e) => setWhoFor(e.target.value)}>
+              <option value="">Choose…</option>
+              <option value={WHOLE_FAMILY}>Whole family</option>
+              {familyMembers.map((member) => (
+                <option key={member.id} value={member.name}>
+                  {member.name}
+                </option>
+              ))}
+              <option value={OTHER_OWNER}>Other…</option>
+            </select>
+          </label>
+          {whoFor === OTHER_OWNER ? (
+            <label className="add-date-field">
+              <span>Name</span>
+              <input
+                type="text"
+                value={otherOwner}
+                placeholder="Who is it for?"
+                onChange={(e) => setOtherOwner(e.target.value)}
+              />
+            </label>
+          ) : null}
+          <label className="add-date-field">
+            <span>Status</span>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as VaultItem["status"])}
+            >
+              <option value="Current">Current</option>
+              <option value="Needs update">Needs update</option>
+              <option value="Expires soon">Expires soon</option>
+            </select>
+          </label>
+          <label className="add-date-field">
+            <span>Expiry (optional)</span>
+            <input
+              type="date"
+              value={expiry}
+              onChange={(e) => setExpiry(e.target.value)}
+            />
+          </label>
+          <label className="add-date-field">
+            <span>Notes</span>
+            <input
+              type="text"
+              value={notes}
+              placeholder="Policy number, location…"
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </label>
+          <div className="action-dialog-buttons">
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              className="primary-button"
+              type="submit"
+              disabled={!canSave}
+            >
+              Save document
+            </button>
+          </div>
+        </form>
+      </section>
+    </ModalBackdrop>
   );
 }
 

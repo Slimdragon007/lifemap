@@ -70,6 +70,7 @@ import {
   buildVaultItemsFromAnalysis,
   type FamilyEvent,
   type FamilyMember,
+  type VaultItem,
 } from "./familyOS";
 import {
   deleteAllFamilyData,
@@ -1155,6 +1156,33 @@ function App() {
     }));
   }
 
+  // Vault: direct manual add (icon grid → modal, no AI). Mirrors the Important
+  // Date save path, with the per-user field-crypto guard used by every vault
+  // write (see materializeSuggestions) so `detail` encrypts at rest.
+  async function handleAddDocument(item: VaultItem): Promise<void> {
+    if (isSupabaseConfigured && session) {
+      const userId = session.user.id;
+      const client = getSupabase() as unknown as FamilyDataClient;
+      const crypto = await ensureFieldCrypto(session.access_token);
+      const result = await upsertVaultItem(userId, item, client, crypto);
+      if (result.ok) {
+        const saved = result.item;
+        setCollections((current) => ({
+          ...current,
+          vaultItems: [saved, ...current.vaultItems],
+        }));
+      } else {
+        setToastMessage("Couldn't save that document. Try again.");
+      }
+      return;
+    }
+    // Demo / no-Supabase mode: keep it local.
+    setCollections((current) => ({
+      ...current,
+      vaultItems: [item, ...current.vaultItems],
+    }));
+  }
+
   // Important Dates: remove a logged date (real mode deletes the row first).
   async function handleDeleteImportantDate(id: string): Promise<void> {
     if (isSupabaseConfigured && session) {
@@ -1443,6 +1471,7 @@ function App() {
             identity={identity}
             vaultItems={collections.vaultItems}
             onOpenCapture={() => openCapture()}
+            onAddDocument={handleAddDocument}
           />
         ) : view === "dates" ? (
           <ImportantDatesView

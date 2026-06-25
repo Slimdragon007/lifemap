@@ -8962,6 +8962,56 @@ button.notebook-row:active {
   color: var(--ink-quiet, #b39a82);
 }
 
+/* Prominent top-of-Vault "Add document" affordance + doc-type picker grid. */
+.vault-add-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 18px;
+}
+
+.vault-type-grid {
+  margin: 0 0 24px;
+}
+
+/* Per-kid documents nested under an expanded family profile. */
+.notebook-member-docs {
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.notebook-member-doc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.notebook-member-doc {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line, #e4d8c8);
+  border-radius: 10px;
+  background: var(--surface, #fffaf2);
+  color: var(--ink, #2c2018);
+  cursor: pointer;
+  text-align: left;
+}
+
+.notebook-member-doc:hover {
+  border-color: var(--accent, #cf7a52);
+}
+
+.notebook-member-docs .compact-button {
+  justify-self: start;
+}
+
 /* Inline status note (vault save feedback). */
 .notebook-note {
   margin: 0 0 16px;
