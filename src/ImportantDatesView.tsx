@@ -125,21 +125,23 @@ function ImportantDatesView({
   );
 }
 
-function AddDateModal({
+export function AddDateModal({
   category,
   familyMembers,
+  presetOwner,
   onClose,
   onSave,
 }: {
   category: DateCategory;
   familyMembers: FamilyMember[];
+  presetOwner?: string;
   onClose: () => void;
   onSave: (event: FamilyEvent) => void;
 }) {
   const meta = dateCategoryMeta(category);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
-  const [whoFor, setWhoFor] = useState("");
+  const [whoFor, setWhoFor] = useState(presetOwner ?? "");
   const [otherOwner, setOtherOwner] = useState("");
   const [isAnnual, setIsAnnual] = useState(category === "birthday");
 

@@ -344,7 +344,7 @@ function MemberDocuments({
   );
 }
 
-function AddDocumentModal({
+export function AddDocumentModal({
   docType,
   familyMembers,
   presetOwner,
