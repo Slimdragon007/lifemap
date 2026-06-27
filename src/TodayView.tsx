@@ -4,7 +4,6 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
-  FileText,
   MessageCircle,
   Plus,
   RefreshCw,
@@ -16,8 +15,8 @@ import type { BriefPriority, DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
 import type { RecommendedBucket, SetupProfile } from "./setupBuckets";
 import type { ViewerIdentity } from "./viewer";
-import type { FamilyEvent, FamilyMember, VaultItem } from "./familyOS";
-import { memberAccent, memberStuff } from "./familyToday";
+import type { FamilyMember } from "./familyOS";
+import { memberAccent } from "./familyToday";
 import { dateCategoryMeta } from "./dateCategories";
 import { relativeDayLabel, type UpcomingDate } from "./importantDates";
 
@@ -49,11 +48,7 @@ type TodayViewProps = {
   onTogglePriorityDone: (id: string) => void;
   // Family-first home (optional: absent = the classic calm-spine Today).
   familyMembers?: FamilyMember[];
-  vaultItems?: VaultItem[];
-  familyEvents?: FamilyEvent[];
-  selectedMemberId?: string;
-  onSelectMember?: (id: string) => void;
-  onAddForMember?: (member: FamilyMember) => void;
+  onOpenMember?: (member: FamilyMember) => void;
   onAddMember?: () => void;
 };
 
@@ -88,30 +83,17 @@ function TodayView({
   onOpenPriority,
   onTogglePriorityDone,
   familyMembers,
-  vaultItems,
-  familyEvents,
-  selectedMemberId,
-  onSelectMember,
-  onAddForMember,
+  onOpenMember,
   onAddMember,
 }: TodayViewProps) {
   const [showMore, setShowMore] = useState(false);
   const [showNeedsRest, setShowNeedsRest] = useState(false);
   const [coachSeen, setCoachSeen] = useState(readCoachSeen);
 
-  // Family-first: only render the member row when App supplies people. The
-  // selected member falls back to the first one so the card always has content.
+  // Family-first: only render the member row when App supplies people. Tapping an
+  // avatar opens that person's profile (MemberProfileView), so Today just lists
+  // the people; their stuff lives on the profile.
   const members = familyMembers ?? [];
-  const selectedMember =
-    members.find((member) => member.id === selectedMemberId) ?? members[0];
-  const stuff = selectedMember
-    ? memberStuff(
-        selectedMember,
-        vaultItems ?? [],
-        familyEvents ?? [],
-        new Date(),
-      )
-    : undefined;
 
   function dismissCoach() {
     try {
@@ -248,7 +230,7 @@ function TodayView({
         </div>
       </header>
 
-      {selectedMember && stuff ? (
+      {members.length > 0 ? (
         <section
           className="calm-section calm-family"
           aria-labelledby="family-title"
@@ -259,27 +241,23 @@ function TodayView({
             </span>
           </div>
           <div className="calm-family-row">
-            {members.map((member) => {
-              const isSelected = member.id === selectedMember.id;
-              return (
-                <button
-                  key={member.id}
-                  type="button"
-                  className={`calm-person${isSelected ? " sel" : ""}`}
-                  aria-pressed={isSelected}
-                  aria-label={`Show ${member.name}'s stuff`}
-                  onClick={() => onSelectMember?.(member.id)}
+            {members.map((member) => (
+              <button
+                key={member.id}
+                type="button"
+                className="calm-person"
+                aria-label={`Open ${member.name}'s profile`}
+                onClick={() => onOpenMember?.(member)}
+              >
+                <span
+                  className={`calm-av calm-av-${memberAccent(member.id)}`}
+                  aria-hidden="true"
                 >
-                  <span
-                    className={`calm-av calm-av-${memberAccent(member.id)}`}
-                    aria-hidden="true"
-                  >
-                    {member.initials}
-                  </span>
-                  <span className="calm-person-name">{member.name}</span>
-                </button>
-              );
-            })}
+                  {member.initials}
+                </span>
+                <span className="calm-person-name">{member.name}</span>
+              </button>
+            ))}
             <button
               type="button"
               className="calm-person calm-person-add"
@@ -290,54 +268,6 @@ function TodayView({
                 <Plus size={20} />
               </span>
               <span className="calm-person-name">Add</span>
-            </button>
-          </div>
-
-          <div className="calm-member-card">
-            <h2 className="calm-member-title">
-              {selectedMember.name}&apos;s stuff
-            </h2>
-            {stuff.documents.length === 0 && stuff.dates.length === 0 ? (
-              <p className="calm-member-empty">
-                Nothing yet. Tap + to add {selectedMember.name}&apos;s first
-                thing.
-              </p>
-            ) : (
-              <ul className="calm-member-list">
-                {stuff.documents.map((doc) => (
-                  <li key={doc.id} className="calm-member-row">
-                    <span className="calm-member-icon" aria-hidden="true">
-                      <FileText size={16} />
-                    </span>
-                    <span className="calm-member-text">{doc.title}</span>
-                    <span className="calm-member-status">{doc.status}</span>
-                  </li>
-                ))}
-                {stuff.dates.map(({ event, daysUntil }) => {
-                  const Icon = dateCategoryMeta(
-                    event.eventCategory ?? "custom",
-                  ).icon;
-                  return (
-                    <li key={event.id} className="calm-member-row">
-                      <span className="calm-member-icon" aria-hidden="true">
-                        <Icon size={16} />
-                      </span>
-                      <span className="calm-member-text">{event.title}</span>
-                      <span className="calm-member-status">
-                        {relativeDayLabel(daysUntil)}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            <button
-              type="button"
-              className="calm-add-for"
-              onClick={() => onAddForMember?.(selectedMember)}
-            >
-              <Plus size={16} />
-              <span>Add for {selectedMember.name}</span>
             </button>
           </div>
         </section>

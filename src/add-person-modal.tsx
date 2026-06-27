@@ -54,19 +54,22 @@ export function AddPersonModal({
               onChange={(e) => setName(e.target.value)}
             />
           </label>
-          <label className="add-date-field">
+          <div className="add-date-field">
             <span>Who are they?</span>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as OnboardingRole)}
-            >
+            <div className="person-type-row" role="group" aria-label="Type">
               {ROLE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`person-type${role === option.value ? " sel" : ""}`}
+                  aria-pressed={role === option.value}
+                  onClick={() => setRole(option.value)}
+                >
                   {option.label}
-                </option>
+                </button>
               ))}
-            </select>
-          </label>
+            </div>
+          </div>
           <div className="action-dialog-buttons">
             <button
               className="secondary-button"

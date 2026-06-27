@@ -57,6 +57,7 @@ import SetNewPasswordScreen from "./set-new-password-screen";
 import { FeedbackPanel } from "./feedback-bubble";
 import ModalBackdrop from "./modal-backdrop";
 import BucketDetailView from "./BucketDetailView";
+import MemberProfileView from "./MemberProfileView";
 import LaunchPlanView from "./LaunchPlanView";
 import GuidedSetupView from "./GuidedSetupView";
 import PrivacyView from "./PrivacyView";
@@ -228,6 +229,7 @@ type AppView =
   | "review"
   | "more"
   | "family"
+  | "member"
   | "setup"
   | "bucket"
   | "launchPlan"
@@ -435,6 +437,9 @@ function App() {
     vaultItems: samples.vaultItems,
     recurringCareItems: samples.recurringCareItems,
   }));
+  const selectedMember = collections.familyMembers.find(
+    (member) => member.id === selectedMemberId,
+  );
   // True only when a remote load actually failed — lets data-backed views show a
   // "couldn't load" banner instead of an empty state that reads as "no records".
   const [recordsLoadFailed, setRecordsLoadFailed] = useState(false);
@@ -1224,6 +1229,14 @@ function App() {
     setQuickAdd(kind);
   }
 
+  // Tap a member avatar -> their profile. Scope subsequent adds (document/date)
+  // to them by seeding the add owner; the quick-add modals read presetOwner.
+  function openMember(member: FamilyMember) {
+    setSelectedMemberId(member.id);
+    setAddSheetOwner(member.name);
+    setView("member");
+  }
+
   async function handleAddPerson(person: OnboardingPerson): Promise<void> {
     await persistOnboardingPeople([person]);
     setQuickAdd(undefined);
@@ -1337,7 +1350,7 @@ function App() {
           <nav className="nav-list bottom-nav" aria-label="Household sections">
             <button
               className={
-                view === "today" || view === "bucket"
+                view === "today" || view === "bucket" || view === "member"
                   ? "nav-item active"
                   : "nav-item"
               }
@@ -1457,11 +1470,7 @@ function App() {
               setView("bucket");
             }}
             familyMembers={collections.familyMembers}
-            vaultItems={collections.vaultItems}
-            familyEvents={collections.familyEvents}
-            selectedMemberId={selectedMemberId}
-            onSelectMember={setSelectedMemberId}
-            onAddForMember={(member) => openAddSheet(member.name)}
+            onOpenMember={openMember}
             onAddMember={() => setQuickAdd("person")}
           />
         ) : view === "bucket" && selectedSetupBucket ? (
@@ -1472,6 +1481,16 @@ function App() {
             onOpenCalendar={() => setView("calendar")}
             onOpenCapture={openCapture}
             onOpenVault={() => setView("vault")}
+          />
+        ) : view === "member" && selectedMember ? (
+          <MemberProfileView
+            member={selectedMember}
+            vaultItems={collections.vaultItems}
+            familyEvents={collections.familyEvents}
+            onBack={() => setView("today")}
+            onAddDocument={() => setQuickAdd("document")}
+            onAddDate={() => setQuickAdd("date")}
+            onBrainDump={openCapture}
           />
         ) : view === "capture" ? (
           <CaptureWorkspace

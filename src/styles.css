@@ -8353,6 +8353,113 @@ button.calm-row:active {
   font-size: 11px;
 }
 
+/* ── Member profile (tap an avatar -> their things, sorted) ─────────── */
+.member-profile .member-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px 6px 6px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-row);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.member-profile .member-id {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.member-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.member-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  background: var(--color-surface-row);
+}
+
+.member-row-icon {
+  display: grid;
+  place-items: center;
+  color: var(--color-accent-blue);
+}
+
+.member-row-text {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.member-row-status {
+  color: var(--color-text-quiet);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.member-empty {
+  display: grid;
+  gap: 6px;
+  padding: 22px 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 18px;
+  background: var(--color-surface-panel);
+  color: var(--color-text-primary);
+}
+
+.member-empty-hint {
+  margin: 0;
+  color: var(--color-text-quiet);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Add-person type picker: tappable buttons instead of a select. */
+.person-type-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.person-type {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 14px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-row);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: filter var(--motion-state) var(--ease-out);
+}
+
+.person-type.sel {
+  border-color: var(--color-accent-blue);
+  color: var(--color-text-inverse);
+  background: var(--color-accent-blue);
+}
+
 /* ── Calm home: quiet expanders that fold the rest away ────────────── */
 .calm-rest-link {
   display: flex;

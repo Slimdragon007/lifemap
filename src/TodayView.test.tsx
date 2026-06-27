@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import TodayView from "./TodayView";
 import type { DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
-import type { FamilyEvent, FamilyMember, VaultItem } from "./familyOS";
+import type { FamilyMember } from "./familyOS";
 import { defaultSetupProfile } from "./setupBuckets";
 
 const emptyBrief: DailyBrief = {
@@ -34,11 +34,7 @@ type TodayOverrides = {
   onOpenBrainDump?: () => void;
   brief?: DailyBrief;
   familyMembers?: FamilyMember[];
-  vaultItems?: VaultItem[];
-  familyEvents?: FamilyEvent[];
-  selectedMemberId?: string;
-  onSelectMember?: (id: string) => void;
-  onAddForMember?: (member: FamilyMember) => void;
+  onOpenMember?: (member: FamilyMember) => void;
   onAddMember?: () => void;
 };
 
@@ -50,11 +46,7 @@ function renderToday(overrides: TodayOverrides = {}) {
     onOpenBrainDump = vi.fn(),
     brief = emptyBrief,
     familyMembers,
-    vaultItems,
-    familyEvents,
-    selectedMemberId,
-    onSelectMember = vi.fn(),
-    onAddForMember = vi.fn(),
+    onOpenMember = vi.fn(),
     onAddMember = vi.fn(),
   } = overrides;
   render(
@@ -81,11 +73,7 @@ function renderToday(overrides: TodayOverrides = {}) {
       onOpenSetup={vi.fn()}
       onOpenSetupBucket={vi.fn()}
       familyMembers={familyMembers}
-      vaultItems={vaultItems}
-      familyEvents={familyEvents}
-      selectedMemberId={selectedMemberId}
-      onSelectMember={onSelectMember}
-      onAddForMember={onAddForMember}
+      onOpenMember={onOpenMember}
       onAddMember={onAddMember}
     />,
   );
@@ -111,15 +99,6 @@ const sampleMembers: FamilyMember[] = [
     careNotes: [],
   },
 ];
-
-const caseyPassport: VaultItem = {
-  id: "v1",
-  title: "Casey passport",
-  category: "identity",
-  owner: "Casey Kim",
-  status: "Expires soon",
-  detail: "",
-};
 
 beforeEach(() => {
   localStorage.clear();
@@ -226,61 +205,34 @@ describe("TodayView coach", () => {
 describe("TodayView family-first", () => {
   test("no family section when App supplies no members", () => {
     renderToday();
-    expect(screen.queryByText(/'s stuff/)).toBeNull();
+    expect(screen.queryByText("Who is this for?")).toBeNull();
   });
 
-  test("shows the selected member's stuff and routes Add for member", async () => {
-    const user = userEvent.setup();
-    const onAddForMember = vi.fn();
-    renderToday({
-      familyMembers: sampleMembers,
-      vaultItems: [caseyPassport],
-      selectedMemberId: "casey",
-      onAddForMember,
-    });
-
-    expect(screen.getByText("Casey Kim's stuff")).toBeInTheDocument();
-    expect(screen.getByText("Casey passport")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Add for Casey Kim" }));
-    expect(onAddForMember).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "casey" }),
-    );
-  });
-
-  test("an empty member shows the first-thing prompt", () => {
-    renderToday({
-      familyMembers: sampleMembers,
-      selectedMemberId: "alex",
-    });
+  test("lists members as avatars when App supplies people", () => {
+    renderToday({ familyMembers: sampleMembers });
+    expect(screen.getByText("Who is this for?")).toBeInTheDocument();
     expect(
-      screen.getByText(/Nothing yet\. Tap \+ to add Alex Kim's first thing\./),
+      screen.getByRole("button", { name: "Open Casey Kim's profile" }),
     ).toBeInTheDocument();
   });
 
-  test("tapping a member avatar fires onSelectMember", async () => {
+  test("tapping a member avatar opens that member's profile", async () => {
     const user = userEvent.setup();
-    const onSelectMember = vi.fn();
-    renderToday({
-      familyMembers: sampleMembers,
-      selectedMemberId: "alex",
-      onSelectMember,
-    });
+    const onOpenMember = vi.fn();
+    renderToday({ familyMembers: sampleMembers, onOpenMember });
 
     await user.click(
-      screen.getByRole("button", { name: "Show Casey Kim's stuff" }),
+      screen.getByRole("button", { name: "Open Casey Kim's profile" }),
     );
-    expect(onSelectMember).toHaveBeenCalledWith("casey");
+    expect(onOpenMember).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "casey" }),
+    );
   });
 
   test("the Add avatar fires onAddMember", async () => {
     const user = userEvent.setup();
     const onAddMember = vi.fn();
-    renderToday({
-      familyMembers: sampleMembers,
-      selectedMemberId: "alex",
-      onAddMember,
-    });
+    renderToday({ familyMembers: sampleMembers, onAddMember });
 
     await user.click(
       screen.getByRole("button", { name: "Add a family member" }),
