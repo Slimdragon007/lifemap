@@ -7865,9 +7865,17 @@ html[data-theme="dark"] .ambient-field {
   padding-bottom: calc(150px + env(safe-area-inset-bottom));
 }
 
+/* Cap + center the whole Today column at every width so a wide viewport
+   (in-app webview, iPad, desktop) renders one centered column, not a
+   left-pinned band with a dead right gutter. At <=560 the wrapper fills. */
+.atlas-today.calm-today {
+  max-width: 560px;
+  margin-inline: auto;
+}
+
 .calm-today .lowstim-today.calm-spine {
   gap: 38px;
-  max-width: 600px;
+  max-width: none;
 }
 
 /* First-run "New here?" coach card (empty accounts only; dismissible). */
@@ -10297,16 +10305,10 @@ button.notebook-row:active {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding-left: 32px;
+  padding-left: 0;
 }
 .atlas-spine {
-  position: absolute;
-  top: 8px;
-  bottom: 8px;
-  left: 13px;
-  width: 3px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #3f86c4, #7bb4e8);
+  display: none;
 }
 .atlas-task {
   position: relative;
@@ -10319,7 +10321,7 @@ button.notebook-row:active {
   left: -32px;
   top: 50%;
   transform: translateY(-50%);
-  display: grid;
+  display: none;
   place-items: center;
   width: 22px;
   height: 22px;
@@ -10342,9 +10344,9 @@ button.notebook-row:active {
   border-color: var(--color-accent-blue);
 }
 .atlas-task.needs .atlas-node {
-  border: none;
-  background: var(--color-accent-blue);
-  box-shadow: 0 0 0 5px var(--color-accent-blue-soft);
+  border: 2px solid var(--color-accent-blue);
+  background: var(--color-surface-panel);
+  box-shadow: none;
 }
 .atlas-task-card {
   flex: 1;

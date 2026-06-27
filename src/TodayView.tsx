@@ -67,13 +67,6 @@ function readCoachSeen(): boolean {
   }
 }
 
-function greetingForHour(hour: number): string {
-  if (hour < 5) return "Good night";
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-}
-
 function TodayView({
   brief,
   identity,
@@ -105,8 +98,6 @@ function TodayView({
   const [showMore, setShowMore] = useState(false);
   const [showNeedsRest, setShowNeedsRest] = useState(false);
   const [coachSeen, setCoachSeen] = useState(readCoachSeen);
-
-  const greeting = greetingForHour(new Date().getHours());
 
   // Family-first: only render the member row when App supplies people. The
   // selected member falls back to the first one so the card always has content.
@@ -252,9 +243,7 @@ function TodayView({
           </div>
         </div>
         <div className="calm-greeting-copy">
-          <p className="calm-greeting-title">
-            {greeting}, {identity.name}
-          </p>
+          <p className="calm-greeting-title">Hello, {identity.name}</p>
           <p className="calm-status-line">{statusLine}</p>
         </div>
       </header>
