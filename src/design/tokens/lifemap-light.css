@@ -12,61 +12,69 @@
   --font-display:
     "Darker Grotesque", "Hanken Grotesque", ui-sans-serif, system-ui,
     -apple-system, sans-serif;
+  --font-serif:
+    "Fraunces", Georgia, "Iowan Old Style", "Times New Roman", serif;
   --font-mono:
     "Fragment Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
 
-  /* Canvas */
-  --color-canvas-warm: #f5f5f6;
-  --color-canvas-app: #f5f5f6;
-  --color-canvas-login: #f5f5f6;
-  --color-canvas-soft-blue: #efeff1;
-  --color-canvas-soft-warm: #efeff1;
+  /* Canvas — soft periwinkle wash ("Blue Salad") */
+  --color-canvas-warm: #e9ecf7;
+  --color-canvas-app: #e9ecf7;
+  --color-canvas-login: #e9ecf7;
+  --color-canvas-soft-blue: #eef1fb;
+  --color-canvas-soft-warm: #eef1fb;
 
-  /* Surfaces */
+  /* Surfaces — white cards floating on the periwinkle wash */
   --color-surface-glass: rgba(255, 255, 255, 0.86);
   --color-surface-panel: #ffffff;
   --color-surface-panel-strong: #ffffff;
   --color-surface-command: #ffffff;
-  --color-surface-command-soft: #fbfbfc;
+  --color-surface-command-soft: #f4f6fd;
   --color-surface-nav: rgba(255, 255, 255, 0.92);
   --color-surface-capture: #ffffff;
-  --color-surface-row: #ffffff;
-  --color-backdrop-capture: rgba(9, 9, 11, 0.06);
+  --color-surface-row: #f1f4fc;
+  --color-backdrop-capture: rgba(43, 49, 72, 0.12);
 
-  /* Text — high contrast on the light canvas (readability first) */
-  --color-text-primary: #09090b;
-  --color-text-strong: #000000;
-  --color-text-secondary: #45454d;
-  --color-text-quiet: #5c5c64;
+  /* Text — navy slate, not pure black (softer, editorial) */
+  --color-text-primary: #2b3148;
+  --color-text-strong: #1d2236;
+  --color-text-secondary: #5a6076;
+  --color-text-quiet: #8a90a4;
   --color-text-inverse: #ffffff;
 
-  /* Borders — visible hairlines */
-  --color-border-subtle: rgba(9, 9, 11, 0.16);
-  --color-border-strong: rgba(9, 9, 11, 0.26);
-  --color-focus-ring: rgba(79, 70, 229, 0.34);
+  /* Borders — soft slate hairlines */
+  --color-border-subtle: rgba(43, 49, 72, 0.1);
+  --color-border-strong: rgba(43, 49, 72, 0.2);
+  --color-focus-ring: rgba(239, 122, 94, 0.4);
 
-  /* Accent — restrained indigo */
-  --color-accent-blue: #4f46e5;
-  --color-accent-blue-strong: #4338ca;
-  --color-accent-blue-soft: rgba(79, 70, 229, 0.1);
-  --color-accent-sky: #eceaff;
-  --color-accent-warm: #4f46e5; /* "needs you" → single restrained accent */
-  --color-accent-warm-soft: rgba(79, 70, 229, 0.1);
-  --color-accent-clay: #4f46e5;
-  --color-accent-plum: #45454d;
-  --color-accent-sage: #45454d;
-  --color-accent-amber: #4f46e5;
+  /* Accent — coral (the warm action color); avatars/hero use the blues below */
+  --color-accent-blue: #ef7a5e;
+  --color-accent-blue-strong: #e2674a;
+  --color-accent-blue-soft: rgba(239, 122, 94, 0.12);
+  --color-accent-sky: #ffe9e2;
+  --color-accent-warm: #ef7a5e;
+  --color-accent-warm-soft: rgba(239, 122, 94, 0.12);
+  --color-accent-clay: #ef7a5e;
+  --color-accent-plum: #6f74e8;
+  --color-accent-sage: #5aa6e0;
+  --color-accent-amber: #ef7a5e;
   --color-status-danger: #dc2626;
 
-  --color-action-ink: #09090b;
+  /* Member avatars + the focus hero stay blue (the "blue I like") */
+  --color-member-a: #5b7cfa;
+  --color-member-b: #7a72ef;
+  --color-member-c: #4f9be0;
+
+  --color-action-ink: #2b3148;
 
   /* Gradients */
-  --gradient-action-primary: linear-gradient(180deg, #6d68f0 0%, #4f46e5 100%);
-  --gradient-command-surface: linear-gradient(180deg, #ffffff 0%, #f5f5f6 100%);
+  --gradient-action-primary: linear-gradient(160deg, #ff9472 0%, #ef7a5e 100%);
+  --gradient-command-surface: linear-gradient(180deg, #ffffff 0%, #eef1fb 100%);
+  --gradient-focus: linear-gradient(135deg, #cdd5f4 0%, #e3e8f9 100%);
 
-  --radius-control: 12px;
-  --radius-panel: 16px;
-  --radius-command: 18px;
+  --radius-control: 14px;
+  --radius-panel: 20px;
+  --radius-command: 22px;
   --radius-pill: 999px;
 
   /* Spacing — strict 4px grid */
@@ -103,70 +111,75 @@
   --motion-enter: 220ms;
   --motion-cap: 300ms;
 
-  /* Map/notebook semantics — mono-ized to indigo accent */
-  --accent: #4f46e5;
-  --accent-soft: #6d68f0;
-  --needs: #4f46e5;
-  --needs-soft: rgba(79, 70, 229, 0.1);
-  --filed: #4f46e5;
-  --paper: #f5f5f6;
+  /* Map/notebook semantics — coral action, navy ink, periwinkle paper */
+  --accent: #ef7a5e;
+  --accent-soft: #ff9472;
+  --needs: #ef7a5e;
+  --needs-soft: rgba(239, 122, 94, 0.12);
+  --filed: #5b7cfa;
+  --paper: #e9ecf7;
   --paper-raised: #ffffff;
-  --rule: rgba(9, 9, 11, 0.16);
-  --warm-line: rgba(9, 9, 11, 0.16);
-  --warm-ink: #09090b;
-  --warm-ink-soft: #45454d;
-  --warm-ink-quiet: #5c5c64;
+  --rule: rgba(43, 49, 72, 0.12);
+  --warm-line: rgba(43, 49, 72, 0.12);
+  --warm-ink: #2b3148;
+  --warm-ink-soft: #5a6076;
+  --warm-ink-quiet: #8a90a4;
 
   /* Back-compat aliases */
-  --line: rgba(9, 9, 11, 0.16);
-  --ink: #09090b;
-  --ink-soft: #45454d;
-  --ink-quiet: #5c5c64;
+  --line: rgba(43, 49, 72, 0.12);
+  --ink: #2b3148;
+  --ink-soft: #5a6076;
+  --ink-quiet: #8a90a4;
 }
 
 html[data-theme="dark"] {
-  --color-canvas-warm: #09090b;
-  --color-canvas-app: #09090b;
-  --color-canvas-login: #09090b;
-  --color-canvas-soft-blue: #161618;
-  --color-canvas-soft-warm: #161618;
+  --color-canvas-warm: #0a0a0c;
+  --color-canvas-app: #0a0a0c;
+  --color-canvas-login: #0a0a0c;
+  --color-canvas-soft-blue: #141417;
+  --color-canvas-soft-warm: #141417;
 
-  --color-surface-glass: rgba(22, 22, 24, 0.86);
-  --color-surface-panel: #161618;
-  --color-surface-panel-strong: #1b1b1e;
-  --color-surface-command: #161618;
-  --color-surface-command-soft: #1b1b1e;
-  --color-surface-nav: rgba(22, 22, 24, 0.92);
-  --color-surface-capture: #161618;
-  --color-surface-row: #161618;
-  --color-backdrop-capture: rgba(0, 0, 0, 0.5);
+  --color-surface-glass: rgba(20, 20, 23, 0.86);
+  --color-surface-panel: #141417;
+  --color-surface-panel-strong: #1a1a1f;
+  --color-surface-command: #141417;
+  --color-surface-command-soft: #1a1a1f;
+  --color-surface-nav: rgba(16, 16, 19, 0.92);
+  --color-surface-capture: #141417;
+  --color-surface-row: #16161a;
+  --color-backdrop-capture: rgba(0, 0, 0, 0.55);
 
-  --color-text-primary: #fafafa;
+  --color-text-primary: #f6f7f9;
   --color-text-strong: #ffffff;
-  --color-text-secondary: #a1a1aa;
-  --color-text-quiet: #82828c;
-  --color-text-inverse: #09090b;
+  --color-text-secondary: #c7cad2;
+  --color-text-quiet: #8b8f9a;
+  --color-text-inverse: #0a0a0c;
 
-  --color-border-subtle: rgba(255, 255, 255, 0.14);
-  --color-border-strong: rgba(255, 255, 255, 0.24);
-  --color-focus-ring: rgba(139, 139, 255, 0.4);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-focus-ring: rgba(255, 138, 92, 0.45);
 
-  --color-accent-blue: #8b8bff;
-  --color-accent-blue-strong: #a5a5ff;
-  --color-accent-blue-soft: rgba(139, 139, 255, 0.12);
-  --color-accent-sky: #20203a;
-  --color-accent-warm: #8b8bff;
-  --color-accent-warm-soft: rgba(139, 139, 255, 0.12);
-  --color-accent-clay: #8b8bff;
-  --color-accent-plum: #a1a1aa;
-  --color-accent-sage: #a1a1aa;
-  --color-accent-amber: #8b8bff;
+  --color-accent-blue: #ff8a5c;
+  --color-accent-blue-strong: #ff9d75;
+  --color-accent-blue-soft: rgba(255, 138, 92, 0.14);
+  --color-accent-sky: #3a2018;
+  --color-accent-warm: #ff8a5c;
+  --color-accent-warm-soft: rgba(255, 138, 92, 0.14);
+  --color-accent-clay: #ff8a5c;
+  --color-accent-plum: #c7cad2;
+  --color-accent-sage: #c7cad2;
+  --color-accent-amber: #ff8a5c;
   --color-status-danger: #f87171;
 
-  --color-action-ink: #fafafa;
+  --color-member-a: #7d97ff;
+  --color-member-b: #9a93ff;
+  --color-member-c: #6fb6ef;
 
-  --gradient-action-primary: linear-gradient(180deg, #a5a5ff 0%, #8b8bff 100%);
-  --gradient-command-surface: linear-gradient(180deg, #1b1b1e 0%, #161618 100%);
+  --color-action-ink: #f6f7f9;
+
+  --gradient-action-primary: linear-gradient(160deg, #ffa074 0%, #ff8a5c 100%);
+  --gradient-command-surface: linear-gradient(180deg, #1a1a1f 0%, #141417 100%);
+  --gradient-focus: linear-gradient(135deg, #2b3160 0%, #222748 100%);
 
   --shadow-panel-soft: 0 14px 30px -22px rgba(0, 0, 0, 0.5);
   --shadow-panel: 0 14px 30px -20px rgba(0, 0, 0, 0.6);
@@ -176,23 +189,23 @@ html[data-theme="dark"] {
   --shadow-row: 0 6px 16px rgba(0, 0, 0, 0.2);
   --shadow-row-hover: 0 10px 22px rgba(0, 0, 0, 0.3);
 
-  --accent: #8b8bff;
-  --accent-soft: #a5a5ff;
-  --needs: #8b8bff;
-  --needs-soft: rgba(139, 139, 255, 0.12);
-  --filed: #8b8bff;
-  --paper: #09090b;
-  --paper-raised: #161618;
-  --rule: rgba(255, 255, 255, 0.14);
-  --warm-line: rgba(255, 255, 255, 0.14);
-  --warm-ink: #fafafa;
-  --warm-ink-soft: #a1a1aa;
-  --warm-ink-quiet: #82828c;
+  --accent: #ff8a5c;
+  --accent-soft: #ffa074;
+  --needs: #ff8a5c;
+  --needs-soft: rgba(255, 138, 92, 0.14);
+  --filed: #7d97ff;
+  --paper: #0a0a0c;
+  --paper-raised: #141417;
+  --rule: rgba(255, 255, 255, 0.08);
+  --warm-line: rgba(255, 255, 255, 0.08);
+  --warm-ink: #f6f7f9;
+  --warm-ink-soft: #c7cad2;
+  --warm-ink-quiet: #8b8f9a;
 
-  --line: rgba(255, 255, 255, 0.14);
-  --ink: #fafafa;
-  --ink-soft: #a1a1aa;
-  --ink-quiet: #82828c;
+  --line: rgba(255, 255, 255, 0.08);
+  --ink: #f6f7f9;
+  --ink-soft: #c7cad2;
+  --ink-quiet: #8b8f9a;
 }
 
 :root {

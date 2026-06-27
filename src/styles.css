@@ -7926,10 +7926,10 @@ html[data-theme="dark"] .ambient-field {
 .calm-greeting-title {
   margin: 0;
   max-width: 22ch;
-  font-family: var(--font-display);
-  font-size: clamp(26px, 6vw, 34px);
-  font-weight: 560;
-  line-height: 1.06;
+  font-family: var(--font-serif);
+  font-size: clamp(26px, 6vw, 32px);
+  font-weight: 600;
+  line-height: 1.08;
   letter-spacing: -0.01em;
   color: var(--color-text-strong);
 }
@@ -8162,24 +8162,24 @@ button.calm-row:active {
 }
 
 .calm-av-blue {
-  background: var(--color-accent-blue);
-  --member-ring: var(--color-accent-blue);
+  background: var(--color-member-a);
+  --member-ring: var(--color-member-a);
 }
 .calm-av-clay {
-  background: var(--color-accent-clay);
-  --member-ring: var(--color-accent-clay);
+  background: var(--color-member-b);
+  --member-ring: var(--color-member-b);
 }
 .calm-av-plum {
-  background: var(--color-accent-plum);
-  --member-ring: var(--color-accent-plum);
+  background: var(--color-member-c);
+  --member-ring: var(--color-member-c);
 }
 .calm-av-sage {
-  background: var(--color-accent-sage);
-  --member-ring: var(--color-accent-sage);
+  background: var(--color-member-a);
+  --member-ring: var(--color-member-a);
 }
 .calm-av-amber {
-  background: var(--color-accent-amber);
-  --member-ring: var(--color-accent-amber);
+  background: var(--color-member-b);
+  --member-ring: var(--color-member-b);
 }
 
 .calm-av-add {
@@ -10436,10 +10436,11 @@ button.notebook-row:active {
   transform: scale(0.98);
 }
 .atlas-task.needs .atlas-task-card {
-  padding: 14px;
-  border: 1px solid var(--color-border-strong);
+  padding: 16px;
+  border: 1px solid transparent;
   border-radius: var(--radius-panel);
-  background: var(--color-accent-blue-soft);
+  background: var(--gradient-focus);
+  box-shadow: var(--shadow-panel-soft);
 }
 .atlas-task-text {
   font-size: 16px;
