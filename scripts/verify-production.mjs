@@ -1,4 +1,5 @@
-const appOrigin = process.env.LIFEMAP_APP_ORIGIN ?? "https://lifemap-d33.pages.dev";
+const appOrigin =
+  process.env.LIFEMAP_APP_ORIGIN ?? "https://lifemap-d33.pages.dev";
 const apiOrigin =
   process.env.LIFEMAP_API_ORIGIN ?? "https://lifemap-api.m-haslim.workers.dev";
 
@@ -33,7 +34,9 @@ async function checkPagesHtml() {
 }
 
 async function checkClientBundle(html) {
-  const scriptMatch = html.match(/<script[^>]+src="([^"]+\.js)"/);
+  const scriptMatch = html.match(
+    /<script[^>]+src="([^"]*\/assets\/[^"]+\.js)"/,
+  );
   assert(scriptMatch, "Could not find the deployed JavaScript bundle");
 
   const bundleUrl = new URL(scriptMatch[1], appOrigin).toString();
@@ -89,7 +92,10 @@ async function checkAnalyzeRoute() {
 
   assert(response.ok, `Analyze route returned ${response.status}`);
   const body = await response.json();
-  assert(body?.ok === true, body?.error ?? "Analyze route did not return ok: true");
+  assert(
+    body?.ok === true,
+    body?.error ?? "Analyze route did not return ok: true",
+  );
   assert(
     Array.isArray(body.analysis?.nextActions) &&
       body.analysis.nextActions.length > 0,
@@ -110,7 +116,10 @@ function checkPublicAssetSecrets(text) {
   for (const marker of forbiddenMarkers) {
     const found =
       typeof marker === "string" ? text.includes(marker) : marker.test(text);
-    assert(!found, `Public assets include forbidden marker ${marker.toString()}`);
+    assert(
+      !found,
+      `Public assets include forbidden marker ${marker.toString()}`,
+    );
   }
 
   checks.push("Public assets do not expose server-only secret markers");
