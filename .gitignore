@@ -22,3 +22,7 @@ tests/e2e/.env.e2e
 .merge-report.md
 .task1-report.md
 .task1-report*.md
+.*-report.md
+
+# wrangler local state
+worker/.wrangler/

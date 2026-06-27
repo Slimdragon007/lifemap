@@ -46,7 +46,6 @@
 
 body {
   margin: 0;
-  min-width: 320px;
   min-height: 100vh;
   /* `overflow-x: clip` (not `hidden`): clip prevents horizontal scroll WITHOUT
      making <body> a scroll container. On iOS Safari, `overflow-x: hidden` here
