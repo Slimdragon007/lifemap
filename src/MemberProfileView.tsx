@@ -1,17 +1,11 @@
 import { Brain, CalendarPlus, ChevronLeft, FileText } from "lucide-react";
 import type { FamilyEvent, FamilyMember, VaultItem } from "./familyOS";
 import { memberAccent, memberStuff } from "./familyToday";
+import { VAULT_CATEGORY_LABEL } from "./documentTypes";
 import { dateCategoryMeta } from "./dateCategories";
 import { relativeDayLabel } from "./importantDates";
 
-const CATEGORY_LABEL: Record<VaultItem["category"], string> = {
-  identity: "Identity",
-  insurance: "Insurance",
-  health: "Health",
-  school: "School",
-  pet: "Pet",
-  travel: "Travel",
-};
+const CATEGORY_LABEL = VAULT_CATEGORY_LABEL;
 
 const TYPE_LABEL: Record<FamilyMember["profileType"], string> = {
   adult: "Adult",

@@ -8460,6 +8460,33 @@ button.calm-row:active {
   background: var(--color-accent-blue);
 }
 
+/* Document category picker — compact chips that wrap to two rows. */
+.cat-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cat-chip {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 999px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-row);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: filter var(--motion-state) var(--ease-out);
+}
+
+.cat-chip.sel {
+  border-color: var(--color-accent-blue);
+  color: var(--color-text-inverse);
+  background: var(--color-accent-blue);
+}
+
 /* ── Calm home: quiet expanders that fold the rest away ────────────── */
 .calm-rest-link {
   display: flex;

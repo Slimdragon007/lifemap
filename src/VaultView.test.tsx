@@ -151,6 +151,66 @@ describe("VaultView add-document flow", () => {
     });
   });
 
+  test("generic add auto-guesses the category from the title", async () => {
+    const user = userEvent.setup();
+    const onAddDocument = vi.fn();
+
+    render(
+      <VaultView
+        familyMembers={kids}
+        identity={{ name: "Mom", initials: "M" }}
+        vaultItems={[]}
+        onOpenCapture={vi.fn()}
+        onAddDocument={onAddDocument}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /^Add document$/i }));
+    await user.click(screen.getByRole("button", { name: /Add a other/i }));
+
+    const title = screen.getByLabelText("What is it?");
+    await user.clear(title);
+    await user.type(title, "School enrollment form");
+    await user.selectOptions(screen.getByLabelText("Who is it for?"), "Emma");
+    await user.click(screen.getByRole("button", { name: "Save document" }));
+
+    expect(onAddDocument.mock.calls[0][0]).toMatchObject({
+      title: "School enrollment form",
+      category: "school",
+      owner: "Emma",
+    });
+  });
+
+  test("a manual category pick overrides the auto-guess", async () => {
+    const user = userEvent.setup();
+    const onAddDocument = vi.fn();
+
+    render(
+      <VaultView
+        familyMembers={kids}
+        identity={{ name: "Mom", initials: "M" }}
+        vaultItems={[]}
+        onOpenCapture={vi.fn()}
+        onAddDocument={onAddDocument}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /^Add document$/i }));
+    await user.click(screen.getByRole("button", { name: /Add a other/i }));
+
+    const dialog = screen.getByRole("dialog");
+    const title = screen.getByLabelText("What is it?");
+    await user.clear(title);
+    await user.type(title, "passport"); // would auto-guess identity
+    await user.click(within(dialog).getByRole("button", { name: "Health" }));
+    await user.selectOptions(screen.getByLabelText("Who is it for?"), "Emma");
+    await user.click(screen.getByRole("button", { name: "Save document" }));
+
+    expect(onAddDocument.mock.calls[0][0]).toMatchObject({
+      category: "health",
+    });
+  });
+
   test("grouping shows only that owner's documents under their profile", async () => {
     const user = userEvent.setup();
     const items: VaultItem[] = [

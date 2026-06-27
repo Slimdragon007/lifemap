@@ -11,12 +11,7 @@ export type FamilyMember = {
 };
 
 export type CalendarLayer =
-  | "school"
-  | "health"
-  | "pets"
-  | "travel"
-  | "meals"
-  | "admin";
+  "school" | "health" | "pets" | "travel" | "meals" | "admin";
 
 // Persisted on family_events.event_category; 'generic' = default for pre-existing rows.
 export type DateCategory =
@@ -43,12 +38,7 @@ export type FamilyEvent = {
 };
 
 export type VaultCategory =
-  | "identity"
-  | "insurance"
-  | "health"
-  | "school"
-  | "pet"
-  | "travel";
+  "identity" | "insurance" | "health" | "school" | "pet" | "travel";
 
 export type VaultItem = {
   id: string;
@@ -347,7 +337,7 @@ function inferOwner(text: string): string {
   return "Family";
 }
 
-function inferVaultCategory(text: string): VaultCategory {
+export function inferVaultCategory(text: string): VaultCategory {
   if (/passport|license|birth certificate|id\b|ids\b/i.test(text)) {
     return "identity";
   }
@@ -357,7 +347,7 @@ function inferVaultCategory(text: string): VaultCategory {
   }
 
   if (
-    /medical|doctor|vaccine|immunization|dental|health|allergy|record/i.test(
+    /medical|doctor|dentist|dental|vaccine|vaccination|immuniz|health|allergy|prescription|record/i.test(
       text,
     )
   ) {

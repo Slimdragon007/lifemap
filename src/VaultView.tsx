@@ -8,13 +8,18 @@ import {
 import { useMemo, useState, type FormEvent } from "react";
 import {
   type FamilyMember,
+  inferVaultCategory,
   type VaultCategory,
   type VaultItem,
 } from "./familyOS";
 import type { ViewerIdentity } from "./viewer";
 import ModalBackdrop from "./modal-backdrop";
 import EmptyState from "./empty-state";
-import { DOCUMENT_TYPES, type DocumentTypeMeta } from "./documentTypes";
+import {
+  DOCUMENT_TYPES,
+  type DocumentTypeMeta,
+  VAULT_CATEGORY_OPTIONS,
+} from "./documentTypes";
 
 const OTHER_OWNER = "__other__";
 const WHOLE_FAMILY = "Whole family";
@@ -364,6 +369,28 @@ export function AddDocumentModal({
   const [status, setStatus] = useState<VaultItem["status"]>("Current");
   const [expiry, setExpiry] = useState("");
   const [notes, setNotes] = useState("");
+  // Category: seeded from the tapped doc-type. On the generic quick-add path
+  // ("other") we auto-guess from the title until the user taps a chip — then
+  // their pick wins (categoryTouched).
+  const [category, setCategory] = useState<VaultCategory>(docType.category);
+  const [categoryTouched, setCategoryTouched] = useState(false);
+
+  function handleTitleChange(next: string) {
+    setTitle(next);
+    if (
+      !categoryTouched &&
+      docType.key === "other" &&
+      next.trim() &&
+      next.trim() !== docType.defaultTitle
+    ) {
+      setCategory(inferVaultCategory(next));
+    }
+  }
+
+  function pickCategory(next: VaultCategory) {
+    setCategory(next);
+    setCategoryTouched(true);
+  }
 
   const owner = whoFor === OTHER_OWNER ? otherOwner.trim() : whoFor.trim();
   const canSave = title.trim().length > 0 && owner.length > 0;
@@ -376,7 +403,7 @@ export function AddDocumentModal({
     onSave({
       id: crypto.randomUUID(),
       title: title.trim(),
-      category: docType.category,
+      category,
       owner,
       status,
       detail: notes.trim(),
@@ -395,7 +422,11 @@ export function AddDocumentModal({
       >
         <div className="review-dialog-top">
           <div>
-            <h2 id="add-document-title">Add {docType.label.toLowerCase()}</h2>
+            <h2 id="add-document-title">
+              {docType.key === "other"
+                ? "Add a document"
+                : `Add ${docType.label.toLowerCase()}`}
+            </h2>
             <p>Saved straight to your vault. No AI, no waiting.</p>
           </div>
         </div>
@@ -407,9 +438,25 @@ export function AddDocumentModal({
               value={title}
               autoFocus
               placeholder={`${docType.defaultTitle}…`}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => handleTitleChange(e.target.value)}
             />
           </label>
+          <div className="add-date-field">
+            <span>Category</span>
+            <div className="cat-chip-row" role="group" aria-label="Category">
+              {VAULT_CATEGORY_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`cat-chip${category === option.value ? " sel" : ""}`}
+                  aria-pressed={category === option.value}
+                  onClick={() => pickCategory(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <label className="add-date-field">
             <span>Who is it for?</span>
             <select value={whoFor} onChange={(e) => setWhoFor(e.target.value)}>
