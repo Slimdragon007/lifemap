@@ -244,9 +244,24 @@ describe("LifeMap MVP app", () => {
     expect(
       screen.getByRole("region", { name: "Account and privacy" }),
     ).toBeInTheDocument();
+    const welcomeSetup = screen.getByRole("region", {
+      name: "Welcome and setup",
+    });
+    expect(welcomeSetup).toBeInTheDocument();
     expect(
-      screen.getByRole("region", { name: "App setup" }),
+      within(welcomeSetup).getByRole("button", {
+        name: "Replay the welcome tour",
+      }),
     ).toBeInTheDocument();
+    expect(
+      within(welcomeSetup).getByRole("button", { name: "Open guided setup" }),
+    ).toBeInTheDocument();
+    expect(
+      within(welcomeSetup).queryByText("Family admin map"),
+    ).not.toBeInTheDocument();
+    expect(
+      within(welcomeSetup).queryByText("Cabinet"),
+    ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Open family admin map" }),
     );
@@ -320,8 +335,11 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Settings" }));
 
     expect(
-      screen.getByRole("region", { name: "App setup" }),
+      screen.getByRole("region", { name: "Welcome and setup" }),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Prototype tools" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Open family admin map" }),
     ).not.toBeInTheDocument();

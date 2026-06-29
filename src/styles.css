@@ -3965,6 +3965,88 @@ button.nav-item {
   color: var(--color-text-quiet);
 }
 
+.settings-welcome-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.84), rgba(239, 247, 255, 0.68)),
+    var(--color-surface-panel);
+  box-shadow:
+    0 18px 38px rgba(25, 38, 62, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+.settings-welcome-copy {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.settings-welcome-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  background: var(--color-accent-blue-soft);
+  color: var(--color-accent-blue);
+}
+
+.settings-welcome-copy h3 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.settings-welcome-copy p {
+  margin: 5px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.42;
+}
+
+.settings-welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-welcome-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 740;
+  cursor: pointer;
+}
+
+.settings-welcome-actions .settings-welcome-primary {
+  border-color: rgba(61, 132, 212, 0.22);
+  background: var(--color-accent-blue);
+  color: var(--color-text-inverse);
+}
+
+.settings-dev-tools {
+  display: grid;
+  gap: 0;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
 .setup-workspace {
   max-width: 1040px;
 }

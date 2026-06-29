@@ -2650,91 +2650,95 @@ function MoreView({
           </section>
         ) : null}
         {isSettings ? (
-          <section aria-labelledby="more-setup-title" className="more-section">
+          <section
+            aria-labelledby="more-setup-title"
+            className="more-section settings-welcome-section"
+          >
             <div className="more-section-heading">
-              <span>Setup</span>
-              <h2 id="more-setup-title">App setup</h2>
-              <p>Tour, household setup, and safety preferences.</p>
+              <span>Welcome</span>
+              <h2 id="more-setup-title">Welcome and setup</h2>
+              <p>Replay onboarding or update the basics LifeMap uses.</p>
+            </div>
+            <article className="settings-welcome-card">
+              <div className="settings-welcome-copy">
+                <span className="settings-welcome-icon" aria-hidden="true">
+                  <Sparkles size={19} />
+                </span>
+                <div>
+                  <h3>Start with the short tour.</h3>
+                  <p>
+                    Use this when LifeMap feels unclear, or when someone new in
+                    the household needs to understand the flow.
+                  </p>
+                </div>
+              </div>
+              <div className="settings-welcome-actions">
+                <button
+                  aria-label="Replay the welcome tour"
+                  className="settings-welcome-primary"
+                  type="button"
+                  onClick={onOpenOnboarding}
+                >
+                  Replay welcome
+                  <ChevronRight size={15} />
+                </button>
+                <button
+                  aria-label="Open guided setup"
+                  type="button"
+                  onClick={onOpenSetup}
+                >
+                  Update setup
+                </button>
+                <button
+                  aria-label="Open how LifeMap works"
+                  type="button"
+                  onClick={onOpenHowItWorks}
+                >
+                  How it works
+                </button>
+              </div>
+            </article>
+          </section>
+        ) : null}
+        {isSettings && showFounderTools ? (
+          <section
+            aria-labelledby="more-dev-title"
+            className="more-section settings-dev-tools"
+          >
+            <div className="more-section-heading">
+              <span>Development</span>
+              <h2 id="more-dev-title">Prototype tools</h2>
             </div>
             <button
-              aria-label="Open how LifeMap works"
+              aria-label="Open family admin map"
               className="more-row"
               type="button"
-              onClick={onOpenHowItWorks}
-            >
-              <span className="more-row-icon">
-                <Map size={18} />
-              </span>
-              <span className="more-row-copy">
-                <strong>How LifeMap works</strong>
-                <span>The loop in three steps, plus what each tab is for.</span>
-              </span>
-              <ChevronRight className="more-row-chevron" size={18} />
-            </button>
-            <button
-              aria-label="Open guided setup"
-              className="more-row"
-              type="button"
-              onClick={onOpenSetup}
-            >
-              <span className="more-row-icon">
-                <UsersRound size={18} />
-              </span>
-              <span className="more-row-copy">
-                <strong>Guided setup</strong>
-                <span>Pick family, pets, records, travel, and logistics.</span>
-              </span>
-              <ChevronRight className="more-row-chevron" size={18} />
-            </button>
-            <button
-              aria-label="Replay the welcome tour"
-              className="more-row"
-              type="button"
-              onClick={onOpenOnboarding}
+              onClick={onOpenFamilyMap}
             >
               <span className="more-row-icon">
                 <Sparkles size={18} />
               </span>
               <span className="more-row-copy">
-                <strong>Welcome tour</strong>
-                <span>Replay the first-run walkthrough.</span>
+                <strong>Family admin map</strong>
+                <span>Advanced extraction workspace for QA and demos.</span>
               </span>
               <ChevronRight className="more-row-chevron" size={18} />
             </button>
-            {showFounderTools ? (
-              <>
-                <button
-                  aria-label="Open family admin map"
-                  className="more-row"
-                  type="button"
-                  onClick={onOpenFamilyMap}
-                >
-                  <span className="more-row-icon">
-                    <Sparkles size={18} />
-                  </span>
-                  <span className="more-row-copy">
-                    <strong>Family admin map</strong>
-                    <span>Advanced extraction workspace for QA and demos.</span>
-                  </span>
-                  <ChevronRight className="more-row-chevron" size={18} />
-                </button>
-                <button
-                  aria-label="Open launch plan"
-                  className="more-row"
-                  type="button"
-                  onClick={onOpenLaunchPlan}
-                >
-                  <span className="more-row-icon">
-                    <ListChecks size={18} />
-                  </span>
-                  <span className="more-row-copy">
-                    <strong>Launch Plan</strong>
-                    <span>Founder readiness checklist and demo progress.</span>
-                  </span>
-                  <ChevronRight className="more-row-chevron" size={18} />
-                </button>
-              </>
-            ) : null}
+            <button
+              aria-label="Open launch plan"
+              className="more-row"
+              type="button"
+              onClick={onOpenLaunchPlan}
+            >
+              <span className="more-row-icon">
+                <ListChecks size={18} />
+              </span>
+              <span className="more-row-copy">
+                <strong>Launch Plan</strong>
+                <span>Founder readiness checklist and demo progress.</span>
+              </span>
+              <ChevronRight className="more-row-chevron" size={18} />
+            </button>
           </section>
         ) : null}
         {!isSettings ? (
@@ -2909,37 +2913,8 @@ function MoreView({
           <div className="more-section-heading">
             <span>Safety</span>
             <h2 id="more-account-title">Account and privacy</h2>
+            <p>Security, approval rules, feedback, and account-level controls.</p>
           </div>
-          <button
-            aria-label="Open approvals and permissions"
-            className="more-row"
-            type="button"
-            onClick={onOpenApprovals}
-          >
-            <span className="more-row-icon">
-              <ListChecks size={18} />
-            </span>
-            <span className="more-row-copy">
-              <strong>Approvals &amp; permissions</strong>
-              <span>
-                Every draft waits for your OK — see what&apos;s pending and what
-                LifeMap has saved.
-              </span>
-            </span>
-            <ChevronRight className="more-row-chevron" size={18} />
-          </button>
-          <article className="more-row more-row-static">
-            <span className="more-row-icon">
-              <LockKeyhole size={18} />
-            </span>
-            <span className="more-row-copy">
-              <strong>Private by default</strong>
-              <span>
-                Drafts wait for your approval — nothing sends without an
-                explicit Send.
-              </span>
-            </span>
-          </article>
           <button
             aria-label="Open privacy and security"
             className="more-row"
@@ -2951,7 +2926,22 @@ function MoreView({
             </span>
             <span className="more-row-copy">
               <strong>Privacy &amp; security</strong>
-              <span>How data, AI, and email are handled.</span>
+              <span>How data, AI, email, and private details are handled.</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
+          <button
+            aria-label="Open approvals and permissions"
+            className="more-row"
+            type="button"
+            onClick={onOpenApprovals}
+          >
+            <span className="more-row-icon">
+              <LockKeyhole size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Approvals &amp; permissions</strong>
+              <span>Review anything waiting for your OK before LifeMap acts.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
