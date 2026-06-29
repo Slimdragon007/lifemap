@@ -248,11 +248,10 @@ describe("LifeMap MVP app", () => {
       name: "Welcome and setup",
     });
     expect(welcomeSetup).toBeInTheDocument();
-    expect(
-      within(welcomeSetup).getByRole("button", {
-        name: "Replay the welcome tour",
-      }),
-    ).toBeInTheDocument();
+    const replayWelcomeButton = within(welcomeSetup).getByRole("button", {
+      name: "Replay the welcome tour",
+    });
+    expect(replayWelcomeButton).toBeInTheDocument();
     expect(
       within(welcomeSetup).getByRole("button", { name: "Open guided setup" }),
     ).toBeInTheDocument();
@@ -262,6 +261,23 @@ describe("LifeMap MVP app", () => {
     expect(
       within(welcomeSetup).queryByText("Cabinet"),
     ).not.toBeInTheDocument();
+    await user.click(replayWelcomeButton);
+    expect(
+      screen.getByRole("heading", {
+        name: /LifeMap takes the chaos in your head/i,
+      }),
+    ).toBeInTheDocument();
+    const replayNav = screen.getByRole("navigation", {
+      name: "Household sections",
+    });
+    expect(replayNav).toBeInTheDocument();
+    expect(
+      within(replayNav).getByRole("button", { name: "Settings" }),
+    ).toHaveClass("active");
+    await user.click(screen.getByRole("button", { name: "Back to Settings" }));
+    expect(
+      screen.getByRole("heading", { name: "Settings" }),
+    ).toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Open family admin map" }),
     );

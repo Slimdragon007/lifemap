@@ -11881,6 +11881,29 @@ button.notebook-row:active {
   min-height: 100dvh;
   padding: 24px;
 }
+.onboarding-replay-workspace {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: calc(156px + env(safe-area-inset-bottom));
+}
+.onboarding-replay-back {
+  width: min(100%, 560px);
+  align-self: center;
+}
+.onboarding-shell-embedded {
+  display: block;
+  width: min(100%, 560px);
+  min-height: 0;
+  padding: 0;
+}
+.onboarding-shell-embedded > .ambient-field {
+  display: none;
+}
+.onboarding-shell-embedded .onboarding-card {
+  width: 100%;
+}
 .onboarding-card {
   position: relative;
   z-index: 1;

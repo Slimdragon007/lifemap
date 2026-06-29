@@ -5,6 +5,7 @@ import {
   CalendarHeart,
   Check,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   RotateCcw,
   Clock3,
@@ -237,6 +238,7 @@ type AppView =
   | "privacy"
   | "howItWorks"
   | "onboarding";
+type OnboardingReturnView = Exclude<AppView, "onboarding">;
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 type PriorityActionState = "completed" | "snoozed";
@@ -420,6 +422,8 @@ function App() {
   const [toastMessage, setToastMessage] = useState<string>();
   const [toastUndo, setToastUndo] = useState<(() => void) | undefined>();
   const [view, setView] = useState<AppView>("today");
+  const [onboardingReturnView, setOnboardingReturnView] =
+    useState<OnboardingReturnView>();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [showFullMap, setShowFullMap] = useState(false);
   const [selectedSetupBucketId, setSelectedSetupBucketId] =
@@ -664,9 +668,16 @@ function App() {
       localFlag = false;
     }
     if (shouldShowOnboarding(remote, localFlag)) {
+      setOnboardingReturnView(undefined);
       setView("onboarding");
     }
   }
+
+  useEffect(() => {
+    if (view !== "onboarding" && onboardingReturnView) {
+      setOnboardingReturnView(undefined);
+    }
+  }, [onboardingReturnView, view]);
 
   // Reset the one-shot gate guard when the signed-in account changes, so a
   // different account on the same tab can still be gated.
@@ -1082,10 +1093,8 @@ function App() {
     setSelectedPriority(undefined);
   }
 
-  // First-run onboarding: seed setup from the user's chosen areas + name (when
-  // they finish the wizard), persist the chosen people as family members, mark
-  // seen, and drop the user into Today. Skipping passes no result, so nothing
-  // is seeded.
+  // First-run onboarding seeds setup and lands on Today. Replay onboarding uses
+  // the same save path, then returns to the screen that launched it.
   function completeOnboarding(result?: {
     name: string;
     areas: string[];
@@ -1119,7 +1128,9 @@ function App() {
     } catch {
       // Storage can be unavailable (private mode); the flow still completes.
     }
-    setView("today");
+    const nextView = onboardingReturnView ?? "today";
+    setOnboardingReturnView(undefined);
+    setView(nextView);
   }
 
   function handleSetName(value: string) {
@@ -1286,6 +1297,16 @@ function App() {
     setView("member");
   }
 
+  function openOnboardingReplay(returnView: OnboardingReturnView) {
+    setOnboardingReturnView(returnView);
+    setView("onboarding");
+  }
+
+  function closeOnboardingReplay() {
+    setView(onboardingReturnView ?? "settings");
+    setOnboardingReturnView(undefined);
+  }
+
   async function handleAddPerson(person: OnboardingPerson): Promise<void> {
     await persistOnboardingPeople([person]);
     setQuickAdd(undefined);
@@ -1366,7 +1387,7 @@ function App() {
     );
   }
 
-  if (view === "onboarding") {
+  if (view === "onboarding" && !onboardingReturnView) {
     return (
       <OnboardingView
         initialName={session?.user.user_metadata?.first_name ?? ""}
@@ -1442,7 +1463,10 @@ function App() {
             </button>
             <button
               className={
-                view === "settings" || view === "privacy"
+                view === "settings" ||
+                view === "privacy" ||
+                (view === "onboarding" &&
+                  onboardingReturnView === "settings")
                   ? "nav-item active"
                   : "nav-item"
               }
@@ -1486,7 +1510,27 @@ function App() {
           ) : null}
         </aside>
 
-        {view === "today" ? (
+        {view === "onboarding" && onboardingReturnView ? (
+          <section
+            className="workspace onboarding-replay-workspace"
+            aria-label="Welcome tour"
+          >
+            <button
+              className="member-back onboarding-replay-back"
+              type="button"
+              onClick={closeOnboardingReplay}
+            >
+              <ChevronLeft size={16} />
+              Back to Settings
+            </button>
+            <OnboardingView
+              initialName={session?.user.user_metadata?.first_name ?? ""}
+              variant="embedded"
+              onComplete={(result) => completeOnboarding(result)}
+              onSkip={closeOnboardingReplay}
+            />
+          </section>
+        ) : view === "today" ? (
           <TodayView
             approvalCount={selectedApprovals.length}
             brief={dailyBrief}
@@ -1874,7 +1918,7 @@ function App() {
             onOpenSetup={() => setView("setup")}
             onOpenLaunchPlan={() => setView("launchPlan")}
             onOpenApprovals={() => setView("review")}
-            onOpenOnboarding={() => setView("onboarding")}
+            onOpenOnboarding={() => openOnboardingReplay("settings")}
             onOpenHowItWorks={() => setView("howItWorks")}
             onOpenPrivacy={() => setView("privacy")}
             onOpenFeedback={() => setFeedbackOpen(true)}

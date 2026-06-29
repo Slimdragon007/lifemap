@@ -36,6 +36,7 @@ type OnboardingViewProps = {
   // Prefill for step 1 — App passes the name captured at signup
   // (user_metadata.first_name) so onboarding doesn't re-ask.
   initialName?: string;
+  variant?: "standalone" | "embedded";
 };
 
 const PEOPLE_CHIPS: ReadonlyArray<{ label: string; role: OnboardingRole }> = [
@@ -68,7 +69,13 @@ function OnboardingView({
   onComplete,
   onSkip,
   initialName = "",
+  variant = "standalone",
 }: OnboardingViewProps) {
+  const Shell = variant === "embedded" ? "div" : "main";
+  const shellClassName =
+    variant === "embedded"
+      ? "onboarding-shell onboarding-shell-embedded"
+      : "onboarding-shell";
   // Identity cover shown first: state what LifeMap is in one calm screen before
   // the setup wizard. "Continue" drops into step 1; "Skip" exits the whole flow.
   const [showIntro, setShowIntro] = useState(true);
@@ -154,7 +161,7 @@ function OnboardingView({
 
   if (showIntro) {
     return (
-      <main className="onboarding-shell">
+      <Shell className={shellClassName}>
         <div className="ambient-field" aria-hidden="true" />
         <section
           className="onboarding-card"
@@ -199,12 +206,12 @@ function OnboardingView({
             </div>
           </footer>
         </section>
-      </main>
+      </Shell>
     );
   }
 
   return (
-    <main className="onboarding-shell">
+    <Shell className={shellClassName}>
       <div className="ambient-field" aria-hidden="true" />
       <section className="onboarding-card" aria-labelledby="onboarding-title">
         <header className="onboarding-head">
@@ -439,7 +446,7 @@ function OnboardingView({
           </div>
         </footer>
       </section>
-    </main>
+    </Shell>
   );
 }
 
