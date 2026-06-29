@@ -5,6 +5,8 @@ import {
   Lightbulb,
   Plus,
   RefreshCw,
+  ShieldCheck,
+  UsersRound,
 } from "lucide-react";
 import type { BriefPriority, DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
@@ -31,6 +33,7 @@ type TodayViewProps = {
   onOpenCabinet: () => void;
   onOpenFamilyMap: () => void;
   onOpenImportantDates: () => void;
+  onOpenReview: () => void;
   onOpenSetup: () => void;
   onOpenSetupBucket: (bucket: RecommendedBucket) => void;
   onOpenPriority: (priority: BriefPriority) => void;
@@ -46,6 +49,8 @@ function TodayView({
   priorityActionStates,
   onGenerateBrief,
   onOpenBrainDump,
+  onOpenFamilyMap,
+  onOpenReview,
   onOpenPriority,
   onTogglePriorityDone,
 }: TodayViewProps) {
@@ -68,12 +73,16 @@ function TodayView({
     (priority) => priorityActionStates[priority.id] === "completed",
   ).length;
 
+  const approvalSummary = `${approvalCount} ${
+    approvalCount === 1 ? "item needs" : "items need"
+  } your OK`;
+
   const statusLine =
     doneCount > 0
       ? `${doneCount} of ${topPriorities.length} handled.`
       : approvalCount > 0
-        ? `${approvalCount} waiting, whenever you're ready.`
-        : "Drop the loose stuff here. It will get sorted.";
+        ? `${approvalCount} waiting for OK.`
+        : "Drop the loose stuff here.";
 
   return (
     <section
@@ -107,7 +116,7 @@ function TodayView({
         </div>
         <div className="calm-greeting-copy">
           <p className="calm-greeting-title">
-            One thing at a time.
+            One thing now.
           </p>
           <p className="calm-status-line">{statusLine}</p>
         </div>
@@ -172,10 +181,7 @@ function TodayView({
           <div className="home-blender-copy">
             <span className="atlas-eyebrow">Smart drop</span>
             <h2 id="blender-title">Drop anything here.</h2>
-            <p>
-              A file, text, screenshot, travel note, vaccine card, or school
-              email. LifeMap sorts it before anything acts.
-            </p>
+            <p>Paste once. LifeMap files it.</p>
           </div>
           <button
             className="home-blender-button"
@@ -187,6 +193,51 @@ function TodayView({
             <ChevronRight size={15} />
           </button>
         </section>
+
+        <section
+          className="home-family-entry"
+          aria-labelledby="home-family-title"
+        >
+          <div className="home-family-icon" aria-hidden="true">
+            <UsersRound size={19} />
+          </div>
+          <div className="home-family-copy">
+            <span className="atlas-eyebrow">People & pets</span>
+            <h2 id="home-family-title">Open someone’s profile.</h2>
+            <p>People, pets, and custom fields.</p>
+          </div>
+          <button
+            aria-label="Open Family dashboard"
+            className="home-family-button"
+            type="button"
+            onClick={onOpenFamilyMap}
+          >
+            Open Family
+            <ChevronRight size={15} />
+          </button>
+        </section>
+
+        {approvalCount > 0 ? (
+          <section className="home-review-entry" aria-label="Review safety gate">
+            <div className="home-review-icon" aria-hidden="true">
+              <ShieldCheck size={18} />
+            </div>
+            <div className="home-review-copy">
+              <span className="atlas-eyebrow">Safety gate</span>
+              <h2>{approvalSummary}</h2>
+              <p>Approve before anything acts.</p>
+            </div>
+            <button
+              aria-label={`Needs your OK. Open Review, ${approvalSummary}`}
+              className="home-review-button"
+              type="button"
+              onClick={onOpenReview}
+            >
+              Needs your OK
+              <ChevronRight size={15} />
+            </button>
+          </section>
+        ) : null}
 
         <BriefNotice
           status={status}
@@ -208,11 +259,7 @@ function BriefNotice({
   onOpenBrainDump: () => void;
 }) {
   if (status === "success") {
-    return (
-      <p className="analyze-notice success" aria-live="polite">
-        Daily Brief refreshed. Review actions before anything leaves LifeMap.
-      </p>
-    );
+    return null;
   }
 
   if (status === "fallback") {

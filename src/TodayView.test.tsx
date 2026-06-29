@@ -30,6 +30,8 @@ type TodayOverrides = {
   identity?: { name: string; initials: string };
   approvalCount?: number;
   onOpenBrainDump?: () => void;
+  onOpenFamilyMap?: () => void;
+  onOpenReview?: () => void;
   brief?: DailyBrief;
 };
 
@@ -38,6 +40,8 @@ function renderToday(overrides: TodayOverrides = {}) {
     identity = { name: "Alex Kim", initials: "AK" },
     approvalCount = 0,
     onOpenBrainDump = vi.fn(),
+    onOpenFamilyMap = vi.fn(),
+    onOpenReview = vi.fn(),
     brief = emptyBrief,
   } = overrides;
   render(
@@ -54,8 +58,9 @@ function renderToday(overrides: TodayOverrides = {}) {
       onGenerateBrief={vi.fn()}
       onOpenBrainDump={onOpenBrainDump}
       onOpenCabinet={vi.fn()}
-      onOpenFamilyMap={vi.fn()}
+      onOpenFamilyMap={onOpenFamilyMap}
       onOpenImportantDates={vi.fn()}
+      onOpenReview={onOpenReview}
       onOpenPriority={vi.fn()}
       onTogglePriorityDone={vi.fn()}
       onOpenSetup={vi.fn()}
@@ -78,9 +83,7 @@ describe("TodayView identity", () => {
     expect(screen.getByLabelText("m.haslim")).toHaveTextContent("MH");
     // Home no longer leads with a fake demo greeting; identity stays tucked in
     // the avatar.
-    expect(
-      screen.getByText("One thing at a time."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("One thing now.")).toBeInTheDocument();
   });
 
   test("the demo identity still renders AK", () => {
@@ -95,7 +98,7 @@ describe("TodayView focus flow", () => {
     renderToday({ approvalCount: 3 });
 
     expect(
-      screen.getByText("3 waiting, whenever you're ready."),
+      screen.getByText("3 waiting for OK."),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Review notifications" }),
@@ -109,6 +112,24 @@ describe("TodayView focus flow", () => {
       screen.queryByText(/waiting for your yes/i),
     ).not.toBeInTheDocument();
   });
+
+  test("shows a safety entry when approvals need an OK", async () => {
+    const user = userEvent.setup();
+    const onOpenReview = vi.fn();
+
+    renderToday({ approvalCount: 3, onOpenReview });
+
+    await user.click(screen.getByRole("button", { name: /Needs your OK/i }));
+    expect(onOpenReview).toHaveBeenCalledTimes(1);
+  });
+
+  test("hides the safety entry when nothing needs an OK", () => {
+    renderToday({ approvalCount: 0 });
+
+    expect(
+      screen.queryByRole("button", { name: /Needs your OK/i }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 describe("TodayView intake", () => {
@@ -118,6 +139,10 @@ describe("TodayView intake", () => {
     renderToday({ onOpenBrainDump });
 
     expect(screen.getByRole("heading", { name: "Drop anything here." })).toBeInTheDocument();
+    expect(screen.getByText("Paste once. LifeMap files it.")).toBeInTheDocument();
+    expect(
+      screen.queryByText(/decides whether it belongs/i),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Drop a thought or file" }));
     expect(onOpenBrainDump).toHaveBeenCalledTimes(1);
   });
@@ -129,6 +154,16 @@ describe("TodayView intake", () => {
 
     await user.click(screen.getByRole("button", { name: "Start here" }));
     expect(onOpenBrainDump).toHaveBeenCalledTimes(1);
+  });
+
+  test("offers a direct Family dashboard entry without adding another tool tab", async () => {
+    const user = userEvent.setup();
+    const onOpenFamilyMap = vi.fn();
+
+    renderToday({ onOpenFamilyMap });
+
+    await user.click(screen.getByRole("button", { name: "Open Family dashboard" }));
+    expect(onOpenFamilyMap).toHaveBeenCalledTimes(1);
   });
 
   test("keeps Home focused on one thing and capture, not routing cards or profiles", () => {

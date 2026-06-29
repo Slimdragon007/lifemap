@@ -5,6 +5,7 @@ import {
   CalendarHeart,
   Check,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   RotateCcw,
   Clock3,
@@ -193,7 +194,7 @@ const captureTypeGuides = [
     title: "Health",
     sampleLabel: "Doctor appointment",
     description: "Appointments, meds, insurance",
-    outcome: "Pulls missing info into Vault",
+    outcome: "Pulls missing info into Cabinet",
   },
   {
     title: "IDs + records",
@@ -237,6 +238,7 @@ type AppView =
   | "privacy"
   | "howItWorks"
   | "onboarding";
+type OnboardingReturnView = Exclude<AppView, "onboarding">;
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 type PriorityActionState = "completed" | "snoozed";
@@ -420,6 +422,8 @@ function App() {
   const [toastMessage, setToastMessage] = useState<string>();
   const [toastUndo, setToastUndo] = useState<(() => void) | undefined>();
   const [view, setView] = useState<AppView>("today");
+  const [onboardingReturnView, setOnboardingReturnView] =
+    useState<OnboardingReturnView>();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [showFullMap, setShowFullMap] = useState(false);
   const [selectedSetupBucketId, setSelectedSetupBucketId] =
@@ -664,9 +668,16 @@ function App() {
       localFlag = false;
     }
     if (shouldShowOnboarding(remote, localFlag)) {
+      setOnboardingReturnView(undefined);
       setView("onboarding");
     }
   }
+
+  useEffect(() => {
+    if (view !== "onboarding" && onboardingReturnView) {
+      setOnboardingReturnView(undefined);
+    }
+  }, [onboardingReturnView, view]);
 
   // Reset the one-shot gate guard when the signed-in account changes, so a
   // different account on the same tab can still be gated.
@@ -1082,10 +1093,8 @@ function App() {
     setSelectedPriority(undefined);
   }
 
-  // First-run onboarding: seed setup from the user's chosen areas + name (when
-  // they finish the wizard), persist the chosen people as family members, mark
-  // seen, and drop the user into Today. Skipping passes no result, so nothing
-  // is seeded.
+  // First-run onboarding seeds setup and lands on Today. Replay onboarding uses
+  // the same save path, then returns to the screen that launched it.
   function completeOnboarding(result?: {
     name: string;
     areas: string[];
@@ -1119,7 +1128,9 @@ function App() {
     } catch {
       // Storage can be unavailable (private mode); the flow still completes.
     }
-    setView("today");
+    const nextView = onboardingReturnView ?? "today";
+    setOnboardingReturnView(undefined);
+    setView(nextView);
   }
 
   function handleSetName(value: string) {
@@ -1198,7 +1209,43 @@ function App() {
     }));
   }
 
-  // Vault: direct manual add (icon grid → modal, no AI). Mirrors the Important
+  async function handleUpdateFamilyMember(
+    member: FamilyMember,
+  ): Promise<boolean> {
+    if (isSupabaseConfigured && session) {
+      try {
+        const userId = session.user.id;
+        const client = getSupabase() as unknown as FamilyDataClient;
+        const crypto = await ensureFieldCrypto(session.access_token);
+        const result = await upsertFamilyMember(userId, member, client, crypto);
+        if (result.ok) {
+          const saved = result.item;
+          setCollections((current) => ({
+            ...current,
+            familyMembers: current.familyMembers.map((currentMember) =>
+              currentMember.id === saved.id ? saved : currentMember,
+            ),
+          }));
+          return true;
+        }
+        setToastMessage("Couldn't save that profile. Try again.");
+        return false;
+      } catch {
+        setToastMessage("Couldn't save that profile. Try again.");
+        return false;
+      }
+    }
+
+    setCollections((current) => ({
+      ...current,
+      familyMembers: current.familyMembers.map((currentMember) =>
+        currentMember.id === member.id ? member : currentMember,
+      ),
+    }));
+    return true;
+  }
+
+  // Cabinet: direct manual add (icon grid → modal, no AI). Mirrors the Important
   // Date save path, with the per-user field-crypto guard used by every vault
   // write (see materializeSuggestions) so `detail` encrypts at rest.
   async function handleAddDocument(item: VaultItem): Promise<void> {
@@ -1248,6 +1295,16 @@ function App() {
     setSelectedMemberId(member.id);
     setAddSheetOwner(member.name);
     setView("member");
+  }
+
+  function openOnboardingReplay(returnView: OnboardingReturnView) {
+    setOnboardingReturnView(returnView);
+    setView("onboarding");
+  }
+
+  function closeOnboardingReplay() {
+    setView(onboardingReturnView ?? "settings");
+    setOnboardingReturnView(undefined);
   }
 
   async function handleAddPerson(person: OnboardingPerson): Promise<void> {
@@ -1310,10 +1367,7 @@ function App() {
             <span>Private household operating system</span>
           </div>
           <h1 id="login-title">LifeMap</h1>
-          <p>
-            Turn real-life logistics into a calm map of what is due, what is
-            missing, who you are waiting on, and what needs approval.
-          </p>
+          <p>Find the next move. Keep private details tucked away.</p>
           <button
             className="primary-button login-button"
             type="button"
@@ -1330,7 +1384,7 @@ function App() {
     );
   }
 
-  if (view === "onboarding") {
+  if (view === "onboarding" && !onboardingReturnView) {
     return (
       <OnboardingView
         initialName={session?.user.user_metadata?.first_name ?? ""}
@@ -1374,16 +1428,10 @@ function App() {
               <span>Cabinet</span>
             </button>
             <button
-              className={view === "review" ? "nav-item active" : "nav-item"}
-              type="button"
-              onClick={() => setView("review")}
-            >
-              <CheckCircle2 size={18} />
-              <span>Review</span>
-            </button>
-            <button
               className={
-                view === "today" || view === "bucket" || view === "member"
+                view === "today" ||
+                view === "bucket" ||
+                view === "review"
                   ? "nav-item nav-item-primary active"
                   : "nav-item nav-item-primary"
               }
@@ -1397,6 +1445,7 @@ function App() {
               className={
                 view === "more" ||
                 view === "family" ||
+                view === "member" ||
                 view === "setup" ||
                 view === "launchPlan" ||
                 view === "howItWorks"
@@ -1411,7 +1460,10 @@ function App() {
             </button>
             <button
               className={
-                view === "settings" || view === "privacy"
+                view === "settings" ||
+                view === "privacy" ||
+                (view === "onboarding" &&
+                  onboardingReturnView === "settings")
                   ? "nav-item active"
                   : "nav-item"
               }
@@ -1455,7 +1507,27 @@ function App() {
           ) : null}
         </aside>
 
-        {view === "today" ? (
+        {view === "onboarding" && onboardingReturnView ? (
+          <section
+            className="workspace onboarding-replay-workspace"
+            aria-label="Welcome tour"
+          >
+            <button
+              className="member-back onboarding-replay-back"
+              type="button"
+              onClick={closeOnboardingReplay}
+            >
+              <ChevronLeft size={16} />
+              Back to Settings
+            </button>
+            <OnboardingView
+              initialName={session?.user.user_metadata?.first_name ?? ""}
+              variant="embedded"
+              onComplete={(result) => completeOnboarding(result)}
+              onSkip={closeOnboardingReplay}
+            />
+          </section>
+        ) : view === "today" ? (
           <TodayView
             approvalCount={selectedApprovals.length}
             brief={dailyBrief}
@@ -1470,8 +1542,9 @@ function App() {
             onGenerateBrief={handleGenerateBrief}
             onOpenBrainDump={openCapture}
             onOpenCabinet={() => setView("vault")}
-            onOpenFamilyMap={() => setView("family")}
+            onOpenFamilyMap={() => setView("more")}
             onOpenImportantDates={() => setView("dates")}
+            onOpenReview={() => setView("review")}
             onOpenPriority={setSelectedPriority}
             onTogglePriorityDone={togglePriorityDone}
             onOpenSetup={() => setView("setup")}
@@ -1494,7 +1567,7 @@ function App() {
             member={selectedMember}
             vaultItems={collections.vaultItems}
             familyEvents={collections.familyEvents}
-            onBack={() => setView("today")}
+            onBack={() => setView("more")}
             onAddDocument={(docTypeKey = "other") => {
               setAddSheetOwner(selectedMember.name);
               setQuickAddDocTypeKey(docTypeKey);
@@ -1505,6 +1578,7 @@ function App() {
               setQuickAddDateCategory(category);
               setQuickAdd("date");
             }}
+            onUpdateMember={handleUpdateFamilyMember}
           />
         ) : view === "capture" ? (
           <CaptureWorkspace
@@ -1548,7 +1622,6 @@ function App() {
         ) : view === "vault" ? (
           <VaultView
             familyMembers={collections.familyMembers}
-            identity={identity}
             vaultItems={collections.vaultItems}
             onOpenCapture={() => openCapture()}
             onAddDocument={handleAddDocument}
@@ -1748,9 +1821,7 @@ function App() {
               <h1 id="review-title" className="notebook-title">
                 Review
               </h1>
-              <p className="notebook-sub">
-                Anything waiting for your OK before it's done.
-              </p>
+              <p className="notebook-sub">Only items waiting for your OK.</p>
             </header>
             {recordsLoadFailed ? (
               <div className="analyze-notice error" role="alert">
@@ -1841,7 +1912,7 @@ function App() {
             onOpenSetup={() => setView("setup")}
             onOpenLaunchPlan={() => setView("launchPlan")}
             onOpenApprovals={() => setView("review")}
-            onOpenOnboarding={() => setView("onboarding")}
+            onOpenOnboarding={() => openOnboardingReplay("settings")}
             onOpenHowItWorks={() => setView("howItWorks")}
             onOpenPrivacy={() => setView("privacy")}
             onOpenFeedback={() => setFeedbackOpen(true)}
@@ -1893,7 +1964,7 @@ function App() {
             routeSelectedPriority("review", "Drafts wait in Review.")
           }
           onSaveToVault={() =>
-            routeSelectedPriority("vault", "Supporting info routed to Vault.")
+            routeSelectedPriority("vault", "Supporting info routed to Cabinet.")
           }
           onSnooze={snoozeSelectedPriority}
         />
@@ -2346,6 +2417,16 @@ function FamilyDashboard({
   onOpenMember: (member: FamilyMember) => void;
 }) {
   const now = new Date();
+  const people = familyMembers.filter((member) => member.profileType !== "pet");
+  const pets = familyMembers.filter((member) => member.profileType === "pet");
+  const sharedRecords = vaultItems.filter((item) => item.owner === "Whole family");
+  const householdDates = familyEvents.filter(
+    (event) => event.owner === "Family" || event.owner === "Whole family",
+  );
+  const emergencyMembers = familyMembers.filter(
+    (member) => member.careNotes.length > 0,
+  );
+  const sharedBasicsCount = sharedRecords.length + householdDates.length;
 
   return (
     <section
@@ -2358,23 +2439,28 @@ function FamilyDashboard({
             <UsersRound size={14} />
             Household dashboard
           </span>
-          <h1 id="family-dashboard-title">Family</h1>
-          <p>Choose the person, pet, or household profile you need.</p>
+          <h1 id="family-dashboard-title">Family dashboard</h1>
+          <p>People, pets, care notes, and shared basics.</p>
         </div>
       </header>
 
       <div className="family-dashboard-stack">
         <section
-          className="family-dashboard-panel family-members-panel"
+          className="family-members-panel"
           aria-labelledby="family-members-title"
         >
           <div className="family-dashboard-section-head">
             <div>
-              <span>Start here</span>
-              <h2 id="family-members-title">Who do you need?</h2>
+              <span>Roster</span>
+              <h2 id="family-members-title">People and pets</h2>
+              <p>
+                {people.length} {people.length === 1 ? "person" : "people"} ·{" "}
+                {pets.length} {pluralize("pet", pets.length)} ·{" "}
+                {sharedBasicsCount} shared {pluralize("basic", sharedBasicsCount)}
+              </p>
             </div>
             <button type="button" onClick={onAddMember}>
-              Add person
+              Add person or pet
             </button>
           </div>
 
@@ -2409,6 +2495,74 @@ function FamilyDashboard({
                 </button>
               );
             })}
+          </div>
+        </section>
+
+        <section
+          className="family-dashboard-panel family-household-panel"
+          aria-labelledby="family-shared-title"
+        >
+          <div className="family-dashboard-section-head">
+            <div>
+              <span>Shared household</span>
+              <h2 id="family-shared-title">Shared basics</h2>
+            </div>
+          </div>
+          <div className="family-household-grid">
+            <article className="family-household-card">
+              <h3>Shared records</h3>
+              {sharedRecords.length > 0 ? (
+                <ul>
+                  {sharedRecords.slice(0, 3).map((item) => (
+                    <li key={item.id}>
+                      <strong>{item.title}</strong>
+                      <span>{item.status}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>
+                  Add insurance cards, IDs, or household documents to the
+                  Cabinet and mark them for the whole family.
+                </p>
+              )}
+            </article>
+            <article className="family-household-card">
+              <h3>Emergency basics</h3>
+              {emergencyMembers.length > 0 ? (
+                <ul>
+                  {emergencyMembers.slice(0, 3).map((member) => (
+                    <li key={member.id}>
+                      <strong>{member.name}</strong>
+                      <span>{member.careNotes[0]}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>
+                  Add allergies, medications, school contacts, or pet care notes
+                  inside each profile.
+                </p>
+              )}
+            </article>
+            <article className="family-household-card">
+              <h3>Household dates</h3>
+              {householdDates.length > 0 ? (
+                <ul>
+                  {householdDates.slice(0, 3).map((event) => (
+                    <li key={event.id}>
+                      <strong>{event.title}</strong>
+                      <span>{event.date}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>
+                  Shared school, travel, renewal, and family dates appear here
+                  once saved.
+                </p>
+              )}
+            </article>
           </div>
         </section>
       </div>
@@ -2461,6 +2615,7 @@ function MoreView({
 }) {
   const [clearMapConfirmOpen, setClearMapConfirmOpen] = useState(false);
   const isSettings = mode === "settings";
+  const showFounderTools = import.meta.env.DEV;
   return (
     <section className="workspace more-workspace" aria-labelledby="more-title">
       <header className="topbar compact-topbar">
@@ -2487,7 +2642,7 @@ function MoreView({
             <div className="more-section-heading">
               <span>Appearance</span>
               <h2 id="more-appearance-title">Theme</h2>
-              <p>Light by default, with dark mode available when you want it.</p>
+              <p>Choose how LifeMap looks.</p>
             </div>
             <div className="more-appearance-row">
               <span className="more-row-copy">
@@ -2514,57 +2669,62 @@ function MoreView({
           </section>
         ) : null}
         {isSettings ? (
-          <section aria-labelledby="more-setup-title" className="more-section">
+          <section
+            aria-labelledby="more-setup-title"
+            className="more-section settings-welcome-section"
+          >
             <div className="more-section-heading">
-              <span>Setup</span>
-              <h2 id="more-setup-title">App setup and tools</h2>
-              <p>Tour, household setup, and advanced prototype tools.</p>
+              <span>Welcome</span>
+              <h2 id="more-setup-title">Welcome and setup</h2>
+              <p>Replay setup anytime.</p>
             </div>
-            <button
-              aria-label="Open how LifeMap works"
-              className="more-row"
-              type="button"
-              onClick={onOpenHowItWorks}
-            >
-              <span className="more-row-icon">
-                <Map size={18} />
-              </span>
-              <span className="more-row-copy">
-                <strong>How LifeMap works</strong>
-                <span>The loop in three steps, plus what each tab is for.</span>
-              </span>
-              <ChevronRight className="more-row-chevron" size={18} />
-            </button>
-            <button
-              aria-label="Open guided setup"
-              className="more-row"
-              type="button"
-              onClick={onOpenSetup}
-            >
-              <span className="more-row-icon">
-                <UsersRound size={18} />
-              </span>
-              <span className="more-row-copy">
-                <strong>Guided setup</strong>
-                <span>Pick family, pets, records, travel, and logistics.</span>
-              </span>
-              <ChevronRight className="more-row-chevron" size={18} />
-            </button>
-            <button
-              aria-label="Replay the welcome tour"
-              className="more-row"
-              type="button"
-              onClick={onOpenOnboarding}
-            >
-              <span className="more-row-icon">
-                <Sparkles size={18} />
-              </span>
-              <span className="more-row-copy">
-                <strong>Welcome tour</strong>
-                <span>Replay the first-run walkthrough.</span>
-              </span>
-              <ChevronRight className="more-row-chevron" size={18} />
-            </button>
+            <article className="settings-welcome-card">
+              <div className="settings-welcome-copy">
+                <span className="settings-welcome-icon" aria-hidden="true">
+                  <Sparkles size={19} />
+                </span>
+                <div>
+                  <h3>Welcome tour.</h3>
+                  <p>A quick walkthrough of the basics.</p>
+                </div>
+              </div>
+              <div className="settings-welcome-actions">
+                <button
+                  aria-label="Replay the welcome tour"
+                  className="settings-welcome-primary"
+                  type="button"
+                  onClick={onOpenOnboarding}
+                >
+                  Replay welcome
+                  <ChevronRight size={15} />
+                </button>
+                <button
+                  aria-label="Open guided setup"
+                  type="button"
+                  onClick={onOpenSetup}
+                >
+                  Update setup
+                </button>
+                <button
+                  aria-label="Open how LifeMap works"
+                  type="button"
+                  onClick={onOpenHowItWorks}
+                >
+                  How it works
+                </button>
+              </div>
+            </article>
+          </section>
+        ) : null}
+        {isSettings && showFounderTools ? (
+          <section
+            aria-labelledby="more-dev-title"
+            className="more-section settings-dev-tools"
+          >
+            <div className="more-section-heading">
+              <span>Development</span>
+              <h2 id="more-dev-title">Prototype tools</h2>
+            </div>
             <button
               aria-label="Open family admin map"
               className="more-row"
@@ -2674,7 +2834,7 @@ function MoreView({
             <span className="more-row-copy">
               <strong>Brain dump capture</strong>
               <span>
-                Paste messy context and route it to calendar, vault, or review.
+                Paste messy context and route it to calendar, cabinet, or review.
               </span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
@@ -2695,7 +2855,7 @@ function MoreView({
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
           <button
-            aria-label="Open vault"
+            aria-label="Open cabinet"
             className="more-row"
             type="button"
             onClick={onOpenVault}
@@ -2704,7 +2864,7 @@ function MoreView({
               <Archive size={18} />
             </span>
             <span className="more-row-copy">
-              <strong>Vault</strong>
+              <strong>Cabinet</strong>
               <span>IDs, records, and documents kept behind one door.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
@@ -2726,36 +2886,40 @@ function MoreView({
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
-          <button
-            aria-label="Open family admin map"
-            className="more-row"
-            type="button"
-            onClick={onOpenFamilyMap}
-          >
-            <span className="more-row-icon">
-              <Sparkles size={18} />
-            </span>
-            <span className="more-row-copy">
-              <strong>Family admin map</strong>
-              <span>See the full extracted household map and approvals.</span>
-            </span>
-            <ChevronRight className="more-row-chevron" size={18} />
-          </button>
-          <button
-            aria-label="Open launch plan"
-            className="more-row"
-            type="button"
-            onClick={onOpenLaunchPlan}
-          >
-            <span className="more-row-icon">
-              <ListChecks size={18} />
-            </span>
-            <span className="more-row-copy">
-              <strong>Launch Plan</strong>
-              <span>Founder readiness checklist and demo progress.</span>
-            </span>
-            <ChevronRight className="more-row-chevron" size={18} />
-          </button>
+          {showFounderTools ? (
+            <>
+              <button
+                aria-label="Open family admin map"
+                className="more-row"
+                type="button"
+                onClick={onOpenFamilyMap}
+              >
+                <span className="more-row-icon">
+                  <Sparkles size={18} />
+                </span>
+                <span className="more-row-copy">
+                  <strong>Family admin map</strong>
+                  <span>See the full extracted household map and approvals.</span>
+                </span>
+                <ChevronRight className="more-row-chevron" size={18} />
+              </button>
+              <button
+                aria-label="Open launch plan"
+                className="more-row"
+                type="button"
+                onClick={onOpenLaunchPlan}
+              >
+                <span className="more-row-icon">
+                  <ListChecks size={18} />
+                </span>
+                <span className="more-row-copy">
+                  <strong>Launch Plan</strong>
+                  <span>Founder readiness checklist and demo progress.</span>
+                </span>
+                <ChevronRight className="more-row-chevron" size={18} />
+              </button>
+            </>
+          ) : null}
         </section>
           </>
         ) : null}
@@ -2765,37 +2929,8 @@ function MoreView({
           <div className="more-section-heading">
             <span>Safety</span>
             <h2 id="more-account-title">Account and privacy</h2>
+            <p>Privacy, approvals, and account controls.</p>
           </div>
-          <button
-            aria-label="Open approvals and permissions"
-            className="more-row"
-            type="button"
-            onClick={onOpenApprovals}
-          >
-            <span className="more-row-icon">
-              <ListChecks size={18} />
-            </span>
-            <span className="more-row-copy">
-              <strong>Approvals &amp; permissions</strong>
-              <span>
-                Every draft waits for your OK — see what&apos;s pending and what
-                LifeMap has saved.
-              </span>
-            </span>
-            <ChevronRight className="more-row-chevron" size={18} />
-          </button>
-          <article className="more-row more-row-static">
-            <span className="more-row-icon">
-              <LockKeyhole size={18} />
-            </span>
-            <span className="more-row-copy">
-              <strong>Private by default</strong>
-              <span>
-                Drafts wait for your approval — nothing sends without an
-                explicit Send.
-              </span>
-            </span>
-          </article>
           <button
             aria-label="Open privacy and security"
             className="more-row"
@@ -2807,7 +2942,22 @@ function MoreView({
             </span>
             <span className="more-row-copy">
               <strong>Privacy &amp; security</strong>
-              <span>How data, AI, and email are handled.</span>
+              <span>Data, AI, email, and private details.</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
+          <button
+            aria-label="Open approvals and permissions"
+            className="more-row"
+            type="button"
+            onClick={onOpenApprovals}
+          >
+            <span className="more-row-icon">
+              <LockKeyhole size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Approvals &amp; permissions</strong>
+              <span>Items waiting for your OK.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
@@ -3121,7 +3271,7 @@ function PriorityActionDialog({
           >
             <ShieldCheck size={18} />
             <span>
-              <strong>Save info to Vault</strong>
+              <strong>Save info to Cabinet</strong>
               <small>Move supporting details into the source of truth.</small>
             </span>
           </button>
@@ -3258,9 +3408,7 @@ function ApprovalQueue({
   const Component = variant === "rail" ? "aside" : "section";
   const pausedCount = editedApprovals.length - selectedCount;
   const reviewButtonLabel =
-    selectedCount === 0
-      ? "Select an item to review"
-      : `Review ${selectedCount} selected`;
+    selectedCount === 0 ? "Choose one" : `Approve ${selectedCount}`;
 
   return (
     <Component
@@ -3268,10 +3416,9 @@ function ApprovalQueue({
       className={variant === "rail" ? "approval-rail" : "approval-queue"}
     >
       <div className="rail-heading">
-        <h2>Approval queue</h2>
-        <span>{stagedRun ? "Step 3 of 3" : "Step 1 of 3"}</span>
+        <h2>{stagedRun ? "Approved" : "Needs your OK"}</h2>
       </div>
-      <p className="rail-copy">Choose what LifeMap should hold for review.</p>
+      {stagedRun ? null : <p className="rail-copy">Nothing acts without you.</p>}
       {stagedRun ? (
         <StagedSummary run={stagedRun} />
       ) : (
@@ -3296,9 +3443,7 @@ function ApprovalQueue({
               ))
             ) : (
               <p className="notebook-empty">
-                Nothing to review yet. Capture a note and tap “Analyze intake” —
-                drafts and reminders LifeMap suggests will wait here for your
-                approval.
+                Nothing to review yet.
               </p>
             )}
           </div>
@@ -3325,23 +3470,11 @@ function ApprovalFlowGuide({
   selectedCount: number;
 }) {
   return (
-    <section className="approval-flow-card" aria-label="Approval flow">
-      <div className="approval-flow-steps">
-        <span className="active">1 Select</span>
-        <ChevronRight size={14} />
-        <span>2 Confirm</span>
-        <ChevronRight size={14} />
-        <span>3 Complete</span>
-      </div>
+    <section className="approval-flow-card" aria-label="Approval status">
       <div className="approval-flow-metrics">
         <strong>{formatReadyCount(selectedCount)}</strong>
         <span>{formatPausedCount(pausedCount)}</span>
       </div>
-      <p>
-        {selectedCount === 0
-          ? "Turn on at least one item to continue."
-          : "Next: confirm the final list, then stage it for action."}
-      </p>
     </section>
   );
 }
@@ -3397,8 +3530,8 @@ function ApprovalCard({
           aria-checked={approved}
           aria-label={
             approved
-              ? `Skip ${item.title} for now`
-              : `Include ${item.title} in review`
+              ? `Hold ${item.title} for now`
+              : `Allow ${item.title} for approval`
           }
           className="notebook-switch"
           role="switch"
@@ -3458,7 +3591,6 @@ function ApprovalCard({
             Edit
           </button>
         )}
-        <span className="notebook-tag">{item.status}</span>
       </div>
       {item.kind === "draft" ? (
         <SendDraftControl
@@ -3590,10 +3722,9 @@ function StagedSummary({ run }: { run: StagedRun }) {
           <CheckCircle2 size={18} />
         </span>
         <div>
-          <h3>Review complete</h3>
+          <h3>Approved for now</h3>
           <p>
-            {formatCount(run.approvals.length, "item")} staged at {run.stagedAt}
-            .
+            {formatCount(run.approvals.length, "item")} at {run.stagedAt}.
           </p>
         </div>
       </div>
@@ -3609,10 +3740,6 @@ function StagedSummary({ run }: { run: StagedRun }) {
           </li>
         ))}
       </ul>
-      <p className="staged-note">
-        Staging only holds these for review — nothing is auto-sent. Use Send
-        email on a draft to send it.
-      </p>
     </section>
   );
 }
@@ -3622,11 +3749,11 @@ function formatCount(count: number, singularLabel: string) {
 }
 
 function formatReadyCount(count: number) {
-  return `${count} ready to review`;
+  return `${count} ready`;
 }
 
 function formatPausedCount(count: number) {
-  return `${count} paused`;
+  return `${count} held`;
 }
 
 function ReviewDialog({
@@ -3651,10 +3778,10 @@ function ReviewDialog({
       >
         <div className="review-dialog-top">
           <div>
-            <h2 id="review-dialog-title">Review selected approvals</h2>
+            <h2 id="review-dialog-title">Approve these actions</h2>
             <p>
-              {approvals.length} {itemLabel} selected. Nothing is sent or
-              scheduled until real integrations exist.
+              {approvals.length} {itemLabel} selected. Nothing sends unless you
+              use Send email on a draft.
             </p>
           </div>
           <button
@@ -3692,7 +3819,7 @@ function ReviewDialog({
             Back to queue
           </button>
           <button className="primary-button" type="button" onClick={onStage}>
-            Approve & stage
+            Approve for now
             <CheckCircle2 size={16} />
           </button>
         </div>

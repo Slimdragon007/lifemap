@@ -36,6 +36,7 @@ type OnboardingViewProps = {
   // Prefill for step 1 — App passes the name captured at signup
   // (user_metadata.first_name) so onboarding doesn't re-ask.
   initialName?: string;
+  variant?: "standalone" | "embedded";
 };
 
 const PEOPLE_CHIPS: ReadonlyArray<{ label: string; role: OnboardingRole }> = [
@@ -68,7 +69,13 @@ function OnboardingView({
   onComplete,
   onSkip,
   initialName = "",
+  variant = "standalone",
 }: OnboardingViewProps) {
+  const Shell = variant === "embedded" ? "div" : "main";
+  const shellClassName =
+    variant === "embedded"
+      ? "onboarding-shell onboarding-shell-embedded"
+      : "onboarding-shell";
   // Identity cover shown first: state what LifeMap is in one calm screen before
   // the setup wizard. "Continue" drops into step 1; "Skip" exits the whole flow.
   const [showIntro, setShowIntro] = useState(true);
@@ -154,7 +161,7 @@ function OnboardingView({
 
   if (showIntro) {
     return (
-      <main className="onboarding-shell">
+      <Shell className={shellClassName}>
         <div className="ambient-field" aria-hidden="true" />
         <section
           className="onboarding-card"
@@ -169,13 +176,10 @@ function OnboardingView({
             </span>
           </header>
           <div className="onboarding-body">
-            <h1 id="onboarding-intro-title">
-              LifeMap takes the chaos in your head and hands back your next few
-              moves, calmly.
-            </h1>
+            <h1 id="onboarding-intro-title">Set up your household map.</h1>
             <p className="onboarding-lede">
-              Capture anything messy, let it get sorted, and see just the few
-              things that need you. Let&apos;s set up your map.
+              Add people, choose what to track, and keep private info tucked
+              away.
             </p>
           </div>
           <footer className="onboarding-foot">
@@ -199,12 +203,12 @@ function OnboardingView({
             </div>
           </footer>
         </section>
-      </main>
+      </Shell>
     );
   }
 
   return (
-    <main className="onboarding-shell">
+    <Shell className={shellClassName}>
       <div className="ambient-field" aria-hidden="true" />
       <section className="onboarding-card" aria-labelledby="onboarding-title">
         <header className="onboarding-head">
@@ -232,10 +236,10 @@ function OnboardingView({
         <div className="onboarding-body">
           {step === 1 ? (
             <>
-              <h1 id="onboarding-title">Let&apos;s set things down.</h1>
+              <h1 id="onboarding-title">Start with your household.</h1>
               <p className="onboarding-lede">
-                A calm home for the family-admin chaos. First, what should I
-                call you?
+                First, what should LifeMap call you? Next we&apos;ll add the
+                people and pets you carry mental load for.
               </p>
               <label className="onboarding-field">
                 <span>Your name</span>
@@ -252,10 +256,10 @@ function OnboardingView({
 
           {step === 2 ? (
             <>
-              <h1 id="onboarding-title">Your people</h1>
+              <h1 id="onboarding-title">Who is in your map?</h1>
               <p className="onboarding-lede">
-                Tap everyone you carry mental load for — you can add more
-                anytime in your Vault.
+                Add the people and pets whose records, dates, forms, and
+                care details you need to find quickly.
               </p>
               <div className="onboarding-chips">
                 {PEOPLE_CHIPS.map((chip) => (
@@ -328,10 +332,10 @@ function OnboardingView({
 
           {step === 3 ? (
             <>
-              <h1 id="onboarding-title">Your map</h1>
+              <h1 id="onboarding-title">What should LifeMap watch?</h1>
               <p className="onboarding-lede">
-                Pick the areas that fill your head. These become the stations on
-                your map — add more anytime.
+                Pick the real-life areas that fill your head. These shape what
+                Home, Family, and Cabinet surface first.
               </p>
               <div className="onboarding-chips">
                 {AREAS.map((area) => (
@@ -351,11 +355,11 @@ function OnboardingView({
 
           {step === 4 ? (
             <>
-              <h1 id="onboarding-title">Your calendar, soon</h1>
+              <h1 id="onboarding-title">Private things stay private.</h1>
               <p className="onboarding-lede">
-                Calendar connect is coming soon. LifeMap will surface school,
-                health, and travel dates in one calm agenda. For now, capture
-                anything and it lands on your in-app calendar.
+                Cabinet can hold IDs, insurance, vaccine records, school forms,
+                travel details, and private notes. Anything sensitive stays
+                hidden until you open it, and messages wait for your OK.
               </p>
               <div className="onboarding-actions-stack">
                 <button
@@ -439,7 +443,7 @@ function OnboardingView({
           </div>
         </footer>
       </section>
-    </main>
+    </Shell>
   );
 }
 

@@ -1,9 +1,10 @@
 import {
   CheckCircle2,
-  ChevronDown,
+  ChevronRight,
   Eye,
   LockKeyhole,
   Plus,
+  Search,
 } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import {
@@ -12,13 +13,13 @@ import {
   type VaultCategory,
   type VaultItem,
 } from "./familyOS";
-import type { ViewerIdentity } from "./viewer";
 import ModalBackdrop from "./modal-backdrop";
 import EmptyState from "./empty-state";
 import {
   DOCUMENT_TYPES,
   type DocumentTypeMeta,
   VAULT_CATEGORY_OPTIONS,
+  VAULT_CATEGORY_LABEL,
 } from "./documentTypes";
 
 const OTHER_OWNER = "__other__";
@@ -37,7 +38,6 @@ const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
 type VaultViewProps = {
   familyMembers: FamilyMember[];
   vaultItems: VaultItem[];
-  identity: ViewerIdentity;
   onOpenCapture: () => void;
   onAddDocument: (item: VaultItem) => void;
 };
@@ -45,16 +45,13 @@ type VaultViewProps = {
 function VaultView({
   familyMembers,
   vaultItems,
-  identity,
   onOpenCapture,
   onAddDocument,
 }: VaultViewProps) {
   const [activeCategory, setActiveCategory] = useState<VaultCategory | "all">(
     "all",
   );
-  const [expandedProfileIds, setExpandedProfileIds] = useState<Set<string>>(
-    () => new Set(),
-  );
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedVaultItem, setSelectedVaultItem] = useState<VaultItem>();
   const [isSensitiveVisible, setIsSensitiveVisible] = useState(false);
   // Add-document flow: the doc-type grid opens once "+ Add document" is tapped;
@@ -79,24 +76,34 @@ function VaultView({
     setActiveDocType(undefined);
     setPresetOwner(undefined);
   }
-  const visibleItems = useMemo(
-    () =>
-      activeCategory === "all"
-        ? vaultItems
-        : vaultItems.filter((item) => item.category === activeCategory),
-    [activeCategory, vaultItems],
-  );
-  function toggleProfile(id: string) {
-    setExpandedProfileIds((current) => {
-      const next = new Set(current);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
+  const visibleItems = useMemo(() => {
+    const query = searchQuery.trim().toLocaleLowerCase();
+    return vaultItems.filter((item) => {
+      if (activeCategory !== "all" && item.category !== activeCategory) {
+        return false;
       }
-      return next;
+      if (!query) {
+        return true;
+      }
+      return [
+        item.title,
+        item.owner,
+        item.status,
+        VAULT_CATEGORY_LABEL[item.category],
+      ]
+        .join(" ")
+        .toLocaleLowerCase()
+        .includes(query);
     });
-  }
+  }, [activeCategory, searchQuery, vaultItems]);
+  const visibleOwnerGroups = useMemo(
+    () => groupVaultItemsByOwner(visibleItems),
+    [visibleItems],
+  );
+  const cabinetSummary = useMemo(
+    () => summarizeVaultItems(vaultItems),
+    [vaultItems],
+  );
 
   function openVaultItem(item: VaultItem) {
     setSelectedVaultItem(item);
@@ -107,21 +114,45 @@ function VaultView({
     <section className="workspace notebook" aria-labelledby="vault-title">
       <header className="notebook-head">
         <h1 id="vault-title" className="notebook-title">
-          Vault
+          Cabinet
         </h1>
-        <p className="notebook-sub">
-          Your family's records and emergency info, safe and findable.
-        </p>
+        <p className="notebook-sub">Records, IDs, forms, and private details.</p>
       </header>
 
-      <button
-        className="primary-button vault-add-button"
-        type="button"
-        onClick={() => openTypePicker()}
-      >
-        <Plus size={16} />
-        Add document
-      </button>
+      <section className="cabinet-command-panel" aria-label="Find records">
+        <div className="cabinet-command-copy">
+          <span className="cabinet-command-icon" aria-hidden="true">
+            <LockKeyhole size={18} />
+          </span>
+          <div>
+            <h2>Records only.</h2>
+            <p>Search by person, pet, or type.</p>
+          </div>
+        </div>
+        <p className="cabinet-ledger-meta">
+          {formatCount(vaultItems.length, "stored record")} ·{" "}
+          {formatCount(cabinetSummary.ownerCount, "profile")} ·{" "}
+          {formatNeedsReview(cabinetSummary.needsReview)}
+        </p>
+        <label className="cabinet-search">
+          <Search size={16} aria-hidden="true" />
+          <span className="sr-only">Search records</span>
+          <input
+            type="search"
+            value={searchQuery}
+            placeholder="Search records"
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+        </label>
+        <button
+          className="primary-button vault-add-button"
+          type="button"
+          onClick={() => openTypePicker()}
+        >
+          <Plus size={16} />
+          Add document
+        </button>
+      </section>
 
       {isTypePickerOpen ? (
         <section
@@ -148,70 +179,9 @@ function VaultView({
         </section>
       ) : null}
 
-      <h2 className="notebook-section-title">Family profiles</h2>
-      <div className="notebook-list">
-        {familyMembers.length > 0 ? (
-          familyMembers.map((member) => {
-            const expanded = expandedProfileIds.has(member.id);
-            return (
-              <div className="notebook-disclosure" key={member.id}>
-                <button
-                  aria-expanded={expanded}
-                  className="notebook-row"
-                  type="button"
-                  onClick={() => toggleProfile(member.id)}
-                >
-                  <span className="notebook-initials" aria-hidden="true">
-                    {member.initials}
-                  </span>
-                  <span className="notebook-row-main">
-                    <span className="notebook-row-title">{member.name}</span>
-                    <span className="notebook-row-sub">
-                      {member.role} ·{" "}
-                      {expanded ? "details visible" : "tap to reveal"}
-                    </span>
-                  </span>
-                  <ChevronDown className="notebook-chev" size={16} />
-                </button>
-                {expanded ? (
-                  <div className="notebook-detail">
-                    <dl>
-                      {member.details.map((detail) => (
-                        <div key={`${member.id}-${detail.label}`}>
-                          <dt>{detail.label}</dt>
-                          <dd>{detail.value}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                    <ul>
-                      {member.careNotes.map((note) => (
-                        <li key={note}>{note}</li>
-                      ))}
-                    </ul>
-                    <MemberDocuments
-                      documents={vaultItems.filter(
-                        (item) => item.owner === member.name,
-                      )}
-                      onOpenDetails={openVaultItem}
-                      onAddDocument={() => openTypePicker(member.name)}
-                    />
-                  </div>
-                ) : null}
-              </div>
-            );
-          })
-        ) : (
-          <EmptyState
-            actionLabel="Capture something"
-            message="No family profiles yet. Capture family details to build them."
-            onAction={onOpenCapture}
-          />
-        )}
-      </div>
+      <h2 className="notebook-section-title">Stored records</h2>
 
-      <h2 className="notebook-section-title">Documents &amp; records</h2>
-
-      <div className="notebook-filters" aria-label="Vault categories">
+      <div className="notebook-filters" aria-label="Cabinet categories">
         {vaultFilters.map((filter) => (
           <button
             aria-pressed={activeCategory === filter.id}
@@ -231,55 +201,41 @@ function VaultView({
 
       <div className="notebook-list">
         {visibleItems.length > 0 ? (
-          visibleItems.map((item) => (
-            <VaultRow
-              item={item}
-              key={item.id}
-              onOpenDetails={() => openVaultItem(item)}
-            />
+          visibleOwnerGroups.map((group) => (
+            <section
+              aria-labelledby={`vault-owner-${group.key}`}
+              className="vault-owner-group"
+              key={group.key}
+            >
+              <div className="vault-owner-heading">
+                <h3 id={`vault-owner-${group.key}`}>{group.owner}</h3>
+                <span>{formatCount(group.items.length, "record")}</span>
+              </div>
+              <div className="vault-owner-list">
+                {group.items.map((item) => (
+                  <VaultRow
+                    item={item}
+                    key={item.id}
+                    onOpenDetails={() => openVaultItem(item)}
+                  />
+                ))}
+              </div>
+            </section>
           ))
         ) : (
           <EmptyState
-            actionLabel="Capture something"
-            message="No records yet. Paste an ID, policy, or form and it files itself."
-            onAction={onOpenCapture}
+            actionLabel={searchQuery ? "Clear search" : "Capture something"}
+            message={
+              searchQuery
+                ? "No records match that search."
+                : "No records yet. Drop one in and LifeMap files it."
+            }
+            onAction={
+              searchQuery ? () => setSearchQuery("") : onOpenCapture
+            }
           />
         )}
       </div>
-
-      <section className="emergency-panel" aria-label="Emergency view">
-        <h2 className="notebook-section-title">Emergency view</h2>
-        {familyMembers.length > 0 ? (
-          <div className="notebook-list">
-            <div className="notebook-row entry">
-              <span className="notebook-when">Contact</span>
-              <span className="notebook-row-main">
-                <span className="notebook-row-title">Primary contact</span>
-                <span className="notebook-row-sub">{identity.name}</span>
-              </span>
-            </div>
-            {familyMembers
-              .filter((member) => member.careNotes.length > 0)
-              .map((member) => (
-                <div className="notebook-row entry" key={member.id}>
-                  <span className="notebook-when">{member.role}</span>
-                  <span className="notebook-row-main">
-                    <span className="notebook-row-title">{member.name}</span>
-                    <span className="notebook-row-sub">
-                      {member.careNotes.join(" · ")}
-                    </span>
-                  </span>
-                </div>
-              ))}
-          </div>
-        ) : (
-          <EmptyState
-            actionLabel="Capture something"
-            message="Emergency basics appear once you add family profiles."
-            onAction={onOpenCapture}
-          />
-        )}
-      </section>
 
       {selectedVaultItem ? (
         <VaultDetailDialog
@@ -306,47 +262,43 @@ function VaultView({
   );
 }
 
-function MemberDocuments({
-  documents,
-  onOpenDetails,
-  onAddDocument,
-}: {
-  documents: VaultItem[];
-  onOpenDetails: (item: VaultItem) => void;
-  onAddDocument: () => void;
-}) {
-  return (
-    <div className="notebook-member-docs">
-      <span className="atlas-eyebrow">Documents</span>
-      {documents.length > 0 ? (
-        <ul className="notebook-member-doc-list">
-          {documents.map((item) => (
-            <li key={item.id}>
-              <button
-                className="notebook-member-doc"
-                type="button"
-                onClick={() => onOpenDetails(item)}
-                aria-label={`Open details for ${item.title}`}
-              >
-                <span className="notebook-row-title">{item.title}</span>
-                <span className="notebook-tag">{item.status}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="notebook-empty">No documents yet.</p>
-      )}
-      <button
-        className="secondary-button compact-button"
-        type="button"
-        onClick={onAddDocument}
-      >
-        <Plus size={14} />
-        Add document
-      </button>
-    </div>
-  );
+type VaultOwnerGroup = {
+  key: string;
+  owner: string;
+  items: VaultItem[];
+};
+
+function groupVaultItemsByOwner(items: VaultItem[]): VaultOwnerGroup[] {
+  const groups = new Map<string, VaultOwnerGroup>();
+  for (const item of items) {
+    const owner = item.owner.trim() || WHOLE_FAMILY;
+    const key = owner.toLocaleLowerCase().replace(/\s+/g, "-");
+    const group = groups.get(key) ?? { key, owner, items: [] };
+    group.items.push(item);
+    groups.set(key, group);
+  }
+
+  return [...groups.values()].sort((a, b) => a.owner.localeCompare(b.owner));
+}
+
+function summarizeVaultItems(items: VaultItem[]) {
+  const owners = new Set<string>();
+  let needsReview = 0;
+  for (const item of items) {
+    owners.add((item.owner.trim() || WHOLE_FAMILY).toLocaleLowerCase());
+    if (item.status !== "Current") {
+      needsReview += 1;
+    }
+  }
+  return { ownerCount: owners.size, needsReview };
+}
+
+function formatCount(count: number, singularLabel: string) {
+  return `${count} ${count === 1 ? singularLabel : `${singularLabel}s`}`;
+}
+
+function formatNeedsReview(count: number) {
+  return `${count} ${count === 1 ? "needs" : "need"} review`;
 }
 
 export function AddDocumentModal({
@@ -427,7 +379,7 @@ export function AddDocumentModal({
                 ? "Add a document"
                 : `Add ${docType.label.toLowerCase()}`}
             </h2>
-            <p>Saved straight to your vault. No AI, no waiting.</p>
+            <p>Saved straight to your cabinet. No AI, no waiting.</p>
           </div>
         </div>
         <form className="add-date-form" onSubmit={handleSubmit}>
@@ -538,23 +490,26 @@ function VaultRow({
   item: VaultItem;
   onOpenDetails: () => void;
 }) {
-  const sub = `${item.owner}${
+  const sub = `${VAULT_CATEGORY_LABEL[item.category]}${
     item.renewalDate ? ` · review by ${formatShortDate(item.renewalDate)}` : ""
   }`;
+  const statusTone = item.status === "Current" ? "current" : "attention";
 
   return (
     <button
       aria-label={`Open details for ${item.title}`}
-      className="notebook-row entry"
+      className="notebook-row entry vault-owner-row"
       type="button"
       onClick={onOpenDetails}
     >
-      <span className="notebook-when">{item.category}</span>
       <span className="notebook-row-main">
         <span className="notebook-row-title">{item.title}</span>
         <span className="notebook-row-sub">{sub}</span>
       </span>
-      <span className="notebook-tag">{item.status}</span>
+      <span className="vault-record-meta">
+        <span className={`notebook-tag ${statusTone}`}>{item.status}</span>
+        <ChevronRight size={16} aria-hidden="true" />
+      </span>
     </button>
   );
 }

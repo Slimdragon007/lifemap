@@ -20,7 +20,7 @@ test.describe("demo smoke", () => {
     ).toHaveClass(/active/);
 
     // Switch through the current primary destinations; each tab activates in turn.
-    for (const tab of ["Cabinet", "Review", "Family", "Settings", "Home"] as const) {
+    for (const tab of ["Cabinet", "Family", "Settings", "Home"] as const) {
       await nav.getByRole("button", { name: tab, exact: true }).click();
       await expect(
         nav.getByRole("button", { name: tab, exact: true }),
@@ -37,7 +37,7 @@ test.describe("demo smoke", () => {
     await page.getByRole("button", { name: "Login as Alex Kim" }).click();
 
     const nav = page.getByRole("navigation", { name: "Household sections" });
-    await nav.getByRole("button", { name: "Review", exact: true }).click();
+    await page.getByRole("button", { name: /Needs your OK/i }).click();
 
     // Calm notebook structure is present.
     await expect(
@@ -45,6 +45,9 @@ test.describe("demo smoke", () => {
     ).toBeVisible();
     const queue = page.getByRole("region", { name: "Approval queue" });
     await expect(queue).toBeVisible();
+    await expect(
+      nav.getByRole("button", { name: "Home", exact: true }),
+    ).toHaveClass(/active/);
 
     // Functionality: an inline toggle flips aria-checked on click.
     const firstToggle = queue.getByRole("switch").first();
@@ -56,7 +59,7 @@ test.describe("demo smoke", () => {
 
     // The single coral CTA reflects the selection count.
     await expect(
-      queue.getByRole("button", { name: /Review \d+ selected/ }),
+      queue.getByRole("button", { name: /Approve \d+/ }),
     ).toBeVisible();
   });
 

@@ -60,3 +60,17 @@ The second pass extends the same tokenized light command language into the
 bottom/desktop navigation shell and the LifeMap AI capture sheet. This keeps the
 most-used AI entry points visually related without sweeping every secondary
 screen yet.
+
+## Release Candidate Token Tightening
+
+The release-candidate pass keeps the same light Mac assistant foundation but
+tightens the active token contract around the actual product architecture:
+
+- `Home` is the warm daily action surface.
+- `Cabinet` is the blue-leaning file ledger.
+- `Family` is the household roster and profile surface.
+- `Review` is the quiet safety gate.
+
+The active palette is no longer near-monochrome indigo. It uses warm white,
+pale blue, softened LifeMap blue, and sparse clay/orange accents so the app
+feels cohesive without making every surface look identical.

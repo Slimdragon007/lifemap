@@ -136,7 +136,7 @@ Trip:
 - Destination:
 
 Paste flight confirmations, packing notes, TSA PreCheck or rewards reminders, passports, hotel details, rental car info, and missing reservations.`,
-  "vault-records": `Vault records starter
+  "vault-records": `Cabinet records starter
 
 Record or document:
 - Passports and IDs:
@@ -333,7 +333,7 @@ function getDestination(
   }
 
   return {
-    label: "Open Vault",
+    label: "Open Cabinet",
     onOpen: actions.onOpenVault,
   };
 }
@@ -359,9 +359,9 @@ function getCaptureRoute(bucket: RecommendedBucket) {
 
   return {
     destination: "vault" as const,
-    buttonLabel: "Open Vault",
+    buttonLabel: "Open Cabinet",
     message:
-      "Route this into Vault so records and missing details stay findable.",
+      "Route this into Cabinet so records and missing details stay findable.",
   };
 }
 

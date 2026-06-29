@@ -169,6 +169,15 @@ radius/control
 
 ## Next Action
 
-First slice started with hand-authored app tokens in `src/design/tokens/`,
-Figma variable mapping in `figma-light-map.json`, and the login plus Today
-LifeMap cockpit consuming the light Mac Assistant direction.
+Current release-candidate slice:
+
+- `src/design/tokens/lifemap-light.css` is the active app token source.
+- `src/design/tokens/figma-light-map.json` mirrors the active CSS token names
+  and values for future Figma variables.
+- The app now has screen-role tokens for Home, drop/capture, Cabinet, Family,
+  and Review so visual changes can happen through named product roles instead
+  of scattered CSS values.
+
+Next token work should be mechanical replacement of remaining hardcoded colors
+inside `src/styles.css`, one surface at a time. Do not change product flow while
+doing that cleanup.

@@ -1,9 +1,9 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { Session } from "@supabase/supabase-js";
 import type { LifeMapAnalysis } from "./lifemap";
-import type { VaultItem } from "./familyOS";
+import type { FamilyMember, VaultItem } from "./familyOS";
 
 // Real-mode regression guard for the AI-vault-item Supabase persistence path.
 //
@@ -23,7 +23,8 @@ import type { VaultItem } from "./familyOS";
 const VAULT_SUGGESTION_ID = "ai-vault-missing-signature";
 
 // Hoisted so these are available inside the hoisted vi.mock factories below.
-const { aiAnalysis, session, upsertVaultItemMock } = vi.hoisted(() => {
+const { aiAnalysis, caseyMember, session, upsertFamilyMemberMock, upsertVaultItemMock } =
+  vi.hoisted(() => {
   const aiAnalysis: LifeMapAnalysis = {
     dueItems: [
       {
@@ -51,6 +52,21 @@ const { aiAnalysis, session, upsertVaultItemMock } = vi.hoisted(() => {
     access_token: "test-access-token",
     user: { id: "user-123", email: "alex@example.com" },
   } as unknown as Session;
+  const caseyMember: FamilyMember = {
+    id: "casey",
+    name: "Casey Kim",
+    role: "Grade 4",
+    initials: "CK",
+    profileType: "child",
+    details: [{ label: "Teacher", value: "Ms. Rivera" }],
+    careNotes: [],
+  };
+  const upsertFamilyMemberMock = vi.fn(
+    async (_userId: string, member: FamilyMember) => ({
+      ok: true as const,
+      item: member,
+    }),
+  );
   // Spy we assert on: the real-mode persistence call.
   const upsertVaultItemMock = vi.fn(
     async (_userId: string, item: VaultItem) => ({
@@ -58,7 +74,13 @@ const { aiAnalysis, session, upsertVaultItemMock } = vi.hoisted(() => {
       item: { ...item, id: "persisted-uuid" },
     }),
   );
-  return { aiAnalysis, session, upsertVaultItemMock };
+  return {
+    aiAnalysis,
+    caseyMember,
+    session,
+    upsertFamilyMemberMock,
+    upsertVaultItemMock,
+  };
 });
 
 vi.mock("./supabaseClient", () => ({
@@ -113,12 +135,13 @@ vi.mock("./family-data", async () => {
     loadFamilyCollections: vi.fn(async () => ({
       ok: true as const,
       collections: {
-        familyMembers: [],
+        familyMembers: [caseyMember],
         familyEvents: [],
         vaultItems: [],
         recurringCareItems: [],
       },
     })),
+    upsertFamilyMember: upsertFamilyMemberMock,
     upsertVaultItem: upsertVaultItemMock,
   };
 });
@@ -145,6 +168,7 @@ import App from "./App";
 
 describe("LifeMap real-mode AI-vault persistence", () => {
   afterEach(() => {
+    upsertFamilyMemberMock.mockClear();
     upsertVaultItemMock.mockClear();
     localStorage.clear();
     vi.unstubAllGlobals();
@@ -187,6 +211,48 @@ describe("LifeMap real-mode AI-vault persistence", () => {
     expect(itemArg).toMatchObject({
       id: VAULT_SUGGESTION_ID,
       title: "Parent signature",
+    });
+  });
+
+  test("persists profile field edits through the real-mode family member upsert path", async () => {
+    const user = userEvent.setup();
+    localStorage.setItem("lifemap-onboarded", "1");
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole("button", { name: "Sign out alex@example.com" }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Family" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Open Casey Kim's profile" }),
+    );
+
+    const health = await screen.findByRole("region", { name: "Health" });
+    await user.click(
+      within(health).getByRole("button", { name: "Add field to Health" }),
+    );
+    await user.type(screen.getByLabelText("Field label"), "Allergy");
+    await user.type(screen.getByLabelText("Field value"), "Peanuts");
+    await user.click(screen.getByRole("button", { name: "Save field" }));
+
+    await waitFor(() => {
+      expect(upsertFamilyMemberMock).toHaveBeenCalledTimes(1);
+    });
+
+    const [userIdArg, memberArg] = upsertFamilyMemberMock.mock.calls[0];
+    expect(userIdArg).toBe("user-123");
+    expect(memberArg).toMatchObject({
+      id: "casey",
+      details: expect.arrayContaining([
+        expect.objectContaining({
+          detailType: "field",
+          sectionId: "health",
+          label: "Allergy",
+          value: "Peanuts",
+        }),
+      ]),
     });
   });
 });

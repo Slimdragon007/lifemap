@@ -66,12 +66,12 @@ for (const theme of ["dark", "light"] as const) {
       await shoot(page, `settings-${theme}.png`);
     });
 
-    test("Vault", async ({ page }) => {
+    test("Cabinet", async ({ page }) => {
       await prepare(page, theme);
       await enterApp(page);
       await page.getByRole("button", { name: "Settings" }).click();
-      await page.getByRole("button", { name: "Open vault" }).click();
-      await expect(page.getByRole("heading", { name: "Vault" })).toBeVisible();
+      await page.getByRole("button", { name: "Open cabinet" }).click();
+      await expect(page.getByRole("heading", { name: "Cabinet" })).toBeVisible();
       await shoot(page, `vault-${theme}.png`);
     });
 
