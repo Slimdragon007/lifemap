@@ -12758,35 +12758,35 @@ button.notebook-row:active {
 }
 
 .app-shell.view-today .home-focus-card {
-  border-color: rgba(207, 122, 82, 0.28);
-  border-left: 5px solid var(--color-accent-clay);
+  border-color: var(--color-accent-warm-soft);
+  border-left: 5px solid var(--color-role-home-accent);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: none;
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-none);
 }
 
 .app-shell.view-today .home-focus-hero {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 250, 244, 0.84)),
-    var(--color-surface-panel);
+    var(--gradient-warm-surface),
+    var(--color-role-home-surface);
 }
 
 .app-shell.view-today .home-focus-icon {
-  background: rgba(255, 241, 230, 0.9);
-  color: var(--color-accent-clay);
+  background: var(--color-role-home-icon-bg);
+  color: var(--color-role-home-accent);
 }
 
 .app-shell.view-today .home-focus-primary {
-  background: var(--color-accent-clay);
+  background: var(--color-role-home-accent);
 }
 
 .app-shell.view-today .home-blender {
-  border: 1px dashed rgba(61, 132, 212, 0.42);
+  border: 1px dashed var(--color-role-drop-border);
   border-radius: 20px;
   background:
-    linear-gradient(180deg, rgba(248, 252, 255, 0.78), rgba(255, 255, 255, 0.72)),
-    var(--color-surface-panel);
-  box-shadow: none;
+    var(--gradient-liquid-surface),
+    var(--color-role-drop-surface);
+  box-shadow: var(--shadow-none);
 }
 
 .app-shell.view-today .home-family-entry,
@@ -12800,13 +12800,13 @@ button.notebook-row:active {
 
 .app-shell.view-today .home-family-button,
 .app-shell.view-today .home-review-button {
-  background: rgba(255, 255, 255, 0.56);
+  background: var(--color-surface-quiet-tint);
 }
 
 .app-shell.view-vault .cabinet-command-panel {
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: none;
+  background: var(--color-role-cabinet-surface);
+  box-shadow: var(--shadow-none);
 }
 
 .cabinet-ledger-meta {
@@ -12879,8 +12879,8 @@ button.notebook-row:active {
   padding: 14px;
   border-radius: 20px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(248, 252, 255, 0.72)),
-    var(--color-surface-panel);
+    var(--gradient-liquid-surface),
+    var(--color-role-family-surface);
 }
 
 .app-shell.view-more .family-member-card .calm-av {
@@ -12891,7 +12891,7 @@ button.notebook-row:active {
 
 .app-shell.view-more .family-member-meta {
   justify-self: start;
-  background: rgba(255, 255, 255, 0.62);
+  background: var(--color-surface-quiet-tint);
 }
 
 .app-shell.view-more .family-member-card > svg {
@@ -12902,8 +12902,8 @@ button.notebook-row:active {
 
 .app-shell.view-more .family-household-panel {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.52);
-  box-shadow: none;
+  background: var(--color-surface-quiet-tint);
+  box-shadow: var(--shadow-none);
 }
 
 @media (max-width: 520px) {
@@ -12917,9 +12917,9 @@ button.notebook-row:active {
 }
 
 .bottom-nav .nav-item-primary {
-  border-color: rgba(61, 132, 212, 0.18);
+  border-color: var(--color-border-hairline);
   color: var(--color-accent-blue-strong);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--color-surface-quiet-tint);
   box-shadow: var(--shadow-control);
 }
 

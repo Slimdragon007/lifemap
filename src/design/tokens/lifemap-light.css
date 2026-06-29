@@ -1,11 +1,11 @@
 :root {
   /* ================================================================= */
-  /* THE LIFEMAP — ElevenLabs-grade palette.                           */
-  /* Near-monochrome + one restrained indigo accent. Variable NAMES    */
-  /* are kept stable so every screen inherits the retheme at once.     */
+  /* LifeMap release-candidate tokens                                  */
+  /* Light household OS: warm white, pale blue atmosphere, softened     */
+  /* LifeMap blue actions, and sparse clay warmth for "needs me" cues. */
   /* ================================================================= */
 
-  /* Type — Darker Grotesque display (headings), Hanken body, mono data */
+  /* Type — expressive display, readable UI, quiet ledger metadata. */
   --font-ui:
     "Hanken Grotesque", ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -16,57 +16,90 @@
     "Fragment Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
 
   /* Canvas */
-  --color-canvas-warm: #f5f5f6;
-  --color-canvas-app: #f5f5f6;
-  --color-canvas-login: #f5f5f6;
-  --color-canvas-soft-blue: #efeff1;
-  --color-canvas-soft-warm: #efeff1;
+  --color-canvas-warm: #f7faff;
+  --color-canvas-app: #f7faff;
+  --color-canvas-login: #eef7ff;
+  --color-canvas-soft-blue: #edf6ff;
+  --color-canvas-soft-warm: #fff7f0;
 
   /* Surfaces */
-  --color-surface-glass: rgba(255, 255, 255, 0.86);
-  --color-surface-panel: #ffffff;
+  --color-surface-glass: rgba(255, 255, 255, 0.84);
+  --color-surface-panel: #fffefd;
   --color-surface-panel-strong: #ffffff;
   --color-surface-command: #ffffff;
-  --color-surface-command-soft: #fbfbfc;
-  --color-surface-nav: rgba(255, 255, 255, 0.92);
+  --color-surface-command-soft: #f8fbff;
+  --color-surface-nav: rgba(255, 255, 255, 0.9);
   --color-surface-capture: #ffffff;
   --color-surface-row: #ffffff;
-  --color-backdrop-capture: rgba(9, 9, 11, 0.06);
+  --color-surface-blue-tint: rgba(238, 247, 255, 0.82);
+  --color-surface-warm-tint: rgba(255, 247, 240, 0.86);
+  --color-surface-quiet-tint: rgba(255, 255, 255, 0.58);
+  --color-backdrop-capture: rgba(237, 246, 255, 0.54);
 
-  /* Text — high contrast on the light canvas (readability first) */
-  --color-text-primary: #09090b;
-  --color-text-strong: #000000;
-  --color-text-secondary: #45454d;
-  --color-text-quiet: #5c5c64;
+  /* Text */
+  --color-text-primary: #172133;
+  --color-text-strong: #0e1728;
+  --color-text-secondary: #526071;
+  --color-text-quiet: #738096;
   --color-text-inverse: #ffffff;
 
-  /* Borders — visible hairlines */
-  --color-border-subtle: rgba(9, 9, 11, 0.16);
-  --color-border-strong: rgba(9, 9, 11, 0.26);
-  --color-focus-ring: rgba(79, 70, 229, 0.34);
+  /* Borders */
+  --color-border-subtle: rgba(32, 47, 75, 0.12);
+  --color-border-strong: rgba(32, 47, 75, 0.22);
+  --color-border-hairline: rgba(32, 47, 75, 0.08);
+  --color-focus-ring: rgba(61, 132, 212, 0.36);
 
-  /* Accent — restrained indigo */
-  --color-accent-blue: #4f46e5;
-  --color-accent-blue-strong: #4338ca;
-  --color-accent-blue-soft: rgba(79, 70, 229, 0.1);
-  --color-accent-sky: #eceaff;
-  --color-accent-warm: #4f46e5; /* "needs you" → single restrained accent */
-  --color-accent-warm-soft: rgba(79, 70, 229, 0.1);
-  --color-accent-clay: #4f46e5;
-  --color-accent-plum: #45454d;
-  --color-accent-sage: #45454d;
-  --color-accent-amber: #4f46e5;
-  --color-status-danger: #dc2626;
+  /* Accents */
+  --color-accent-blue: #3d84d4;
+  --color-accent-blue-strong: #2363aa;
+  --color-accent-blue-soft: rgba(61, 132, 212, 0.12);
+  --color-accent-sky: #e9f5ff;
+  --color-accent-warm: #d97852;
+  --color-accent-warm-soft: rgba(217, 120, 82, 0.13);
+  --color-accent-clay: #cf744d;
+  --color-accent-plum: #7467c9;
+  --color-accent-sage: #5f8879;
+  --color-accent-amber: #a96f27;
+  --color-status-danger: #c94332;
 
-  --color-action-ink: #09090b;
+  --color-action-ink: #172133;
+
+  /* Screen-role tokens keep the tabs visually distinct without random values. */
+  --color-role-home-accent: var(--color-accent-clay);
+  --color-role-home-surface: var(--color-surface-warm-tint);
+  --color-role-home-icon-bg: rgba(255, 238, 226, 0.92);
+  --color-role-drop-border: rgba(61, 132, 212, 0.38);
+  --color-role-drop-surface: var(--color-surface-blue-tint);
+  --color-role-cabinet-accent: var(--color-accent-blue);
+  --color-role-cabinet-surface: rgba(255, 255, 255, 0.8);
+  --color-role-family-accent: var(--color-accent-plum);
+  --color-role-family-surface: rgba(255, 255, 255, 0.78);
+  --color-role-review-accent: var(--color-accent-sage);
 
   /* Gradients */
-  --gradient-action-primary: linear-gradient(180deg, #6d68f0 0%, #4f46e5 100%);
-  --gradient-command-surface: linear-gradient(180deg, #ffffff 0%, #f5f5f6 100%);
+  --gradient-action-primary: linear-gradient(
+    135deg,
+    #6aa9ee 0%,
+    #3d84d4 62%,
+    #d97852 128%
+  );
+  --gradient-command-surface: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+  --gradient-liquid-surface: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(238, 247, 255, 0.72)
+  );
+  --gradient-warm-surface: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.94),
+    rgba(255, 247, 240, 0.82)
+  );
 
+  /* Shape */
   --radius-control: 12px;
   --radius-panel: 16px;
   --radius-command: 18px;
+  --radius-card: 20px;
   --radius-pill: 999px;
 
   /* Spacing — strict 4px grid */
@@ -82,18 +115,17 @@
   --space-10: 40px;
   --space-12: 48px;
   --space-16: 64px;
-
-  /* Section rhythm */
   --space-section: var(--space-8);
 
-  /* Shadows — neutral, low spread */
-  --shadow-panel-soft: 0 14px 30px -22px rgba(9, 9, 11, 0.12);
-  --shadow-panel: 0 14px 30px -20px rgba(9, 9, 11, 0.18);
-  --shadow-command: 0 24px 50px -34px rgba(9, 9, 11, 0.18);
-  --shadow-nav: 0 -2px 22px rgba(9, 9, 11, 0.06);
-  --shadow-control: 0 12px 26px -14px rgba(9, 9, 11, 0.2);
-  --shadow-row: 0 6px 16px rgba(9, 9, 11, 0.04);
-  --shadow-row-hover: 0 10px 22px rgba(9, 9, 11, 0.08);
+  /* Shadows — soft, ambient, low-stim. */
+  --shadow-panel-soft: 0 16px 34px -28px rgba(32, 47, 75, 0.18);
+  --shadow-panel: 0 18px 44px -30px rgba(32, 47, 75, 0.22);
+  --shadow-command: 0 26px 56px -36px rgba(32, 47, 75, 0.24);
+  --shadow-nav: 0 -6px 30px rgba(32, 47, 75, 0.08);
+  --shadow-control: 0 14px 28px -18px rgba(35, 99, 170, 0.34);
+  --shadow-row: 0 8px 18px rgba(32, 47, 75, 0.05);
+  --shadow-row-hover: 0 12px 26px rgba(32, 47, 75, 0.09);
+  --shadow-none: none;
 
   /* Motion */
   --motion-standard: cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -103,101 +135,132 @@
   --motion-enter: 220ms;
   --motion-cap: 300ms;
 
-  /* Map/notebook semantics — mono-ized to indigo accent */
-  --accent: #4f46e5;
-  --accent-soft: #6d68f0;
-  --needs: #4f46e5;
-  --needs-soft: rgba(79, 70, 229, 0.1);
-  --filed: #4f46e5;
-  --paper: #f5f5f6;
-  --paper-raised: #ffffff;
-  --rule: rgba(9, 9, 11, 0.16);
-  --warm-line: rgba(9, 9, 11, 0.16);
-  --warm-ink: #09090b;
-  --warm-ink-soft: #45454d;
-  --warm-ink-quiet: #5c5c64;
+  /* Notebook semantics */
+  --accent: var(--color-accent-blue);
+  --accent-soft: #6aa9ee;
+  --needs: var(--color-accent-clay);
+  --needs-soft: var(--color-accent-warm-soft);
+  --filed: var(--color-accent-blue);
+  --paper: var(--color-canvas-app);
+  --paper-raised: var(--color-surface-panel);
+  --rule: var(--color-border-subtle);
+  --warm-line: rgba(217, 120, 82, 0.2);
+  --warm-ink: var(--color-text-strong);
+  --warm-ink-soft: var(--color-text-secondary);
+  --warm-ink-quiet: var(--color-text-quiet);
 
   /* Back-compat aliases */
-  --line: rgba(9, 9, 11, 0.16);
-  --ink: #09090b;
-  --ink-soft: #45454d;
-  --ink-quiet: #5c5c64;
+  --line: var(--color-border-subtle);
+  --ink: var(--color-text-primary);
+  --ink-soft: var(--color-text-secondary);
+  --ink-quiet: var(--color-text-quiet);
 }
 
 html[data-theme="dark"] {
-  --color-canvas-warm: #09090b;
-  --color-canvas-app: #09090b;
-  --color-canvas-login: #09090b;
-  --color-canvas-soft-blue: #161618;
-  --color-canvas-soft-warm: #161618;
+  --color-canvas-warm: #0b1220;
+  --color-canvas-app: #0b1220;
+  --color-canvas-login: #0b1220;
+  --color-canvas-soft-blue: #111a2b;
+  --color-canvas-soft-warm: #17131a;
 
-  --color-surface-glass: rgba(22, 22, 24, 0.86);
-  --color-surface-panel: #161618;
-  --color-surface-panel-strong: #1b1b1e;
-  --color-surface-command: #161618;
-  --color-surface-command-soft: #1b1b1e;
-  --color-surface-nav: rgba(22, 22, 24, 0.92);
-  --color-surface-capture: #161618;
-  --color-surface-row: #161618;
-  --color-backdrop-capture: rgba(0, 0, 0, 0.5);
+  --color-surface-glass: rgba(18, 27, 43, 0.86);
+  --color-surface-panel: #121b2b;
+  --color-surface-panel-strong: #172238;
+  --color-surface-command: #121b2b;
+  --color-surface-command-soft: #172238;
+  --color-surface-nav: rgba(18, 27, 43, 0.9);
+  --color-surface-capture: #121b2b;
+  --color-surface-row: #121b2b;
+  --color-surface-blue-tint: rgba(34, 54, 84, 0.76);
+  --color-surface-warm-tint: rgba(42, 31, 29, 0.78);
+  --color-surface-quiet-tint: rgba(18, 27, 43, 0.6);
+  --color-backdrop-capture: rgba(7, 11, 18, 0.62);
 
-  --color-text-primary: #fafafa;
+  --color-text-primary: #edf4ff;
   --color-text-strong: #ffffff;
-  --color-text-secondary: #a1a1aa;
-  --color-text-quiet: #82828c;
-  --color-text-inverse: #09090b;
+  --color-text-secondary: #b5c2d3;
+  --color-text-quiet: #8796aa;
+  --color-text-inverse: #0b1220;
 
-  --color-border-subtle: rgba(255, 255, 255, 0.14);
-  --color-border-strong: rgba(255, 255, 255, 0.24);
-  --color-focus-ring: rgba(139, 139, 255, 0.4);
+  --color-border-subtle: rgba(237, 244, 255, 0.14);
+  --color-border-strong: rgba(237, 244, 255, 0.24);
+  --color-border-hairline: rgba(237, 244, 255, 0.08);
+  --color-focus-ring: rgba(126, 183, 242, 0.42);
 
-  --color-accent-blue: #8b8bff;
-  --color-accent-blue-strong: #a5a5ff;
-  --color-accent-blue-soft: rgba(139, 139, 255, 0.12);
-  --color-accent-sky: #20203a;
-  --color-accent-warm: #8b8bff;
-  --color-accent-warm-soft: rgba(139, 139, 255, 0.12);
-  --color-accent-clay: #8b8bff;
-  --color-accent-plum: #a1a1aa;
-  --color-accent-sage: #a1a1aa;
-  --color-accent-amber: #8b8bff;
-  --color-status-danger: #f87171;
+  --color-accent-blue: #7eb7f2;
+  --color-accent-blue-strong: #a8d2ff;
+  --color-accent-blue-soft: rgba(126, 183, 242, 0.14);
+  --color-accent-sky: #182842;
+  --color-accent-warm: #f0a27d;
+  --color-accent-warm-soft: rgba(240, 162, 125, 0.14);
+  --color-accent-clay: #f0a27d;
+  --color-accent-plum: #afa8ff;
+  --color-accent-sage: #9fd1bc;
+  --color-accent-amber: #e4b46a;
+  --color-status-danger: #ff8f80;
 
-  --color-action-ink: #fafafa;
+  --color-action-ink: #edf4ff;
 
-  --gradient-action-primary: linear-gradient(180deg, #a5a5ff 0%, #8b8bff 100%);
-  --gradient-command-surface: linear-gradient(180deg, #1b1b1e 0%, #161618 100%);
+  --color-role-home-accent: var(--color-accent-clay);
+  --color-role-home-surface: var(--color-surface-warm-tint);
+  --color-role-home-icon-bg: rgba(72, 48, 42, 0.78);
+  --color-role-drop-border: rgba(126, 183, 242, 0.34);
+  --color-role-drop-surface: var(--color-surface-blue-tint);
+  --color-role-cabinet-accent: var(--color-accent-blue);
+  --color-role-cabinet-surface: rgba(18, 27, 43, 0.78);
+  --color-role-family-accent: var(--color-accent-plum);
+  --color-role-family-surface: rgba(18, 27, 43, 0.74);
+  --color-role-review-accent: var(--color-accent-sage);
 
-  --shadow-panel-soft: 0 14px 30px -22px rgba(0, 0, 0, 0.5);
-  --shadow-panel: 0 14px 30px -20px rgba(0, 0, 0, 0.6);
-  --shadow-command: 0 24px 50px -34px rgba(0, 0, 0, 0.6);
-  --shadow-nav: 0 -2px 22px rgba(0, 0, 0, 0.3);
-  --shadow-control: 0 12px 26px -14px rgba(0, 0, 0, 0.6);
-  --shadow-row: 0 6px 16px rgba(0, 0, 0, 0.2);
-  --shadow-row-hover: 0 10px 22px rgba(0, 0, 0, 0.3);
+  --gradient-action-primary: linear-gradient(
+    135deg,
+    #a8d2ff 0%,
+    #7eb7f2 62%,
+    #f0a27d 128%
+  );
+  --gradient-command-surface: linear-gradient(180deg, #172238 0%, #121b2b 100%);
+  --gradient-liquid-surface: linear-gradient(
+    145deg,
+    rgba(23, 34, 56, 0.88),
+    rgba(34, 54, 84, 0.62)
+  );
+  --gradient-warm-surface: linear-gradient(
+    180deg,
+    rgba(23, 34, 56, 0.86),
+    rgba(42, 31, 29, 0.7)
+  );
 
-  --accent: #8b8bff;
-  --accent-soft: #a5a5ff;
-  --needs: #8b8bff;
-  --needs-soft: rgba(139, 139, 255, 0.12);
-  --filed: #8b8bff;
-  --paper: #09090b;
-  --paper-raised: #161618;
-  --rule: rgba(255, 255, 255, 0.14);
-  --warm-line: rgba(255, 255, 255, 0.14);
-  --warm-ink: #fafafa;
-  --warm-ink-soft: #a1a1aa;
-  --warm-ink-quiet: #82828c;
+  --shadow-panel-soft: 0 16px 34px -28px rgba(0, 0, 0, 0.58);
+  --shadow-panel: 0 18px 44px -30px rgba(0, 0, 0, 0.66);
+  --shadow-command: 0 26px 56px -36px rgba(0, 0, 0, 0.68);
+  --shadow-nav: 0 -6px 30px rgba(0, 0, 0, 0.34);
+  --shadow-control: 0 14px 28px -18px rgba(0, 0, 0, 0.7);
+  --shadow-row: 0 8px 18px rgba(0, 0, 0, 0.2);
+  --shadow-row-hover: 0 12px 26px rgba(0, 0, 0, 0.3);
 
-  --line: rgba(255, 255, 255, 0.14);
-  --ink: #fafafa;
-  --ink-soft: #a1a1aa;
-  --ink-quiet: #82828c;
+  --accent: var(--color-accent-blue);
+  --accent-soft: #a8d2ff;
+  --needs: var(--color-accent-clay);
+  --needs-soft: var(--color-accent-warm-soft);
+  --filed: var(--color-accent-blue);
+  --paper: var(--color-canvas-app);
+  --paper-raised: var(--color-surface-panel);
+  --rule: var(--color-border-subtle);
+  --warm-line: rgba(240, 162, 125, 0.22);
+  --warm-ink: var(--color-text-strong);
+  --warm-ink-soft: var(--color-text-secondary);
+  --warm-ink-quiet: var(--color-text-quiet);
+
+  --line: var(--color-border-subtle);
+  --ink: var(--color-text-primary);
+  --ink-soft: var(--color-text-secondary);
+  --ink-quiet: var(--color-text-quiet);
 }
 
 :root {
   color-scheme: light dark;
 }
+
 html {
   transition:
     background-color 0.35s ease,

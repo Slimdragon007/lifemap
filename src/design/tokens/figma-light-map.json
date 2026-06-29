@@ -1,5 +1,5 @@
 {
-  "name": "LifeMap Light Mac Assistant",
+  "name": "LifeMap Quiet Household OS",
   "mode": "Light",
   "collections": [
     {
@@ -10,28 +10,28 @@
           "name": "color/canvas/app",
           "type": "COLOR",
           "css": "var(--color-canvas-app)",
-          "value": "#f5f9ff",
+          "value": "#f7faff",
           "scope": ["FRAME_FILL"]
         },
         {
           "name": "color/canvas/login",
           "type": "COLOR",
           "css": "var(--color-canvas-login)",
-          "value": "#edf7ff",
+          "value": "#eef7ff",
           "scope": ["FRAME_FILL"]
         },
         {
           "name": "color/surface/panel",
           "type": "COLOR",
           "css": "var(--color-surface-panel)",
-          "value": "rgba(255, 255, 255, 0.88)",
+          "value": "#fffefd",
           "scope": ["FRAME_FILL", "SHAPE_FILL"]
         },
         {
           "name": "color/surface/command",
           "type": "COLOR",
           "css": "var(--color-surface-command)",
-          "value": "rgba(255, 255, 255, 0.92)",
+          "value": "#ffffff",
           "scope": ["FRAME_FILL", "SHAPE_FILL"]
         },
         {
@@ -42,38 +42,52 @@
           "scope": ["FRAME_FILL", "SHAPE_FILL"]
         },
         {
-          "name": "color/surface/capture",
+          "name": "color/surface/blue-tint",
           "type": "COLOR",
-          "css": "var(--color-surface-capture)",
-          "value": "rgba(255, 255, 255, 0.96)",
+          "css": "var(--color-surface-blue-tint)",
+          "value": "rgba(238, 247, 255, 0.82)",
           "scope": ["FRAME_FILL", "SHAPE_FILL"]
         },
         {
-          "name": "color/backdrop/capture",
+          "name": "color/surface/warm-tint",
           "type": "COLOR",
-          "css": "var(--color-backdrop-capture)",
-          "value": "rgba(245, 249, 255, 0.52)",
-          "scope": ["FRAME_FILL"]
+          "css": "var(--color-surface-warm-tint)",
+          "value": "rgba(255, 247, 240, 0.86)",
+          "scope": ["FRAME_FILL", "SHAPE_FILL"]
         },
         {
           "name": "color/text/strong",
           "type": "COLOR",
           "css": "var(--color-text-strong)",
-          "value": "#111827",
+          "value": "#0e1728",
           "scope": ["TEXT_FILL"]
         },
         {
           "name": "color/text/secondary",
           "type": "COLOR",
           "css": "var(--color-text-secondary)",
-          "value": "#5f6b7a",
+          "value": "#526071",
+          "scope": ["TEXT_FILL"]
+        },
+        {
+          "name": "color/text/quiet",
+          "type": "COLOR",
+          "css": "var(--color-text-quiet)",
+          "value": "#738096",
           "scope": ["TEXT_FILL"]
         },
         {
           "name": "color/accent/blue",
           "type": "COLOR",
           "css": "var(--color-accent-blue)",
-          "value": "#4d7eff",
+          "value": "#3d84d4",
+          "scope": ["FRAME_FILL", "SHAPE_FILL", "TEXT_FILL", "STROKE_COLOR"]
+        },
+        {
+          "name": "color/accent/blue-strong",
+          "type": "COLOR",
+          "css": "var(--color-accent-blue-strong)",
+          "value": "#2363aa",
           "scope": ["FRAME_FILL", "SHAPE_FILL", "TEXT_FILL", "STROKE_COLOR"]
         },
         {
@@ -87,8 +101,49 @@
           "name": "color/border/subtle",
           "type": "COLOR",
           "css": "var(--color-border-subtle)",
-          "value": "rgba(35, 55, 82, 0.1)",
+          "value": "rgba(32, 47, 75, 0.12)",
           "scope": ["STROKE_COLOR"]
+        }
+      ]
+    },
+    {
+      "name": "Color / Screen Roles",
+      "mode": "Light",
+      "variables": [
+        {
+          "name": "role/home/accent",
+          "type": "COLOR",
+          "css": "var(--color-role-home-accent)",
+          "value": "#cf744d",
+          "scope": ["FRAME_FILL", "SHAPE_FILL", "TEXT_FILL", "STROKE_COLOR"]
+        },
+        {
+          "name": "role/drop/border",
+          "type": "COLOR",
+          "css": "var(--color-role-drop-border)",
+          "value": "rgba(61, 132, 212, 0.38)",
+          "scope": ["STROKE_COLOR"]
+        },
+        {
+          "name": "role/cabinet/accent",
+          "type": "COLOR",
+          "css": "var(--color-role-cabinet-accent)",
+          "value": "#3d84d4",
+          "scope": ["FRAME_FILL", "SHAPE_FILL", "TEXT_FILL", "STROKE_COLOR"]
+        },
+        {
+          "name": "role/family/accent",
+          "type": "COLOR",
+          "css": "var(--color-role-family-accent)",
+          "value": "#7467c9",
+          "scope": ["FRAME_FILL", "SHAPE_FILL", "TEXT_FILL", "STROKE_COLOR"]
+        },
+        {
+          "name": "role/review/accent",
+          "type": "COLOR",
+          "css": "var(--color-role-review-accent)",
+          "value": "#5f8879",
+          "scope": ["FRAME_FILL", "SHAPE_FILL", "TEXT_FILL", "STROKE_COLOR"]
         }
       ]
     },
@@ -100,14 +155,21 @@
           "name": "font/family/ui",
           "type": "STRING",
           "css": "var(--font-ui)",
-          "value": "Aptos, Inter, system-ui, sans-serif",
+          "value": "Hanken Grotesque, system-ui, sans-serif",
           "scope": ["FONT_FAMILY"]
         },
         {
           "name": "font/family/display",
           "type": "STRING",
           "css": "var(--font-display)",
-          "value": "Iowan Old Style, New York, Source Serif 4, Georgia, serif",
+          "value": "Darker Grotesque, Hanken Grotesque, system-ui, sans-serif",
+          "scope": ["FONT_FAMILY"]
+        },
+        {
+          "name": "font/family/mono",
+          "type": "STRING",
+          "css": "var(--font-mono)",
+          "value": "Fragment Mono, ui-monospace, monospace",
           "scope": ["FONT_FAMILY"]
         }
       ]
@@ -134,6 +196,13 @@
           "name": "radius/command",
           "type": "FLOAT",
           "css": "var(--radius-command)",
+          "value": 18,
+          "scope": ["CORNER_RADIUS"]
+        },
+        {
+          "name": "radius/card",
+          "type": "FLOAT",
+          "css": "var(--radius-card)",
           "value": 20,
           "scope": ["CORNER_RADIUS"]
         }
