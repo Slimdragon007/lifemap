@@ -9,6 +9,15 @@ test.describe("real-auth login screen", () => {
   }) => {
     await page.goto("/");
 
+    if (
+      await page
+        .getByRole("button", { name: "Login as Alex Kim" })
+        .isVisible()
+        .catch(() => false)
+    ) {
+      test.skip(true, "Supabase env is not configured for the real-auth server");
+    }
+
     await expect(
       page.getByRole("heading", { name: "Welcome back." }),
     ).toBeVisible();

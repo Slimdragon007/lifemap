@@ -1,24 +1,16 @@
 import {
-  Bell,
-  CalendarHeart,
   Check,
-  ChevronDown,
   ChevronRight,
-  MessageCircle,
+  Files,
+  Lightbulb,
   Plus,
   RefreshCw,
 } from "lucide-react";
-import { useState } from "react";
-import { ThemeToggle } from "./ThemeToggle";
-import { STARTER_LIFE_AREAS, getSetupLifeArea } from "./lifeAreas";
 import type { BriefPriority, DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
 import type { RecommendedBucket, SetupProfile } from "./setupBuckets";
 import type { ViewerIdentity } from "./viewer";
-import type { FamilyMember } from "./familyOS";
-import { memberAccent } from "./familyToday";
-import { dateCategoryMeta } from "./dateCategories";
-import { relativeDayLabel, type UpcomingDate } from "./importantDates";
+import type { UpcomingDate } from "./importantDates";
 
 type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
 type PriorityActionState = "completed" | "snoozed";
@@ -30,37 +22,20 @@ type TodayViewProps = {
   approvalCount: number;
   status: BriefStatus;
   error?: string;
-  captureExamples: Array<{ label: string; rawIntake: string }>;
   upcomingDates: UpcomingDate[];
   priorityActionStates: Partial<Record<string, PriorityActionState>>;
   setupBuckets: RecommendedBucket[];
   setupProfile: SetupProfile;
   onGenerateBrief: () => void;
-  onOpenBrief: () => void;
   onOpenBrainDump: (rawIntake?: string) => void;
-  onOpenFeedback: () => void;
+  onOpenCabinet: () => void;
   onOpenFamilyMap: () => void;
   onOpenImportantDates: () => void;
   onOpenSetup: () => void;
   onOpenSetupBucket: (bucket: RecommendedBucket) => void;
-  onOpenApprovals: () => void;
   onOpenPriority: (priority: BriefPriority) => void;
   onTogglePriorityDone: (id: string) => void;
-  // Family-first home (optional: absent = the classic calm-spine Today).
-  familyMembers?: FamilyMember[];
-  onOpenMember?: (member: FamilyMember) => void;
-  onAddMember?: () => void;
 };
-
-const COACH_KEY = "lm-coach-seen";
-
-function readCoachSeen(): boolean {
-  try {
-    return localStorage.getItem(COACH_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
 
 function TodayView({
   brief,
@@ -69,50 +44,12 @@ function TodayView({
   status,
   error,
   priorityActionStates,
-  setupBuckets,
-  setupProfile,
-  upcomingDates,
   onGenerateBrief,
-  onOpenBrief,
   onOpenBrainDump,
-  onOpenFeedback,
-  onOpenImportantDates,
-  onOpenSetup,
-  onOpenSetupBucket,
-  onOpenApprovals,
   onOpenPriority,
   onTogglePriorityDone,
-  familyMembers,
-  onOpenMember,
-  onAddMember,
 }: TodayViewProps) {
-  const [showMore, setShowMore] = useState(false);
-  const [showNeedsRest, setShowNeedsRest] = useState(false);
-  const [coachSeen, setCoachSeen] = useState(readCoachSeen);
-
-  // Family-first: only render the member row when App supplies people. Tapping an
-  // avatar opens that person's profile (MemberProfileView), so Today just lists
-  // the people; their stuff lives on the profile.
-  const members = familyMembers ?? [];
-
-  function dismissCoach() {
-    try {
-      localStorage.setItem(COACH_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-    setCoachSeen(true);
-  }
-
-  // No real priorities yet -> first-run/empty state. Reuse this signal (rather
-  // than re-deriving "real vs seeded data") to surface a persistent, always-
-  // available "add your first thing" CTA, independent of the one-time coach.
   const isEmptyBrief = brief.topPriorities.length === 0;
-
-  // Calm home: the coach only greets a genuinely empty first-run account (no
-  // people, no priorities). Once there is anything to show, it stays out of the
-  // way so Today never reads as a wall.
-  const showCoach = !coachSeen && members.length === 0 && isEmptyBrief;
 
   const topPriorities =
     brief.topPriorities.length > 0
@@ -121,67 +58,28 @@ function TodayView({
           {
             id: "capture-empty",
             label: "Capture something messy",
-            reason: "LifeMap will turn it into your next calm move.",
+            reason: "Your map will turn it into the next calm move.",
           },
         ];
 
-  // One thing in focus; the rest folds behind a quiet line until asked.
   const focusPriority = topPriorities[0];
-  const restPriorities = topPriorities.slice(1);
-  const restCount = restPriorities.length;
-
-  // "Handled today" — quiet, filed rows that need nothing from you right now.
-  // Open loops first (waiting on clarity), then the items that can wait.
-  const extras = [
-    ...brief.openLoops.map((loop) => ({
-      id: loop.id,
-      label: loop.label,
-      detail: loop.blockedBy,
-      when: "waiting",
-    })),
-    ...brief.canWait.map((item) => ({
-      id: item.id,
-      label: item.label,
-      detail: item.reason,
-      when: "later",
-    })),
-  ];
-
-  // "Your LifeMap" area tiles — kept on Today (Slim likes the icon tiles for
-  // picking a capture area). Icons come from the shared mapping in lifeAreas.ts.
-  const lifeAreas =
-    setupBuckets.length > 0
-      ? setupBuckets.map((bucket) => ({
-          ...getSetupLifeArea(bucket, setupProfile),
-          isLit: true,
-          onClick: () => onOpenSetupBucket(bucket),
-        }))
-      : STARTER_LIFE_AREAS.map((area) => ({
-          ...area,
-          isLit: false,
-          onClick: onOpenSetup,
-        }));
 
   const doneCount = topPriorities.filter(
     (priority) => priorityActionStates[priority.id] === "completed",
   ).length;
-  const litCount = lifeAreas.filter((area) => area.isLit).length;
 
-  // Calm reassurance, never a task to dread. The single focus item below carries
-  // "what to do"; the greeting only sets a settled tone.
   const statusLine =
     doneCount > 0
       ? `${doneCount} of ${topPriorities.length} handled.`
       : approvalCount > 0
         ? `${approvalCount} waiting, whenever you're ready.`
-        : "You're handled. Nothing urgent.";
+        : "Drop the loose stuff here. It will get sorted.";
 
   return (
     <section
-      className="workspace today-workspace atlas-today calm-today"
+      className="workspace today-workspace atlas-today calm-today home-flow"
       aria-labelledby="today-title"
     >
-      {/* ── Section 1 · Greeting / status ─────────────────────────────── */}
       <header className="atlas-header calm-greeting">
         <div className="atlas-brand-line">
           <h1 className="atlas-eyebrow calm-today-label" id="today-title">
@@ -190,7 +88,7 @@ function TodayView({
           <div className="atlas-header-actions" aria-label="Today controls">
             <button
               aria-label="Refresh Daily Brief"
-              className="atlas-icon-button"
+              className="home-refresh-button"
               type="button"
               disabled={status === "loading"}
               onClick={onGenerateBrief}
@@ -198,340 +96,96 @@ function TodayView({
               {status === "loading" ? (
                 <span className="spinner" aria-hidden="true" />
               ) : (
-                <RefreshCw size={15} />
+                <RefreshCw size={13} />
               )}
+              <span>Update</span>
             </button>
-            <button
-              aria-label="Review notifications"
-              className="atlas-icon-button atlas-notification-button"
-              type="button"
-              onClick={onOpenApprovals}
-            >
-              <Bell size={15} />
-              {approvalCount > 0 ? <span aria-hidden="true" /> : null}
-            </button>
-            <button
-              aria-label="Send feedback"
-              className="atlas-icon-button"
-              type="button"
-              onClick={onOpenFeedback}
-            >
-              <MessageCircle size={15} />
-            </button>
-            <ThemeToggle />
             <span className="atlas-avatar" aria-label={identity.name}>
               {identity.initials}
             </span>
           </div>
         </div>
         <div className="calm-greeting-copy">
-          <p className="calm-greeting-title">Hello, {identity.name}</p>
+          <p className="calm-greeting-title">
+            One thing at a time.
+          </p>
           <p className="calm-status-line">{statusLine}</p>
         </div>
       </header>
 
-      {members.length > 0 ? (
+      <div className="home-flow-stack">
         <section
-          className="calm-section calm-family"
-          aria-labelledby="family-title"
+          className="home-focus-card home-focus-hero"
+          aria-labelledby="focus-title"
         >
-          <div className="atlas-trunk-head">
-            <span className="atlas-eyebrow" id="family-title">
-              Who is this for?
-            </span>
+          <div className="home-focus-icon" aria-hidden="true">
+            <Lightbulb size={21} />
           </div>
-          <div className="calm-family-row">
-            {members.map((member) => (
-              <button
-                key={member.id}
-                type="button"
-                className="calm-person"
-                aria-label={`Open ${member.name}'s profile`}
-                onClick={() => onOpenMember?.(member)}
-              >
-                <span
-                  className={`calm-av calm-av-${memberAccent(member.id)}`}
-                  aria-hidden="true"
-                >
-                  {member.initials}
-                </span>
-                <span className="calm-person-name">{member.name}</span>
-              </button>
-            ))}
+          <div className="home-focus-copy">
+            <span className="atlas-eyebrow">One thing</span>
+            <h2 id="focus-title">{focusPriority.label}</h2>
+            <p>{focusPriority.reason}</p>
+          </div>
+          <div className="home-focus-actions">
             <button
+              className="home-focus-primary"
+              aria-label={
+                isEmptyBrief
+                  ? "Start here"
+                  : `Open priority ${focusPriority.label}`
+              }
               type="button"
-              className="calm-person calm-person-add"
-              aria-label="Add a family member"
-              onClick={() => onAddMember?.()}
+              onClick={() =>
+                isEmptyBrief ? onOpenBrainDump() : onOpenPriority(focusPriority)
+              }
             >
-              <span className="calm-av calm-av-add" aria-hidden="true">
-                <Plus size={20} />
-              </span>
-              <span className="calm-person-name">Add</span>
-            </button>
-          </div>
-        </section>
-      ) : null}
-
-      <div className="lowstim-today calm-spine">
-        {showCoach ? (
-          <section className="calm-coach" aria-label="Getting started">
-            <span className="atlas-eyebrow">New here?</span>
-            <p className="calm-coach-lead">
-              LifeMap turns the mental load off your plate.
-            </p>
-            <ul className="calm-coach-steps">
-              <li>
-                Tap <strong>Add</strong> to dump anything — the AI sorts it
-              </li>
-              <li>The AI sorts it into calendar, vault &amp; reminders</li>
-              <li>You only see what needs your yes</li>
-            </ul>
-            <div className="calm-coach-actions">
-              <button
-                className="calm-coach-cta"
-                type="button"
-                onClick={() => {
-                  dismissCoach();
-                  onOpenBrainDump();
-                }}
-              >
-                Capture your first thing
-                <ChevronRight size={15} />
-              </button>
-              <button
-                className="calm-coach-dismiss"
-                type="button"
-                onClick={dismissCoach}
-              >
-                Got it
-              </button>
-            </div>
-          </section>
-        ) : null}
-
-        {/* ── Section 2 · Needs you ───────────────────────────────────── */}
-        <section
-          className="calm-section calm-needs"
-          aria-labelledby="needs-title"
-        >
-          <div className="atlas-trunk-head">
-            <span className="atlas-eyebrow" id="needs-title">
-              {isEmptyBrief ? "Needs you" : "One thing, when you're ready"}
-            </span>
-          </div>
-          <h2 className="sr-only">Top Priorities</h2>
-          <div className="atlas-trunk">
-            <span className="atlas-spine" aria-hidden="true" />
-            {(showNeedsRest ? topPriorities : [focusPriority]).map(
-              (priority, index) => {
-                const isDone =
-                  priorityActionStates[priority.id] === "completed";
-                const isNeeds = index === 0 && !isDone;
-                const className = [
-                  "atlas-task",
-                  isNeeds ? "needs" : "",
-                  isDone ? "done" : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ");
-                return (
-                  <div className={className} key={priority.id}>
-                    <button
-                      aria-label={
-                        isDone
-                          ? `Mark ${priority.label} not done`
-                          : `Check off ${priority.label}`
-                      }
-                      aria-pressed={isDone}
-                      className="atlas-node"
-                      type="button"
-                      onClick={() => onTogglePriorityDone(priority.id)}
-                    >
-                      {isDone ? <Check size={13} strokeWidth={3} /> : null}
-                    </button>
-                    <button
-                      aria-label={`Open priority ${priority.label}`}
-                      className="atlas-task-card"
-                      type="button"
-                      onClick={() => onOpenPriority(priority)}
-                    >
-                      <span className="atlas-task-text">{priority.label}</span>
-                      {isNeeds ? (
-                        <span className="atlas-needs-pill">Needs you</span>
-                      ) : null}
-                    </button>
-                  </div>
-                );
-              },
-            )}
-          </div>
-
-          {isEmptyBrief ? (
-            <button
-              className="calm-first-add"
-              type="button"
-              onClick={() => onOpenBrainDump()}
-            >
-              <Plus size={16} />
-              <span>Add your first thing</span>
+              {isEmptyBrief ? "Start here" : "Open"}
               <ChevronRight size={15} />
             </button>
-          ) : null}
-
-          {restCount > 0 || approvalCount > 0 ? (
-            <button
-              aria-expanded={showNeedsRest}
-              className="calm-rest-link"
-              type="button"
-              onClick={() => setShowNeedsRest((value) => !value)}
-            >
-              <span>
-                {showNeedsRest
-                  ? "Show less"
-                  : [
-                      restCount > 0 ? `${restCount} more` : null,
-                      approvalCount > 0
-                        ? `${approvalCount} waiting for your yes`
-                        : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-              </span>
-              <ChevronRight size={15} />
-            </button>
-          ) : null}
-
-          {showNeedsRest && approvalCount > 0 ? (
-            <button
-              className="calm-approvals-opener"
-              type="button"
-              onClick={onOpenApprovals}
-            >
-              <span>Review {approvalCount} waiting for your yes</span>
-              <ChevronRight size={15} />
-            </button>
-          ) : null}
-        </section>
-
-        {/* ── Section · Upcoming important dates ──────────────────────── */}
-        <section
-          className="calm-section calm-upcoming"
-          aria-labelledby="upcoming-title"
-        >
-          <div className="atlas-trunk-head">
-            <span className="atlas-eyebrow" id="upcoming-title">
-              Upcoming
-            </span>
-          </div>
-          {upcomingDates.length > 0 ? (
-            <ul className="calm-upcoming-list">
-              {upcomingDates.map(({ event, daysUntil }) => {
-                const Icon = dateCategoryMeta(
-                  event.eventCategory ?? "custom",
-                ).icon;
-                return (
-                  <li key={event.id} className="calm-upcoming-row">
-                    <span className="calm-upcoming-icon">
-                      <Icon size={16} />
-                    </span>
-                    <span className="calm-upcoming-copy">
-                      <span className="calm-upcoming-text">{event.title}</span>
-                      <span className="calm-upcoming-meta">
-                        {relativeDayLabel(daysUntil)}
-                        {event.owner ? ` · ${event.owner}` : ""}
-                      </span>
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="calm-upcoming-empty">
-              No dates coming up. Add one you never want to forget.
-            </p>
-          )}
-          <button
-            className="calm-upcoming-add"
-            type="button"
-            onClick={onOpenImportantDates}
-          >
-            <Plus size={15} />
-            <span>Add a date</span>
-            <CalendarHeart size={14} aria-hidden="true" />
-          </button>
-        </section>
-
-        {/* ── Section 3 · Handled today ───────────────────────────────── */}
-        <section
-          className="calm-section calm-handled"
-          aria-labelledby="handled-title"
-        >
-          <div className="atlas-trunk-head">
-            <span className="atlas-eyebrow" id="handled-title">
-              Handled today
-            </span>
-            {litCount > 0 ? (
-              <span className="atlas-progress">
-                {litCount} of {lifeAreas.length} areas active
-              </span>
+            {!isEmptyBrief ? (
+              <button
+                aria-label={
+                  priorityActionStates[focusPriority.id] === "completed"
+                    ? `Mark ${focusPriority.label} not done`
+                    : `Check off ${focusPriority.label}`
+                }
+                aria-pressed={
+                  priorityActionStates[focusPriority.id] === "completed"
+                }
+                className="home-focus-check"
+                type="button"
+                onClick={() => onTogglePriorityDone(focusPriority.id)}
+              >
+                <Check size={15} />
+              </button>
             ) : null}
           </div>
+        </section>
 
-          {extras.length > 0 ? (
-            <>
-              <button
-                aria-expanded={showMore}
-                className={`lowstim-showmore${showMore ? " open" : ""}`}
-                type="button"
-                onClick={() => setShowMore((value) => !value)}
-              >
-                <span>
-                  {showMore
-                    ? "Show less"
-                    : `Show ${extras.length} more this week`}
-                </span>
-                <ChevronDown className="lowstim-chev" size={14} />
-              </button>
-              <div className="lowstim-more" hidden={!showMore}>
-                <div className="lowstim-list">
-                  {extras.map((item) => (
-                    <button
-                      className="lowstim-item lowstim-item-quiet"
-                      key={item.id}
-                      type="button"
-                      onClick={onOpenBrief}
-                    >
-                      <span className="lowstim-when">{item.when}</span>
-                      <span className="lowstim-entry">
-                        <span className="lowstim-text">{item.label}</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          ) : null}
-
-          <div className="atlas-branch-panel">
-            <div className="atlas-branch">
-              <span className="atlas-branch-line" aria-hidden="true" />
-              {lifeAreas.map(({ id, label, icon: Icon, isLit, onClick }) => (
-                <button
-                  className={`atlas-station${isLit ? " lit" : ""}`}
-                  key={id}
-                  type="button"
-                  onClick={onClick}
-                >
-                  <span className="atlas-station-dot">
-                    <Icon size={17} />
-                  </span>
-                  <strong>{label}</strong>
-                  <span>{isLit ? "On your map" : "Set up"}</span>
-                </button>
-              ))}
-            </div>
+        <section
+          className="home-blender home-drop-compact"
+          aria-labelledby="blender-title"
+        >
+          <div className="home-blender-mark" aria-hidden="true">
+            <Files size={22} />
           </div>
+          <div className="home-blender-copy">
+            <span className="atlas-eyebrow">Smart drop</span>
+            <h2 id="blender-title">Drop anything here.</h2>
+            <p>
+              A file, text, screenshot, travel note, vaccine card, or school
+              email. LifeMap sorts it before anything acts.
+            </p>
+          </div>
+          <button
+            className="home-blender-button"
+            type="button"
+            onClick={() => onOpenBrainDump()}
+          >
+            <Plus size={16} />
+            Drop a thought or file
+            <ChevronRight size={15} />
+          </button>
         </section>
 
         <BriefNotice

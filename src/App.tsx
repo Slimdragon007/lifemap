@@ -14,10 +14,9 @@ import {
   Map,
   ListChecks,
   MessageSquare,
-  Plus,
+  Settings,
   Sparkles,
   Send,
-  Settings,
   ShieldCheck,
   Trash2,
   UserRoundCheck,
@@ -69,6 +68,7 @@ import { sampleCollections } from "./sampleData";
 import {
   buildCalendarEventsFromAnalysis,
   buildVaultItemsFromAnalysis,
+  type DateCategory,
   type FamilyEvent,
   type FamilyMember,
   type VaultItem,
@@ -93,9 +93,9 @@ import TodayView from "./TodayView";
 import VaultView, { AddDocumentModal } from "./VaultView";
 import ImportantDatesView, { AddDateModal } from "./ImportantDatesView";
 import { AddPersonModal } from "./add-person-modal";
-import { AddActionSheet, type QuickAddKind } from "./add-action-sheet";
 import { DOCUMENT_TYPES } from "./documentTypes";
 import { upcomingDates } from "./importantDates";
+import { memberAccent, memberStuff } from "./familyToday";
 import EmptyState from "./empty-state";
 import {
   loadRemoteState,
@@ -228,6 +228,7 @@ type AppView =
   | "dates"
   | "review"
   | "more"
+  | "settings"
   | "family"
   | "member"
   | "setup"
@@ -305,9 +306,27 @@ function setupProfileFromOnboardingAreas(areas: string[]): SetupProfile {
   return { ...defaultSetupProfile, focusAreas, travels, pets };
 }
 
+function restoredAnalyzeStatus(
+  intake: string | undefined,
+  analysis: LifeMapAnalysis,
+): "idle" | "success" {
+  const hasIntake = (intake ?? "").trim().length > 0;
+  const hasAnalysis =
+    analysis.dueItems.length > 0 ||
+    analysis.missingInfo.length > 0 ||
+    analysis.waitingOn.length > 0 ||
+    analysis.nextActions.length > 0 ||
+    analysis.reminders.length > 0 ||
+    analysis.draftMessages.length > 0;
+
+  return hasIntake && hasAnalysis ? "success" : "idle";
+}
+
 function App() {
+  const [initialStoredState] = useState(() => loadStoredDemoState());
+  const hasInitialStoredState = Object.keys(initialStoredState).length > 0;
   const [initialState] = useState(() =>
-    initialAppState({ demoMode, stored: loadStoredDemoState() }),
+    initialAppState({ demoMode, stored: initialStoredState }),
   );
   const [isLoggedIn, setIsLoggedIn] = useState(
     initialState.isLoggedIn ?? false,
@@ -382,7 +401,11 @@ function App() {
   const [sendingDraftId, setSendingDraftId] = useState<string>();
   const [analyzeStatus, setAnalyzeStatus] = useState<
     "idle" | "loading" | "success" | "error" | "fallback"
-  >("idle");
+  >(() =>
+    hasInitialStoredState
+      ? restoredAnalyzeStatus(initialState.intake, initialState.analysis)
+      : "idle",
+  );
   const [analyzeError, setAnalyzeError] = useState<string>();
   const [dailyBrief, setDailyBrief] = useState<DailyBrief>(
     initialState.dailyBrief,
@@ -410,9 +433,11 @@ function App() {
   const [remoteLoadedFor, setRemoteLoadedFor] = useState<string>();
   // Family-first home: which member's stuff is shown, and the tap-to-add sheet.
   const [selectedMemberId, setSelectedMemberId] = useState<string>();
-  const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [addSheetOwner, setAddSheetOwner] = useState<string>();
   const [quickAdd, setQuickAdd] = useState<"document" | "date" | "person">();
+  const [quickAddDocTypeKey, setQuickAddDocTypeKey] = useState("other");
+  const [quickAddDateCategory, setQuickAddDateCategory] =
+    useState<DateCategory>("custom");
   const {
     session,
     loading: sessionLoading,
@@ -677,8 +702,12 @@ function App() {
     // Remote is authoritative: fields the snapshot omits reset to empty so
     // demo/local state cannot bleed into an authenticated account.
     const full = authoritativeRemoteState(state);
-    setIntake(full.intake ?? "");
-    setMap(full.analysis ?? emptyAnalysis());
+    const nextIntake = full.intake ?? "";
+    const nextAnalysis = full.analysis ?? emptyAnalysis();
+    setIntake(nextIntake);
+    setMap(nextAnalysis);
+    setAnalyzeStatus(restoredAnalyzeStatus(nextIntake, nextAnalysis));
+    setAnalyzeError(undefined);
     setDisabledApprovals(new Set(full.disabledApprovalIds ?? []));
     setApprovalBodyEdits(full.approvalBodyEdits ?? {});
     setSavedSuggestionIds(new Set(full.savedSuggestionIds ?? []));
@@ -1213,22 +1242,6 @@ function App() {
     }));
   }
 
-  // Family-first tap-to-add: the "+" fans out a scoped action sheet; each tile
-  // routes into an existing add flow (document/date/person) or the AI capture.
-  function openAddSheet(owner?: string) {
-    setAddSheetOwner(owner);
-    setAddSheetOpen(true);
-  }
-
-  function handleSheetPick(kind: QuickAddKind) {
-    setAddSheetOpen(false);
-    if (kind === "brainDump") {
-      openCapture();
-      return;
-    }
-    setQuickAdd(kind);
-  }
-
   // Tap a member avatar -> their profile. Scope subsequent adds (document/date)
   // to them by seeding the add owner; the quick-add modals read presetOwner.
   function openMember(member: FamilyMember) {
@@ -1333,10 +1346,10 @@ function App() {
         <div className="ambient-field" aria-hidden="true" />
         <aside
           className="sidebar app-nav-shell"
-          aria-label="LifeMap navigation"
+          aria-label="App navigation"
         >
           <button
-            aria-label="LifeMap home"
+            aria-label="Map home"
             className="brand brand-button"
             type="button"
             onClick={() => setView("today")}
@@ -1344,66 +1357,66 @@ function App() {
             <span className="brand-mark">
               <Map size={20} />
             </span>
-            <span>LifeMap</span>
+            <span>Your map</span>
           </button>
 
           <nav className="nav-list bottom-nav" aria-label="Household sections">
             <button
               className={
-                view === "today" || view === "bucket" || view === "member"
+                view === "vault" || view === "calendar" || view === "dates"
                   ? "nav-item active"
                   : "nav-item"
+              }
+              type="button"
+              onClick={() => setView("vault")}
+            >
+              <Archive size={18} />
+              <span>Cabinet</span>
+            </button>
+            <button
+              className={view === "review" ? "nav-item active" : "nav-item"}
+              type="button"
+              onClick={() => setView("review")}
+            >
+              <CheckCircle2 size={18} />
+              <span>Review</span>
+            </button>
+            <button
+              className={
+                view === "today" || view === "bucket" || view === "member"
+                  ? "nav-item nav-item-primary active"
+                  : "nav-item nav-item-primary"
               }
               type="button"
               onClick={() => setView("today")}
             >
               <Sparkles size={18} />
-              <span>Today</span>
-            </button>
-            <button
-              aria-label={addSheetOpen ? "Close add menu" : "Add"}
-              aria-expanded={addSheetOpen}
-              className={
-                addSheetOpen || view === "capture"
-                  ? "nav-capture-button active"
-                  : "nav-capture-button"
-              }
-              type="button"
-              onClick={() =>
-                addSheetOpen
-                  ? setAddSheetOpen(false)
-                  : openAddSheet(
-                      (
-                        collections.familyMembers.find(
-                          (member) => member.id === selectedMemberId,
-                        ) ?? collections.familyMembers[0]
-                      )?.name,
-                    )
-              }
-            >
-              {addSheetOpen ? <X size={22} /> : <Plus size={22} />}
-              <span>Add</span>
+              <span>Home</span>
             </button>
             <button
               className={
-                // Settings is the home for every non-primary surface: its own
-                // hub plus the views demoted out of the bottom-nav (Calendar,
-                // Vault, Review) and the founder tools reached through it.
                 view === "more" ||
-                view === "calendar" ||
-                view === "vault" ||
-                view === "dates" ||
-                view === "review" ||
                 view === "family" ||
                 view === "setup" ||
                 view === "launchPlan" ||
-                view === "privacy" ||
                 view === "howItWorks"
                   ? "nav-item active"
                   : "nav-item"
               }
               type="button"
               onClick={() => setView("more")}
+            >
+              <UsersRound size={18} />
+              <span>Family</span>
+            </button>
+            <button
+              className={
+                view === "settings" || view === "privacy"
+                  ? "nav-item active"
+                  : "nav-item"
+              }
+              type="button"
+              onClick={() => setView("settings")}
             >
               <Settings size={18} />
               <span>Settings</span>
@@ -1453,13 +1466,10 @@ function App() {
             setupBuckets={activeSetupBuckets}
             setupProfile={setupProfile}
             status={briefStatus}
-            captureExamples={sampleIntakes}
             upcomingDates={todayUpcomingDates}
             onGenerateBrief={handleGenerateBrief}
-            onOpenFeedback={() => setFeedbackOpen(true)}
-            onOpenApprovals={() => setView("review")}
-            onOpenBrief={() => setIsBriefOpen(true)}
             onOpenBrainDump={openCapture}
+            onOpenCabinet={() => setView("vault")}
             onOpenFamilyMap={() => setView("family")}
             onOpenImportantDates={() => setView("dates")}
             onOpenPriority={setSelectedPriority}
@@ -1469,9 +1479,6 @@ function App() {
               setSelectedSetupBucketId(bucket.id);
               setView("bucket");
             }}
-            familyMembers={collections.familyMembers}
-            onOpenMember={openMember}
-            onAddMember={() => setQuickAdd("person")}
           />
         ) : view === "bucket" && selectedSetupBucket ? (
           <BucketDetailView
@@ -1488,9 +1495,16 @@ function App() {
             vaultItems={collections.vaultItems}
             familyEvents={collections.familyEvents}
             onBack={() => setView("today")}
-            onAddDocument={() => setQuickAdd("document")}
-            onAddDate={() => setQuickAdd("date")}
-            onBrainDump={openCapture}
+            onAddDocument={(docTypeKey = "other") => {
+              setAddSheetOwner(selectedMember.name);
+              setQuickAddDocTypeKey(docTypeKey);
+              setQuickAdd("document");
+            }}
+            onAddDate={(category = "custom") => {
+              setAddSheetOwner(selectedMember.name);
+              setQuickAddDateCategory(category);
+              setQuickAdd("date");
+            }}
           />
         ) : view === "capture" ? (
           <CaptureWorkspace
@@ -1797,7 +1811,7 @@ function App() {
         ) : view === "launchPlan" ? (
           <LaunchPlanView onBack={() => setView("more")} />
         ) : view === "privacy" ? (
-          <PrivacyView onBack={() => setView("more")} />
+          <PrivacyView onBack={() => setView("settings")} />
         ) : view === "howItWorks" ? (
           <HowItWorksView onBack={() => setView("more")} />
         ) : view === "setup" ? (
@@ -1812,8 +1826,9 @@ function App() {
             onOpenVault={() => setView("vault")}
             onProfileChange={setSetupProfile}
           />
-        ) : (
+        ) : view === "settings" ? (
           <MoreView
+            mode="settings"
             isSupabaseConfigured={isSupabaseConfigured}
             sessionEmail={session?.user.email}
             displayName={displayName}
@@ -1829,11 +1844,20 @@ function App() {
             onOpenOnboarding={() => setView("onboarding")}
             onOpenHowItWorks={() => setView("howItWorks")}
             onOpenPrivacy={() => setView("privacy")}
+            onOpenFeedback={() => setFeedbackOpen(true)}
             onResetDemo={handleResetDemo}
             onClearMap={() => {
               void handleClearRealAccount();
             }}
             onSignOut={() => getSupabase().auth.signOut()}
+          />
+        ) : (
+          <FamilyDashboard
+            familyEvents={collections.familyEvents}
+            familyMembers={collections.familyMembers}
+            vaultItems={collections.vaultItems}
+            onAddMember={() => setQuickAdd("person")}
+            onOpenMember={openMember}
           />
         )}
       </main>
@@ -1894,37 +1918,39 @@ function App() {
           onClose={() => setFeedbackOpen(false)}
         />
       ) : null}
-      {addSheetOpen ? (
-        <AddActionSheet
-          owner={addSheetOwner}
-          onPick={handleSheetPick}
-          onClose={() => setAddSheetOpen(false)}
-        />
-      ) : null}
       {quickAdd === "document" ? (
         <AddDocumentModal
           docType={
+            DOCUMENT_TYPES.find((type) => type.key === quickAddDocTypeKey) ??
             DOCUMENT_TYPES.find((type) => type.key === "other") ??
             DOCUMENT_TYPES[0]
           }
           familyMembers={collections.familyMembers}
           presetOwner={addSheetOwner}
-          onClose={() => setQuickAdd(undefined)}
+          onClose={() => {
+            setQuickAdd(undefined);
+            setQuickAddDocTypeKey("other");
+          }}
           onSave={(item) => {
             handleAddDocument(item);
             setQuickAdd(undefined);
+            setQuickAddDocTypeKey("other");
           }}
         />
       ) : null}
       {quickAdd === "date" ? (
         <AddDateModal
-          category="custom"
+          category={quickAddDateCategory}
           familyMembers={collections.familyMembers}
           presetOwner={addSheetOwner}
-          onClose={() => setQuickAdd(undefined)}
+          onClose={() => {
+            setQuickAdd(undefined);
+            setQuickAddDateCategory("custom");
+          }}
           onSave={(event) => {
             handleSaveImportantDate(event);
             setQuickAdd(undefined);
+            setQuickAddDateCategory("custom");
           }}
         />
       ) : null}
@@ -2046,8 +2072,8 @@ function CaptureWorkspace({
           </button>
         </div>
         <p className="notebook-sub">
-          Drop the messy stuff. LifeMap sorts it into next moves, calendar
-          items, private records, and approval-gated messages.
+          Drop the messy stuff. It gets sorted into next moves, calendar items,
+          private records, and approval-gated messages.
         </p>
       </header>
 
@@ -2306,7 +2332,92 @@ function pluralize(label: string, count: number) {
   return count === 1 ? label : `${label}s`;
 }
 
+function FamilyDashboard({
+  familyMembers,
+  familyEvents,
+  vaultItems,
+  onAddMember,
+  onOpenMember,
+}: {
+  familyMembers: FamilyMember[];
+  familyEvents: FamilyEvent[];
+  vaultItems: VaultItem[];
+  onAddMember: () => void;
+  onOpenMember: (member: FamilyMember) => void;
+}) {
+  const now = new Date();
+
+  return (
+    <section
+      className="workspace more-workspace family-dashboard"
+      aria-labelledby="family-dashboard-title"
+    >
+      <header className="topbar compact-topbar family-dashboard-header">
+        <div>
+          <span className="workspace-kicker">
+            <UsersRound size={14} />
+            Household dashboard
+          </span>
+          <h1 id="family-dashboard-title">Family</h1>
+          <p>Choose the person, pet, or household profile you need.</p>
+        </div>
+      </header>
+
+      <div className="family-dashboard-stack">
+        <section
+          className="family-dashboard-panel family-members-panel"
+          aria-labelledby="family-members-title"
+        >
+          <div className="family-dashboard-section-head">
+            <div>
+              <span>Start here</span>
+              <h2 id="family-members-title">Who do you need?</h2>
+            </div>
+            <button type="button" onClick={onAddMember}>
+              Add person
+            </button>
+          </div>
+
+          <div className="family-member-grid">
+            {familyMembers.map((member) => {
+              const stuff = memberStuff(member, vaultItems, familyEvents, now);
+              return (
+                <button
+                  aria-label={`Open ${member.name}'s profile`}
+                  className="family-member-card"
+                  key={member.id}
+                  type="button"
+                  onClick={() => onOpenMember(member)}
+                >
+                  <span
+                    className={`calm-av calm-av-${memberAccent(member.id)}`}
+                    aria-hidden="true"
+                  >
+                    {member.initials}
+                  </span>
+                  <span className="family-member-copy">
+                    <strong>{member.name}</strong>
+                    <span>{member.role}</span>
+                    <small>
+                      {stuff.documents.length}{" "}
+                      {pluralize("record", stuff.documents.length)} ·{" "}
+                      {stuff.dates.length} {pluralize("date", stuff.dates.length)}
+                    </small>
+                  </span>
+                  <span className="family-member-meta">Open</span>
+                  <ChevronRight size={16} aria-hidden="true" />
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+    </section>
+  );
+}
+
 function MoreView({
+  mode,
   isSupabaseConfigured,
   sessionEmail,
   displayName = "",
@@ -2322,10 +2433,12 @@ function MoreView({
   onOpenOnboarding,
   onOpenHowItWorks,
   onOpenPrivacy,
+  onOpenFeedback,
   onResetDemo,
   onClearMap,
   onSignOut,
 }: {
+  mode: "family" | "settings";
   isSupabaseConfigured: boolean;
   sessionEmail?: string;
   displayName?: string;
@@ -2341,65 +2454,159 @@ function MoreView({
   onOpenOnboarding: () => void;
   onOpenHowItWorks: () => void;
   onOpenPrivacy: () => void;
+  onOpenFeedback: () => void;
   onResetDemo: () => void;
   onClearMap?: () => void;
   onSignOut: () => void;
 }) {
   const [clearMapConfirmOpen, setClearMapConfirmOpen] = useState(false);
+  const isSettings = mode === "settings";
   return (
     <section className="workspace more-workspace" aria-labelledby="more-title">
       <header className="topbar compact-topbar">
         <div>
           <span className="workspace-kicker">
-            <Map size={14} />
-            LifeMap settings
+            {isSettings ? <Settings size={14} /> : <UsersRound size={14} />}
+            {isSettings ? "Preferences" : "Household view"}
           </span>
-          <h1 id="more-title">Settings</h1>
-          <p>Account, privacy, setup, and founder tools.</p>
+          <h1 id="more-title">{isSettings ? "Settings" : "Family"}</h1>
+          <p>
+            {isSettings
+              ? "Theme, account, privacy, and safety controls."
+              : "View the people, records, dates, and setup that shape your household map."}
+          </p>
         </div>
       </header>
 
       <div className="more-list">
-        <section
-          aria-labelledby="more-appearance-title"
-          className="more-section"
-        >
-          <div className="more-section-heading">
-            <span>Appearance</span>
-            <h2 id="more-appearance-title">Theme</h2>
-            <p>Dark by default, or switch to the high-contrast light theme.</p>
-          </div>
-          <div className="more-appearance-row">
-            <span className="more-row-copy">
-              <strong>Light / Dark</strong>
-              <span>Tap to toggle the app theme.</span>
-            </span>
-            <ThemeToggle />
-          </div>
-          {isSupabaseConfigured && sessionEmail && onSetName ? (
-            <div className="settings-name-field">
-              <label htmlFor="settings-name-input">Your name</label>
-              <input
-                id="settings-name-input"
-                type="text"
-                value={displayName}
-                placeholder="What should we call you?"
-                onChange={(e) => onSetName(e.target.value)}
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <span>Used for your greeting.</span>
+        {isSettings ? (
+          <section
+            aria-labelledby="more-appearance-title"
+            className="more-section"
+          >
+            <div className="more-section-heading">
+              <span>Appearance</span>
+              <h2 id="more-appearance-title">Theme</h2>
+              <p>Light by default, with dark mode available when you want it.</p>
             </div>
-          ) : null}
-        </section>
+            <div className="more-appearance-row">
+              <span className="more-row-copy">
+                <strong>Light / Dark</strong>
+                <span>Tap to toggle the app theme.</span>
+              </span>
+              <ThemeToggle />
+            </div>
+            {isSupabaseConfigured && sessionEmail && onSetName ? (
+              <div className="settings-name-field">
+                <label htmlFor="settings-name-input">Your name</label>
+                <input
+                  id="settings-name-input"
+                  type="text"
+                  value={displayName}
+                  placeholder="What should we call you?"
+                  onChange={(e) => onSetName(e.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <span>Used for your greeting.</span>
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+        {isSettings ? (
+          <section aria-labelledby="more-setup-title" className="more-section">
+            <div className="more-section-heading">
+              <span>Setup</span>
+              <h2 id="more-setup-title">App setup and tools</h2>
+              <p>Tour, household setup, and advanced prototype tools.</p>
+            </div>
+            <button
+              aria-label="Open how LifeMap works"
+              className="more-row"
+              type="button"
+              onClick={onOpenHowItWorks}
+            >
+              <span className="more-row-icon">
+                <Map size={18} />
+              </span>
+              <span className="more-row-copy">
+                <strong>How LifeMap works</strong>
+                <span>The loop in three steps, plus what each tab is for.</span>
+              </span>
+              <ChevronRight className="more-row-chevron" size={18} />
+            </button>
+            <button
+              aria-label="Open guided setup"
+              className="more-row"
+              type="button"
+              onClick={onOpenSetup}
+            >
+              <span className="more-row-icon">
+                <UsersRound size={18} />
+              </span>
+              <span className="more-row-copy">
+                <strong>Guided setup</strong>
+                <span>Pick family, pets, records, travel, and logistics.</span>
+              </span>
+              <ChevronRight className="more-row-chevron" size={18} />
+            </button>
+            <button
+              aria-label="Replay the welcome tour"
+              className="more-row"
+              type="button"
+              onClick={onOpenOnboarding}
+            >
+              <span className="more-row-icon">
+                <Sparkles size={18} />
+              </span>
+              <span className="more-row-copy">
+                <strong>Welcome tour</strong>
+                <span>Replay the first-run walkthrough.</span>
+              </span>
+              <ChevronRight className="more-row-chevron" size={18} />
+            </button>
+            <button
+              aria-label="Open family admin map"
+              className="more-row"
+              type="button"
+              onClick={onOpenFamilyMap}
+            >
+              <span className="more-row-icon">
+                <Sparkles size={18} />
+              </span>
+              <span className="more-row-copy">
+                <strong>Family admin map</strong>
+                <span>Advanced extraction workspace for QA and demos.</span>
+              </span>
+              <ChevronRight className="more-row-chevron" size={18} />
+            </button>
+            <button
+              aria-label="Open launch plan"
+              className="more-row"
+              type="button"
+              onClick={onOpenLaunchPlan}
+            >
+              <span className="more-row-icon">
+                <ListChecks size={18} />
+              </span>
+              <span className="more-row-copy">
+                <strong>Launch Plan</strong>
+                <span>Founder readiness checklist and demo progress.</span>
+              </span>
+              <ChevronRight className="more-row-chevron" size={18} />
+            </button>
+          </section>
+        ) : null}
+        {!isSettings ? (
+          <>
         <section
           aria-labelledby="more-start-title"
           className="more-section more-section-primary"
         >
           <div className="more-section-heading">
-            <span>Keep building</span>
-            <h2 id="more-start-title">Your map</h2>
-            <p>Set up real-life buckets or add another brain dump.</p>
+            <span>Whole household</span>
+            <h2 id="more-start-title">Family map</h2>
+            <p>See and shape the people, pets, records, and dates LifeMap carries.</p>
           </div>
           <button
             aria-label="Open how LifeMap works"
@@ -2452,8 +2659,8 @@ function MoreView({
 
         <section aria-labelledby="more-build-title" className="more-section">
           <div className="more-section-heading">
-            <span>Capture</span>
-            <h2 id="more-build-title">Add context</h2>
+            <span>Family logistics</span>
+            <h2 id="more-build-title">Shared context</h2>
           </div>
           <button
             aria-label="Open brain dump capture"
@@ -2529,8 +2736,8 @@ function MoreView({
               <Sparkles size={18} />
             </span>
             <span className="more-row-copy">
-              <strong>Founder extraction lab</strong>
-              <span>Legacy full-map workspace for QA and demos.</span>
+              <strong>Family admin map</strong>
+              <span>See the full extracted household map and approvals.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
@@ -2550,8 +2757,11 @@ function MoreView({
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
         </section>
+          </>
+        ) : null}
 
-        <section aria-labelledby="more-account-title" className="more-section">
+        {isSettings ? (
+          <section aria-labelledby="more-account-title" className="more-section">
           <div className="more-section-heading">
             <span>Safety</span>
             <h2 id="more-account-title">Account and privacy</h2>
@@ -2598,6 +2808,21 @@ function MoreView({
             <span className="more-row-copy">
               <strong>Privacy &amp; security</strong>
               <span>How data, AI, and email are handled.</span>
+            </span>
+            <ChevronRight className="more-row-chevron" size={18} />
+          </button>
+          <button
+            aria-label="Send feedback"
+            className="more-row"
+            type="button"
+            onClick={onOpenFeedback}
+          >
+            <span className="more-row-icon">
+              <MessageSquare size={18} />
+            </span>
+            <span className="more-row-copy">
+              <strong>Send feedback</strong>
+              <span>Tell the LifeMap team what feels off or missing.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
@@ -2663,6 +2888,7 @@ function MoreView({
             </>
           )}
         </section>
+        ) : null}
       </div>
       {clearMapConfirmOpen && onClearMap ? (
         <ModalBackdrop onClose={() => setClearMapConfirmOpen(false)}>

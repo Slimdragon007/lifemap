@@ -1,5 +1,10 @@
-import { Brain, CalendarPlus, ChevronLeft, FileText } from "lucide-react";
-import type { FamilyEvent, FamilyMember, VaultItem } from "./familyOS";
+import { CalendarPlus, ChevronLeft, FileText } from "lucide-react";
+import type {
+  DateCategory,
+  FamilyEvent,
+  FamilyMember,
+  VaultItem,
+} from "./familyOS";
 import { memberAccent, memberStuff } from "./familyToday";
 import { VAULT_CATEGORY_LABEL } from "./documentTypes";
 import { dateCategoryMeta } from "./dateCategories";
@@ -18,9 +23,8 @@ export type MemberProfileViewProps = {
   vaultItems: VaultItem[];
   familyEvents: FamilyEvent[];
   onBack: () => void;
-  onAddDocument: () => void;
-  onAddDate: () => void;
-  onBrainDump: () => void;
+  onAddDocument: (docTypeKey?: string) => void;
+  onAddDate: (category?: DateCategory) => void;
 };
 
 function MemberProfileView({
@@ -30,7 +34,6 @@ function MemberProfileView({
   onBack,
   onAddDocument,
   onAddDate,
-  onBrainDump,
 }: MemberProfileViewProps) {
   const stuff = memberStuff(member, vaultItems, familyEvents, new Date());
 
@@ -77,44 +80,43 @@ function MemberProfileView({
       </header>
 
       <div className="lowstim-today calm-spine">
-        <section className="calm-section" aria-label="Add to this profile">
+        <section className="calm-section" aria-labelledby="profile-categories-title">
           <div className="atlas-trunk-head">
-            <span className="atlas-eyebrow">What are we adding?</span>
+            <span className="atlas-eyebrow">Profile shelf</span>
+            <h2 id="profile-categories-title">{member.name}&apos;s info</h2>
           </div>
-          <div className="add-sheet-grid">
-            <button
-              type="button"
-              className="add-sheet-tile"
-              onClick={onAddDocument}
-            >
-              <span className="add-sheet-tile-icon" aria-hidden="true">
-                <FileText size={19} />
-              </span>
-              <span className="add-sheet-tile-label">Document</span>
-              <span className="add-sheet-tile-hint">Passport, card…</span>
-            </button>
-            <button
-              type="button"
-              className="add-sheet-tile"
-              onClick={onAddDate}
-            >
-              <span className="add-sheet-tile-icon" aria-hidden="true">
-                <CalendarPlus size={19} />
-              </span>
-              <span className="add-sheet-tile-label">Important date</span>
-              <span className="add-sheet-tile-hint">Birthday, renewal</span>
-            </button>
-            <button
-              type="button"
-              className="add-sheet-tile"
-              onClick={onBrainDump}
-            >
-              <span className="add-sheet-tile-icon" aria-hidden="true">
-                <Brain size={19} />
-              </span>
-              <span className="add-sheet-tile-label">Brain dump</span>
-              <span className="add-sheet-tile-hint">Type anything</span>
-            </button>
+          <div className="member-category-groups">
+            <article className="member-category-group">
+              <div className="member-category-heading">
+                <strong>Health</strong>
+              </div>
+              <div className="member-category-actions">
+                <button type="button" onClick={() => onAddDocument("medical")}>
+                  <FileText size={15} />
+                  Documents
+                </button>
+                <button type="button" onClick={() => onAddDocument("vaccine")}>
+                  <FileText size={15} />
+                  Vaccines
+                </button>
+              </div>
+            </article>
+
+            <article className="member-category-group">
+              <div className="member-category-heading">
+                <strong>School</strong>
+              </div>
+              <div className="member-category-actions">
+                <button type="button" onClick={() => onAddDate("school")}>
+                  <CalendarPlus size={15} />
+                  Test day
+                </button>
+                <button type="button" onClick={() => onAddDate("custom")}>
+                  <CalendarPlus size={15} />
+                  Important dates
+                </button>
+              </div>
+            </article>
           </div>
         </section>
 

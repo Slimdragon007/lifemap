@@ -19,6 +19,13 @@ export type MemberStuff = {
   dates: UpcomingDate[];
 };
 
+function belongsToMember(owner: string, member: FamilyMember) {
+  const normalizedOwner = owner.trim().toLowerCase();
+  const normalizedName = member.name.trim().toLowerCase();
+  const firstName = normalizedName.split(/\s+/)[0];
+  return normalizedOwner === normalizedName || normalizedOwner === firstName;
+}
+
 // Everything that belongs to one member: their vault documents plus the upcoming
 // important dates scoped to them. Whole-family / unowned items stay out of the
 // per-member card by design ("their stuff").
@@ -29,9 +36,9 @@ export function memberStuff(
   now: Date,
 ): MemberStuff {
   return {
-    documents: vaultItems.filter((item) => item.owner === member.name),
+    documents: vaultItems.filter((item) => belongsToMember(item.owner, member)),
     dates: upcomingDates(familyEvents, now, Infinity).filter(
-      (entry) => entry.event.owner === member.name,
+      (entry) => belongsToMember(entry.event.owner, member),
     ),
   };
 }

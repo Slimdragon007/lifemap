@@ -30,7 +30,7 @@ describe("memberStuff", () => {
       id: "d1",
       title: "Passport",
       category: "identity",
-      owner: "Casey Kim",
+      owner: "Casey",
       status: "Current",
       detail: "",
     },
@@ -50,7 +50,7 @@ describe("memberStuff", () => {
       date: "2099-01-01",
       time: "",
       layer: "admin",
-      owner: "Casey Kim",
+      owner: "Casey",
       source: "important-dates",
       eventCategory: "appointment",
     },
@@ -79,5 +79,39 @@ describe("memberStuff", () => {
   it("returns only the member's upcoming dates", () => {
     const { dates } = memberStuff(casey, docs, events, new Date("2098-12-01"));
     expect(dates.map((d) => d.event.id)).toEqual(["e1"]);
+  });
+
+  it("also matches records saved to the member's full name", () => {
+    const { documents, dates } = memberStuff(
+      casey,
+      [
+        ...docs,
+        {
+          id: "d3",
+          title: "School form",
+          category: "school",
+          owner: "Casey Kim",
+          status: "Current",
+          detail: "",
+        },
+      ],
+      [
+        ...events,
+        {
+          id: "e3",
+          title: "Test day",
+          date: "2099-01-03",
+          time: "",
+          layer: "school",
+          owner: "Casey Kim",
+          source: "important-dates",
+          eventCategory: "school",
+        },
+      ],
+      new Date("2098-12-01"),
+    );
+
+    expect(documents.map((d) => d.id)).toEqual(["d1", "d3"]);
+    expect(dates.map((d) => d.event.id)).toEqual(["e1", "e3"]);
   });
 });

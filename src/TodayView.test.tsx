@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import TodayView from "./TodayView";
 import type { DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
-import type { FamilyMember } from "./familyOS";
 import { defaultSetupProfile } from "./setupBuckets";
 
 const emptyBrief: DailyBrief = {
@@ -30,30 +29,21 @@ const emptyMap: LifeMapAnalysis = {
 type TodayOverrides = {
   identity?: { name: string; initials: string };
   approvalCount?: number;
-  onOpenApprovals?: () => void;
   onOpenBrainDump?: () => void;
   brief?: DailyBrief;
-  familyMembers?: FamilyMember[];
-  onOpenMember?: (member: FamilyMember) => void;
-  onAddMember?: () => void;
 };
 
 function renderToday(overrides: TodayOverrides = {}) {
   const {
     identity = { name: "Alex Kim", initials: "AK" },
     approvalCount = 0,
-    onOpenApprovals = vi.fn(),
     onOpenBrainDump = vi.fn(),
     brief = emptyBrief,
-    familyMembers,
-    onOpenMember = vi.fn(),
-    onAddMember = vi.fn(),
   } = overrides;
   render(
     <TodayView
       approvalCount={approvalCount}
       brief={brief}
-      captureExamples={[]}
       identity={identity}
       map={emptyMap}
       priorityActionStates={{}}
@@ -62,43 +52,17 @@ function renderToday(overrides: TodayOverrides = {}) {
       status="idle"
       upcomingDates={[]}
       onGenerateBrief={vi.fn()}
-      onOpenFeedback={vi.fn()}
-      onOpenApprovals={onOpenApprovals}
-      onOpenBrief={vi.fn()}
       onOpenBrainDump={onOpenBrainDump}
+      onOpenCabinet={vi.fn()}
       onOpenFamilyMap={vi.fn()}
       onOpenImportantDates={vi.fn()}
       onOpenPriority={vi.fn()}
       onTogglePriorityDone={vi.fn()}
       onOpenSetup={vi.fn()}
       onOpenSetupBucket={vi.fn()}
-      familyMembers={familyMembers}
-      onOpenMember={onOpenMember}
-      onAddMember={onAddMember}
     />,
   );
 }
-
-const sampleMembers: FamilyMember[] = [
-  {
-    id: "alex",
-    name: "Alex Kim",
-    role: "Parent",
-    initials: "AK",
-    profileType: "adult",
-    details: [],
-    careNotes: [],
-  },
-  {
-    id: "casey",
-    name: "Casey Kim",
-    role: "Grade 4",
-    initials: "CK",
-    profileType: "child",
-    details: [],
-    careNotes: [],
-  },
-];
 
 beforeEach(() => {
   localStorage.clear();
@@ -112,9 +76,10 @@ describe("TodayView identity", () => {
 
     expect(screen.queryByLabelText("Alex Kim")).toBeNull();
     expect(screen.getByLabelText("m.haslim")).toHaveTextContent("MH");
-    // The greeting addresses the real viewer by name, not the demo persona.
+    // Home no longer leads with a fake demo greeting; identity stays tucked in
+    // the avatar.
     expect(
-      screen.getByText(/m\.haslim/, { selector: ".calm-greeting-title" }),
+      screen.getByText("One thing at a time."),
     ).toBeInTheDocument();
   });
 
@@ -125,63 +90,48 @@ describe("TodayView identity", () => {
   });
 });
 
-describe("TodayView Needs you", () => {
-  test("surfaces a visible approval count and routes it to review", async () => {
-    const user = userEvent.setup();
-    const onOpenApprovals = vi.fn();
-    renderToday({ approvalCount: 3, onOpenApprovals });
+describe("TodayView focus flow", () => {
+  test("keeps review out of the Home chrome", () => {
+    renderToday({ approvalCount: 3 });
 
-    // Calm home: the rest folds behind a quiet line. Expand it, then the Review
-    // opener surfaces and routes to approvals.
-    await user.click(
-      screen.getByRole("button", { name: /^3 waiting for your yes$/i }),
-    );
-    await user.click(
-      screen.getByRole("button", { name: /Review 3 waiting for your yes/i }),
-    );
-    expect(onOpenApprovals).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText("3 waiting, whenever you're ready."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Review notifications" }),
+    ).not.toBeInTheDocument();
   });
 
-  test("hides the count and opener when nothing needs a yes", () => {
+  test("does not render old Home review count cards", () => {
     renderToday({ approvalCount: 0 });
 
-    // The section eyebrow drops the parenthetical count at zero.
-    const eyebrow = document.getElementById("needs-title");
-    expect(eyebrow).toHaveTextContent("Needs you");
-    expect(eyebrow?.textContent).not.toMatch(/\(/);
     expect(
-      screen.queryByRole("button", { name: /waiting for your yes/i }),
-    ).toBeNull();
+      screen.queryByText(/waiting for your yes/i),
+    ).not.toBeInTheDocument();
   });
 });
 
-describe("TodayView coach", () => {
-  test("shows the new-user coach on an empty account and routes the CTA to capture", async () => {
+describe("TodayView intake", () => {
+  test("makes the blender the primary capture path", async () => {
     const user = userEvent.setup();
-    localStorage.removeItem("lm-coach-seen");
     const onOpenBrainDump = vi.fn();
     renderToday({ onOpenBrainDump });
 
-    expect(screen.getByText("New here?")).toBeInTheDocument();
-    await user.click(
-      screen.getByRole("button", { name: /Capture your first thing/i }),
-    );
+    expect(screen.getByRole("heading", { name: "Drop anything here." })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Drop a thought or file" }));
     expect(onOpenBrainDump).toHaveBeenCalledTimes(1);
   });
 
-  test("'Got it' dismisses the coach and persists the choice", async () => {
+  test("routes the empty focus card into capture", async () => {
     const user = userEvent.setup();
-    localStorage.removeItem("lm-coach-seen");
-    renderToday();
+    const onOpenBrainDump = vi.fn();
+    renderToday({ onOpenBrainDump });
 
-    expect(screen.getByText("New here?")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Got it" }));
-    expect(screen.queryByText("New here?")).toBeNull();
-    expect(localStorage.getItem("lm-coach-seen")).toBe("1");
+    await user.click(screen.getByRole("button", { name: "Start here" }));
+    expect(onOpenBrainDump).toHaveBeenCalledTimes(1);
   });
 
-  test("stays out of the way once there is anything to show (calm home)", () => {
-    localStorage.removeItem("lm-coach-seen");
+  test("keeps Home focused on one thing and capture, not routing cards or profiles", () => {
     const seededBrief: DailyBrief = {
       ...emptyBrief,
       topPriorities: [
@@ -190,53 +140,23 @@ describe("TodayView coach", () => {
     };
     renderToday({ brief: seededBrief });
 
-    // Calm home: the coach only greets a genuinely empty first-run account, so
-    // a populated brief never adds the orientation block to the wall.
-    expect(screen.queryByText("New here?")).toBeNull();
-  });
-
-  test("stays hidden once dismissed", () => {
-    // beforeEach sets lm-coach-seen="1" — a returning user never sees it again.
-    renderToday();
-    expect(screen.queryByText("New here?")).toBeNull();
-  });
-});
-
-describe("TodayView family-first", () => {
-  test("no family section when App supplies no members", () => {
-    renderToday();
-    expect(screen.queryByText("Who is this for?")).toBeNull();
-  });
-
-  test("lists members as avatars when App supplies people", () => {
-    renderToday({ familyMembers: sampleMembers });
-    expect(screen.getByText("Who is this for?")).toBeInTheDocument();
+    expect(screen.getByText("One thing")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Drop anything here." })).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Open Casey Kim's profile" }),
-    ).toBeInTheDocument();
-  });
-
-  test("tapping a member avatar opens that member's profile", async () => {
-    const user = userEvent.setup();
-    const onOpenMember = vi.fn();
-    renderToday({ familyMembers: sampleMembers, onOpenMember });
-
-    await user.click(
-      screen.getByRole("button", { name: "Open Casey Kim's profile" }),
-    );
-    expect(onOpenMember).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "casey" }),
-    );
-  });
-
-  test("the Add avatar fires onAddMember", async () => {
-    const user = userEvent.setup();
-    const onAddMember = vi.fn();
-    renderToday({ familyMembers: sampleMembers, onAddMember });
-
-    await user.click(
-      screen.getByRole("button", { name: "Add a family member" }),
-    );
-    expect(onAddMember).toHaveBeenCalledTimes(1);
+      screen.queryByRole("heading", { name: "People and pets" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Profiles")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Four calm places." }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Categories stay small." }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Only when you ask." }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/dates tucked into Calendar/i),
+    ).not.toBeInTheDocument();
   });
 });

@@ -69,6 +69,13 @@ export const DOCUMENT_TYPES: DocumentTypeMeta[] = [
     defaultTitle: "Medical record",
   },
   {
+    key: "vaccine",
+    label: "Vaccine record",
+    icon: ShieldPlus,
+    category: "health",
+    defaultTitle: "Vaccine record",
+  },
+  {
     key: "school-form",
     label: "School form",
     icon: GraduationCap,

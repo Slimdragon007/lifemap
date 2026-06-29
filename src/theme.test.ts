@@ -15,16 +15,16 @@ test("getInitialTheme prefers stored value", () => {
   expect(getInitialTheme()).toBe("light");
 });
 
-test("getInitialTheme defaults to dark even when the OS prefers light", () => {
-  // Default is unconditionally dark (high-contrast); OS preference is ignored.
+test("getInitialTheme defaults to light even when the OS prefers dark", () => {
+  // Default is unconditionally light; a saved preference still wins.
   vi.spyOn(window, "matchMedia").mockReturnValue({
     matches: true,
   } as MediaQueryList);
-  expect(getInitialTheme()).toBe("dark");
+  expect(getInitialTheme()).toBe("light");
 });
 
-test("getInitialTheme defaults to dark when nothing is stored", () => {
-  expect(getInitialTheme()).toBe("dark");
+test("getInitialTheme defaults to light when nothing is stored", () => {
+  expect(getInitialTheme()).toBe("light");
 });
 
 test("getInitialTheme honors a stored dark choice", () => {

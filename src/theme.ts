@@ -8,9 +8,8 @@ export function getInitialTheme(): Theme {
   } catch {
     /* ignore */
   }
-  // Default to dark (high-contrast, easier on the eyes). A saved choice always
-  // wins; users can toggle to the high-contrast light theme any time.
-  return "dark";
+  // Default to the light Mac-assistant direction. A saved choice always wins.
+  return "light";
 }
 
 export function applyTheme(t: Theme): void {

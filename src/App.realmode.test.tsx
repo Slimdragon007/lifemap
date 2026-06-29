@@ -25,7 +25,14 @@ const VAULT_SUGGESTION_ID = "ai-vault-missing-signature";
 // Hoisted so these are available inside the hoisted vi.mock factories below.
 const { aiAnalysis, session, upsertVaultItemMock } = vi.hoisted(() => {
   const aiAnalysis: LifeMapAnalysis = {
-    dueItems: [],
+    dueItems: [
+      {
+        id: "due-slip",
+        title: "Field trip permission slip",
+        dueDate: "Jun 18, 2026",
+        sourceQuote: "Return by 6/18.",
+      },
+    ],
     missingInfo: [
       {
         id: "missing-signature",
@@ -156,11 +163,15 @@ describe("LifeMap real-mode AI-vault persistence", () => {
       await screen.findByRole("button", { name: "Sign out alex@example.com" }),
     ).toBeInTheDocument();
 
-    // Wait for the remote analysis to load so `map` carries the vault candidate,
-    // then open Calendar from the Settings hub (it's no longer a Today link).
-    await screen.findByRole("button", { name: "Settings" });
-    await user.click(screen.getByRole("button", { name: "Settings" }));
-    await user.click(screen.getByRole("button", { name: "Open calendar" }));
+    await user.click(
+      screen.getByRole("button", { name: "Drop a thought or file" }),
+    );
+    expect(
+      await screen.findByText("Sorted into relief steps"),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: /Put on calendar/i }),
+    );
 
     await user.click(
       screen.getByRole("button", { name: "Save vault suggestion" }),

@@ -16,11 +16,11 @@ test.describe("demo smoke", () => {
     const nav = page.getByRole("navigation", { name: "Household sections" });
     await expect(nav).toBeVisible();
     await expect(
-      nav.getByRole("button", { name: "Today", exact: true }),
+      nav.getByRole("button", { name: "Home", exact: true }),
     ).toHaveClass(/active/);
 
-    // Switch Today -> Calendar -> Vault -> Today; each tab activates in turn.
-    for (const tab of ["Calendar", "Vault", "Today"] as const) {
+    // Switch through the current primary destinations; each tab activates in turn.
+    for (const tab of ["Cabinet", "Review", "Family", "Settings", "Home"] as const) {
       await nav.getByRole("button", { name: tab, exact: true }).click();
       await expect(
         nav.getByRole("button", { name: tab, exact: true }),
@@ -68,8 +68,9 @@ test.describe("demo smoke", () => {
     await page.goto("/");
     await page.getByRole("button", { name: "Login as Alex Kim" }).click();
 
-    const nav = page.getByRole("navigation", { name: "Household sections" });
-    await nav.getByRole("button", { name: "Capture", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Drop a thought or file" })
+      .click();
 
     const capture = page.getByRole("region", { name: "Brain dump" });
     await expect(

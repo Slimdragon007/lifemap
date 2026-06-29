@@ -73,35 +73,38 @@ test.describe("low-stim motion spec", () => {
     for (const sec of durations) expect(sec).toBeLessThanOrEqual(0.301);
   });
 
-  test("priority cards settle state changes via the 140ms transition", async ({
+  test("Home primary action uses the calibrated press transition", async ({
     page,
   }) => {
     await enterApp(page);
-    const card = page.locator(".atlas-task-card").first();
-    await expect(card).toBeVisible();
-    const { dur, prop } = await card.evaluate((el) => {
+    const button = page.getByRole("button", {
+      name: "Open priority Field trip permission slip",
+    });
+    await expect(button).toBeVisible();
+    const { dur, prop } = await button.evaluate((el) => {
       const cs = getComputedStyle(el);
       return { dur: cs.transitionDuration, prop: cs.transitionProperty };
     });
     expect(prop).toContain("transform");
-    expect(prop).toContain("opacity");
-    expect(dur).toContain("0.14s"); // --motion-state
+    expect(dur).toContain("0.1s"); // --motion-press
   });
 
   test("press feedback scales a tappable control to 0.98 on pointer down", async ({
     page,
   }) => {
     await enterApp(page);
-    const card = page.locator(".atlas-task-card").first();
-    await expect(card).toBeVisible();
+    const button = page.getByRole("button", {
+      name: "Open priority Field trip permission slip",
+    });
+    await expect(button).toBeVisible();
     // hover() scrolls into view + waits for actionability, so the pointer
-    // reliably lands on the card and engages :active on mouse down.
-    await card.scrollIntoViewIfNeeded();
-    await card.hover();
+    // reliably lands on the control and engages :active on mouse down.
+    await button.scrollIntoViewIfNeeded();
+    await button.hover();
     await page.mouse.down();
     // Poll so the 100ms press transition has time to reach scale(0.98).
     await expect
-      .poll(() => card.evaluate((el) => getComputedStyle(el).transform))
+      .poll(() => button.evaluate((el) => getComputedStyle(el).transform))
       .toMatch(/^matrix\(0\.98,\s*0,\s*0,\s*0\.98,/);
     await page.mouse.up();
   });
@@ -111,12 +114,14 @@ test.describe("low-stim motion spec", () => {
   }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await enterApp(page);
-    const card = page.locator(".atlas-task-card").first();
-    await expect(card).toBeVisible();
-    await card.scrollIntoViewIfNeeded();
-    await card.hover();
+    const button = page.getByRole("button", {
+      name: "Open priority Field trip permission slip",
+    });
+    await expect(button).toBeVisible();
+    await button.scrollIntoViewIfNeeded();
+    await button.hover();
     await page.mouse.down();
-    const transform = await card.evaluate(
+    const transform = await button.evaluate(
       (el) => getComputedStyle(el).transform,
     );
     await page.mouse.up();

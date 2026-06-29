@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { Session } from "@supabase/supabase-js";
@@ -139,9 +139,8 @@ describe("LifeMap onboarding 'Your people' persistence", () => {
     }
 
     // The persisted people surface in Vault's "Family profiles".
-    await screen.findByRole("button", { name: "Settings" });
-    await user.click(screen.getByRole("button", { name: "Settings" }));
-    await user.click(screen.getByRole("button", { name: "Open vault" }));
+    await screen.findByRole("button", { name: "Cabinet" });
+    await user.click(screen.getByRole("button", { name: "Cabinet" }));
 
     const vault = screen.getByRole("heading", { name: "Vault" });
     expect(vault).toBeInTheDocument();
