@@ -45,7 +45,7 @@ export default defineConfig({
     },
     {
       name: "demo-mobile",
-      testMatch: /smoke\.spec\.ts/,
+      testMatch: /(smoke|mobile-shell)\.spec\.ts/,
       use: { ...devices["Pixel 5"], baseURL: DEMO_URL },
     },
     {
