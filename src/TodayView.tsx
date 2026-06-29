@@ -6,6 +6,7 @@ import {
   Plus,
   RefreshCw,
   ShieldCheck,
+  UsersRound,
 } from "lucide-react";
 import type { BriefPriority, DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
@@ -48,6 +49,7 @@ function TodayView({
   priorityActionStates,
   onGenerateBrief,
   onOpenBrainDump,
+  onOpenFamilyMap,
   onOpenReview,
   onOpenPriority,
   onTogglePriorityDone,
@@ -191,6 +193,32 @@ function TodayView({
           >
             <Plus size={16} />
             Drop a thought or file
+            <ChevronRight size={15} />
+          </button>
+        </section>
+
+        <section
+          className="home-family-entry"
+          aria-labelledby="home-family-title"
+        >
+          <div className="home-family-icon" aria-hidden="true">
+            <UsersRound size={19} />
+          </div>
+          <div className="home-family-copy">
+            <span className="atlas-eyebrow">Family map</span>
+            <h2 id="home-family-title">Find the right person fast.</h2>
+            <p>
+              People, pets, shared records, and emergency basics live under the
+              household dashboard.
+            </p>
+          </div>
+          <button
+            aria-label="Open Family dashboard"
+            className="home-family-button"
+            type="button"
+            onClick={onOpenFamilyMap}
+          >
+            Open Family
             <ChevronRight size={15} />
           </button>
         </section>

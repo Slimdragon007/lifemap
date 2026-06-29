@@ -57,4 +57,52 @@ test.describe("mobile shell", () => {
     expect(dockBox).not.toBeNull();
     expect(sectionBox!.y + sectionBox!.height).toBeLessThanOrEqual(dockBox!.y);
   });
+
+  test("family-first path reaches profile customization, Cabinet, and Review", async ({
+    page,
+  }) => {
+    await enterDemoApp(page);
+
+    await expect(
+      page.getByRole("heading", { name: "Drop anything here." }),
+    ).toBeVisible();
+    await page
+      .getByRole("navigation", { name: "Household sections" })
+      .getByRole("button", { name: "Family", exact: true })
+      .click();
+
+    await expect(
+      page.getByRole("heading", { name: "Family dashboard" }),
+    ).toBeVisible();
+    await page
+      .getByRole("button", { name: "Open Casey Kim's profile" })
+      .click();
+
+    await expect(
+      page.getByRole("heading", { name: "Casey Kim" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Add section" }).click();
+    await page.getByLabel("Section name").fill("Sports");
+    await page.getByRole("button", { name: "Save section" }).click();
+
+    await expect(page.getByRole("status")).toContainText(
+      "Sports was added to Casey Kim.",
+    );
+    await expect(page.getByRole("region", { name: "Sports" })).toBeVisible();
+
+    const nav = page.getByRole("navigation", { name: "Household sections" });
+    await nav.getByRole("button", { name: "Cabinet", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Vault" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Casey" })).toBeVisible();
+    await expect(page.getByText("Casey passport")).toBeVisible();
+
+    await nav.getByRole("button", { name: "Home", exact: true }).click();
+    await page.getByRole("button", { name: /Needs your OK/i }).click();
+    await expect(
+      page.getByRole("heading", { name: "Review", level: 1 }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Approve before LifeMap acts" }),
+    ).toBeVisible();
+  });
 });

@@ -2379,6 +2379,15 @@ function FamilyDashboard({
   onOpenMember: (member: FamilyMember) => void;
 }) {
   const now = new Date();
+  const people = familyMembers.filter((member) => member.profileType !== "pet");
+  const pets = familyMembers.filter((member) => member.profileType === "pet");
+  const sharedRecords = vaultItems.filter((item) => item.owner === "Whole family");
+  const householdDates = familyEvents.filter(
+    (event) => event.owner === "Family" || event.owner === "Whole family",
+  );
+  const emergencyMembers = familyMembers.filter(
+    (member) => member.careNotes.length > 0,
+  );
 
   return (
     <section
@@ -2391,12 +2400,37 @@ function FamilyDashboard({
             <UsersRound size={14} />
             Household dashboard
           </span>
-          <h1 id="family-dashboard-title">Family</h1>
-          <p>Choose the person, pet, or household profile you need.</p>
+          <h1 id="family-dashboard-title">Family dashboard</h1>
+          <p>
+            People, pets, shared records, and emergency basics in one calm
+            place.
+          </p>
         </div>
       </header>
 
       <div className="family-dashboard-stack">
+        <section
+          className="family-dashboard-panel family-dashboard-overview"
+          aria-label="Household overview"
+        >
+          <article>
+            <span>People</span>
+            <strong>{people.length}</strong>
+          </article>
+          <article>
+            <span>Pets</span>
+            <strong>{pets.length}</strong>
+          </article>
+          <article>
+            <span>Records</span>
+            <strong>{vaultItems.length}</strong>
+          </article>
+          <article>
+            <span>Dates</span>
+            <strong>{familyEvents.length}</strong>
+          </article>
+        </section>
+
         <section
           className="family-dashboard-panel family-members-panel"
           aria-labelledby="family-members-title"
@@ -2404,10 +2438,10 @@ function FamilyDashboard({
           <div className="family-dashboard-section-head">
             <div>
               <span>Start here</span>
-              <h2 id="family-members-title">Who do you need?</h2>
+              <h2 id="family-members-title">People and pets</h2>
             </div>
             <button type="button" onClick={onAddMember}>
-              Add person
+              Add person or pet
             </button>
           </div>
 
@@ -2442,6 +2476,74 @@ function FamilyDashboard({
                 </button>
               );
             })}
+          </div>
+        </section>
+
+        <section
+          className="family-dashboard-panel family-household-panel"
+          aria-labelledby="family-shared-title"
+        >
+          <div className="family-dashboard-section-head">
+            <div>
+              <span>Shared household</span>
+              <h2 id="family-shared-title">Records and basics</h2>
+            </div>
+          </div>
+          <div className="family-household-grid">
+            <article className="family-household-card">
+              <h3>Shared records</h3>
+              {sharedRecords.length > 0 ? (
+                <ul>
+                  {sharedRecords.slice(0, 3).map((item) => (
+                    <li key={item.id}>
+                      <strong>{item.title}</strong>
+                      <span>{item.status}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>
+                  Add insurance cards, IDs, or household documents to the
+                  Cabinet and mark them for the whole family.
+                </p>
+              )}
+            </article>
+            <article className="family-household-card">
+              <h3>Emergency basics</h3>
+              {emergencyMembers.length > 0 ? (
+                <ul>
+                  {emergencyMembers.slice(0, 3).map((member) => (
+                    <li key={member.id}>
+                      <strong>{member.name}</strong>
+                      <span>{member.careNotes[0]}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>
+                  Add allergies, medications, school contacts, or pet care notes
+                  inside each profile.
+                </p>
+              )}
+            </article>
+            <article className="family-household-card">
+              <h3>Household dates</h3>
+              {householdDates.length > 0 ? (
+                <ul>
+                  {householdDates.slice(0, 3).map((event) => (
+                    <li key={event.id}>
+                      <strong>{event.title}</strong>
+                      <span>{event.date}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>
+                  Shared school, travel, renewal, and family dates appear here
+                  once saved.
+                </p>
+              )}
+            </article>
           </div>
         </section>
       </div>
@@ -2494,6 +2596,7 @@ function MoreView({
 }) {
   const [clearMapConfirmOpen, setClearMapConfirmOpen] = useState(false);
   const isSettings = mode === "settings";
+  const showFounderTools = import.meta.env.DEV;
   return (
     <section className="workspace more-workspace" aria-labelledby="more-title">
       <header className="topbar compact-topbar">
@@ -2550,8 +2653,8 @@ function MoreView({
           <section aria-labelledby="more-setup-title" className="more-section">
             <div className="more-section-heading">
               <span>Setup</span>
-              <h2 id="more-setup-title">App setup and tools</h2>
-              <p>Tour, household setup, and advanced prototype tools.</p>
+              <h2 id="more-setup-title">App setup</h2>
+              <p>Tour, household setup, and safety preferences.</p>
             </div>
             <button
               aria-label="Open how LifeMap works"
@@ -2598,36 +2701,40 @@ function MoreView({
               </span>
               <ChevronRight className="more-row-chevron" size={18} />
             </button>
-            <button
-              aria-label="Open family admin map"
-              className="more-row"
-              type="button"
-              onClick={onOpenFamilyMap}
-            >
-              <span className="more-row-icon">
-                <Sparkles size={18} />
-              </span>
-              <span className="more-row-copy">
-                <strong>Family admin map</strong>
-                <span>Advanced extraction workspace for QA and demos.</span>
-              </span>
-              <ChevronRight className="more-row-chevron" size={18} />
-            </button>
-            <button
-              aria-label="Open launch plan"
-              className="more-row"
-              type="button"
-              onClick={onOpenLaunchPlan}
-            >
-              <span className="more-row-icon">
-                <ListChecks size={18} />
-              </span>
-              <span className="more-row-copy">
-                <strong>Launch Plan</strong>
-                <span>Founder readiness checklist and demo progress.</span>
-              </span>
-              <ChevronRight className="more-row-chevron" size={18} />
-            </button>
+            {showFounderTools ? (
+              <>
+                <button
+                  aria-label="Open family admin map"
+                  className="more-row"
+                  type="button"
+                  onClick={onOpenFamilyMap}
+                >
+                  <span className="more-row-icon">
+                    <Sparkles size={18} />
+                  </span>
+                  <span className="more-row-copy">
+                    <strong>Family admin map</strong>
+                    <span>Advanced extraction workspace for QA and demos.</span>
+                  </span>
+                  <ChevronRight className="more-row-chevron" size={18} />
+                </button>
+                <button
+                  aria-label="Open launch plan"
+                  className="more-row"
+                  type="button"
+                  onClick={onOpenLaunchPlan}
+                >
+                  <span className="more-row-icon">
+                    <ListChecks size={18} />
+                  </span>
+                  <span className="more-row-copy">
+                    <strong>Launch Plan</strong>
+                    <span>Founder readiness checklist and demo progress.</span>
+                  </span>
+                  <ChevronRight className="more-row-chevron" size={18} />
+                </button>
+              </>
+            ) : null}
           </section>
         ) : null}
         {!isSettings ? (
@@ -2759,36 +2866,40 @@ function MoreView({
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
-          <button
-            aria-label="Open family admin map"
-            className="more-row"
-            type="button"
-            onClick={onOpenFamilyMap}
-          >
-            <span className="more-row-icon">
-              <Sparkles size={18} />
-            </span>
-            <span className="more-row-copy">
-              <strong>Family admin map</strong>
-              <span>See the full extracted household map and approvals.</span>
-            </span>
-            <ChevronRight className="more-row-chevron" size={18} />
-          </button>
-          <button
-            aria-label="Open launch plan"
-            className="more-row"
-            type="button"
-            onClick={onOpenLaunchPlan}
-          >
-            <span className="more-row-icon">
-              <ListChecks size={18} />
-            </span>
-            <span className="more-row-copy">
-              <strong>Launch Plan</strong>
-              <span>Founder readiness checklist and demo progress.</span>
-            </span>
-            <ChevronRight className="more-row-chevron" size={18} />
-          </button>
+          {showFounderTools ? (
+            <>
+              <button
+                aria-label="Open family admin map"
+                className="more-row"
+                type="button"
+                onClick={onOpenFamilyMap}
+              >
+                <span className="more-row-icon">
+                  <Sparkles size={18} />
+                </span>
+                <span className="more-row-copy">
+                  <strong>Family admin map</strong>
+                  <span>See the full extracted household map and approvals.</span>
+                </span>
+                <ChevronRight className="more-row-chevron" size={18} />
+              </button>
+              <button
+                aria-label="Open launch plan"
+                className="more-row"
+                type="button"
+                onClick={onOpenLaunchPlan}
+              >
+                <span className="more-row-icon">
+                  <ListChecks size={18} />
+                </span>
+                <span className="more-row-copy">
+                  <strong>Launch Plan</strong>
+                  <span>Founder readiness checklist and demo progress.</span>
+                </span>
+                <ChevronRight className="more-row-chevron" size={18} />
+              </button>
+            </>
+          ) : null}
         </section>
           </>
         ) : null}
@@ -3292,8 +3403,8 @@ function ApprovalQueue({
   const pausedCount = editedApprovals.length - selectedCount;
   const reviewButtonLabel =
     selectedCount === 0
-      ? "Select an item to review"
-      : `Review ${selectedCount} selected`;
+      ? "Choose what is OK"
+      : `Ready to approve ${selectedCount}`;
 
   return (
     <Component
@@ -3301,10 +3412,12 @@ function ApprovalQueue({
       className={variant === "rail" ? "approval-rail" : "approval-queue"}
     >
       <div className="rail-heading">
-        <h2>Approval queue</h2>
-        <span>{stagedRun ? "Step 3 of 3" : "Step 1 of 3"}</span>
+        <h2>Approve before LifeMap acts</h2>
+        <span>{stagedRun ? "Approved" : "Needs your OK"}</span>
       </div>
-      <p className="rail-copy">Choose what LifeMap should hold for review.</p>
+      <p className="rail-copy">
+        Nothing sends, schedules, or changes until you say yes.
+      </p>
       {stagedRun ? (
         <StagedSummary run={stagedRun} />
       ) : (
@@ -3330,8 +3443,8 @@ function ApprovalQueue({
             ) : (
               <p className="notebook-empty">
                 Nothing to review yet. Capture a note and tap “Analyze intake” —
-                drafts and reminders LifeMap suggests will wait here for your
-                approval.
+                drafts and reminders LifeMap suggests will wait here until you
+                approve them.
               </p>
             )}
           </div>
@@ -3359,21 +3472,14 @@ function ApprovalFlowGuide({
 }) {
   return (
     <section className="approval-flow-card" aria-label="Approval flow">
-      <div className="approval-flow-steps">
-        <span className="active">1 Select</span>
-        <ChevronRight size={14} />
-        <span>2 Confirm</span>
-        <ChevronRight size={14} />
-        <span>3 Complete</span>
-      </div>
       <div className="approval-flow-metrics">
         <strong>{formatReadyCount(selectedCount)}</strong>
         <span>{formatPausedCount(pausedCount)}</span>
       </div>
       <p>
         {selectedCount === 0
-          ? "Turn on at least one item to continue."
-          : "Next: confirm the final list, then stage it for action."}
+          ? "Turn on at least one item before approving."
+          : "Review the items below. Turn off anything LifeMap should hold."}
       </p>
     </section>
   );
@@ -3430,8 +3536,8 @@ function ApprovalCard({
           aria-checked={approved}
           aria-label={
             approved
-              ? `Skip ${item.title} for now`
-              : `Include ${item.title} in review`
+              ? `Hold ${item.title} for now`
+              : `Allow ${item.title} for approval`
           }
           className="notebook-switch"
           role="switch"
@@ -3622,11 +3728,11 @@ function StagedSummary({ run }: { run: StagedRun }) {
         <span className="staged-icon">
           <CheckCircle2 size={18} />
         </span>
-        <div>
-          <h3>Review complete</h3>
+      <div>
+          <h3>Approved for now</h3>
           <p>
-            {formatCount(run.approvals.length, "item")} staged at {run.stagedAt}
-            .
+            {formatCount(run.approvals.length, "item")} approved at{" "}
+            {run.stagedAt}.
           </p>
         </div>
       </div>
@@ -3643,8 +3749,7 @@ function StagedSummary({ run }: { run: StagedRun }) {
         ))}
       </ul>
       <p className="staged-note">
-        Staging only holds these for review — nothing is auto-sent. Use Send
-        email on a draft to send it.
+        Nothing was sent automatically. Draft messages still require Send email.
       </p>
     </section>
   );
@@ -3655,11 +3760,11 @@ function formatCount(count: number, singularLabel: string) {
 }
 
 function formatReadyCount(count: number) {
-  return `${count} ready to review`;
+  return `${count} ready for your OK`;
 }
 
 function formatPausedCount(count: number) {
-  return `${count} paused`;
+  return `${count} held back`;
 }
 
 function ReviewDialog({
@@ -3684,10 +3789,10 @@ function ReviewDialog({
       >
         <div className="review-dialog-top">
           <div>
-            <h2 id="review-dialog-title">Review selected approvals</h2>
+            <h2 id="review-dialog-title">Approve these actions</h2>
             <p>
-              {approvals.length} {itemLabel} selected. Nothing is sent or
-              scheduled until real integrations exist.
+              {approvals.length} {itemLabel} selected. Nothing sends unless you
+              use Send email on a draft.
             </p>
           </div>
           <button
@@ -3725,7 +3830,7 @@ function ReviewDialog({
             Back to queue
           </button>
           <button className="primary-button" type="button" onClick={onStage}>
-            Approve & stage
+            Approve for now
             <CheckCircle2 size={16} />
           </button>
         </div>

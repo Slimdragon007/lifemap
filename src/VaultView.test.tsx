@@ -250,4 +250,54 @@ describe("VaultView add-document flow", () => {
     expect(within(emmaDetail).queryByText("Jordan passport")).toBeNull();
     expect(within(emmaDetail).getByText("Emma passport")).toBeInTheDocument();
   });
+
+  test("documents are grouped by person with readable category and status", () => {
+    const items: VaultItem[] = [
+      {
+        id: "v1",
+        title: "Emma passport",
+        category: "identity",
+        owner: "Emma",
+        status: "Current",
+        detail: "",
+      },
+      {
+        id: "v2",
+        title: "Family insurance card",
+        category: "insurance",
+        owner: "Whole family",
+        status: "Needs update",
+        detail: "",
+      },
+    ];
+
+    render(
+      <VaultView
+        familyMembers={kids}
+        identity={{ name: "Mom", initials: "M" }}
+        vaultItems={items}
+        onOpenCapture={vi.fn()}
+        onAddDocument={vi.fn()}
+      />,
+    );
+
+    const emmaGroup = screen
+      .getByRole("heading", { name: "Emma" })
+      .closest(".vault-owner-group");
+    const familyGroup = screen
+      .getByRole("heading", { name: "Whole family" })
+      .closest(".vault-owner-group");
+
+    expect(emmaGroup).not.toBeNull();
+    expect(familyGroup).not.toBeNull();
+    expect(within(emmaGroup as HTMLElement).getByText("Emma passport")).toBeInTheDocument();
+    expect(within(emmaGroup as HTMLElement).getByText("IDs")).toBeInTheDocument();
+    expect(within(emmaGroup as HTMLElement).getByText("Current")).toBeInTheDocument();
+    expect(
+      within(familyGroup as HTMLElement).getByText("Family insurance card"),
+    ).toBeInTheDocument();
+    expect(
+      within(familyGroup as HTMLElement).getByText("Needs update"),
+    ).toBeInTheDocument();
+  });
 });

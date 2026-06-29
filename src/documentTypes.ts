@@ -16,7 +16,7 @@ export const VAULT_CATEGORY_OPTIONS: ReadonlyArray<{
   value: VaultCategory;
   label: string;
 }> = [
-  { value: "identity", label: "Identity" },
+  { value: "identity", label: "IDs" },
   { value: "health", label: "Health" },
   { value: "school", label: "School" },
   { value: "insurance", label: "Insurance" },

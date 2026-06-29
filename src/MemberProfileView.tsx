@@ -1,5 +1,5 @@
 import { CalendarPlus, ChevronLeft, FileText } from "lucide-react";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type {
   DateCategory,
   FamilyEvent,
@@ -53,6 +53,9 @@ function MemberProfileView({
   const [isFieldPrivate, setIsFieldPrivate] = useState(false);
   const [isSavingSection, setIsSavingSection] = useState(false);
   const [savingFieldSectionId, setSavingFieldSectionId] = useState<string>();
+  const [savedSectionId, setSavedSectionId] = useState<string>();
+  const [profileMessage, setProfileMessage] = useState("");
+  const sectionRefs = useRef(new Map<string, HTMLElement>());
   const stuff = memberStuff(member, vaultItems, familyEvents, new Date());
   const sections = profileSectionsForMember(member);
   const fieldsBySection = useMemo(() => {
@@ -76,6 +79,22 @@ function MemberProfileView({
 
   const isEmpty = stuff.documents.length === 0 && stuff.dates.length === 0;
 
+  useEffect(() => {
+    if (!savedSectionId) {
+      return;
+    }
+    const savedSection = sections.find((section) => section.id === savedSectionId);
+    const element = sectionRefs.current.get(savedSectionId);
+    if (!savedSection || !element) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      element.focus({ preventScroll: true });
+    });
+  }, [savedSectionId, sections]);
+
   async function handleSaveSection(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextSectionName = sectionName.trim();
@@ -85,10 +104,17 @@ function MemberProfileView({
     setIsSavingSection(true);
     try {
       const nextMember = addProfileSection(member, nextSectionName);
+      const savedSection = profileSectionsForMember(nextMember).find(
+        (section) =>
+          section.name.toLocaleLowerCase() ===
+          nextSectionName.toLocaleLowerCase(),
+      );
       const saved = await onUpdateMember(nextMember);
       if (saved) {
         setSectionName("");
         setIsAddingSection(false);
+        setSavedSectionId(savedSection?.id);
+        setProfileMessage(`${nextSectionName} was added to ${member.name}.`);
       }
     } catch {
       // Keep the form open so the typed profile detail is not lost.
@@ -119,10 +145,14 @@ function MemberProfileView({
       });
       const saved = await onUpdateMember(nextMember);
       if (saved) {
+        const sectionName =
+          sections.find((section) => section.id === activeFieldSectionId)
+            ?.name ?? "this section";
         setActiveFieldSectionId(undefined);
         setFieldLabel("");
         setFieldValue("");
         setIsFieldPrivate(false);
+        setProfileMessage(`${nextLabel} was saved in ${sectionName}.`);
       }
     } catch {
       // Keep the form open so the typed profile detail is not lost.
@@ -136,6 +166,26 @@ function MemberProfileView({
     setFieldLabel("");
     setFieldValue("");
     setIsFieldPrivate(false);
+  }
+
+  function cancelSectionForm() {
+    setIsAddingSection(false);
+    setSectionName("");
+  }
+
+  function cancelFieldForm() {
+    setActiveFieldSectionId(undefined);
+    setFieldLabel("");
+    setFieldValue("");
+    setIsFieldPrivate(false);
+  }
+
+  function setSectionRef(sectionId: string, element: HTMLElement | null) {
+    if (element) {
+      sectionRefs.current.set(sectionId, element);
+    } else {
+      sectionRefs.current.delete(sectionId);
+    }
   }
 
   return (
@@ -188,6 +238,13 @@ function MemberProfileView({
                 <button type="submit" disabled={isSavingSection}>
                   Save section
                 </button>
+                <button
+                  type="button"
+                  className="profile-inline-secondary"
+                  onClick={cancelSectionForm}
+                >
+                  Cancel
+                </button>
               </form>
             ) : (
               <button type="button" onClick={() => setIsAddingSection(true)}>
@@ -195,12 +252,19 @@ function MemberProfileView({
               </button>
             )}
           </div>
+          {profileMessage ? (
+            <p className="profile-save-note" role="status">
+              {profileMessage}
+            </p>
+          ) : null}
 
           <div className="profile-section-grid">
             {sections.map((section) => (
               <ProfileSectionCard
                 key={section.id}
                 section={section}
+                isNew={section.id === savedSectionId}
+                setCardRef={(element) => setSectionRef(section.id, element)}
                 fields={fieldsBySection.get(section.id) ?? []}
                 isAddingField={activeFieldSectionId === section.id}
                 fieldLabel={fieldLabel}
@@ -214,6 +278,7 @@ function MemberProfileView({
                 onFieldValueChange={setFieldValue}
                 onFieldPrivateChange={setIsFieldPrivate}
                 onSaveField={handleSaveField}
+                onCancelField={cancelFieldForm}
               />
             ))}
           </div>
@@ -286,6 +351,8 @@ function MemberProfileView({
 
 type ProfileSectionCardProps = {
   section: ProfileSection;
+  isNew: boolean;
+  setCardRef: (element: HTMLElement | null) => void;
   fields: ReturnType<typeof profileFieldsForMember>;
   isAddingField: boolean;
   fieldLabel: string;
@@ -299,10 +366,13 @@ type ProfileSectionCardProps = {
   onFieldValueChange: (value: string) => void;
   onFieldPrivateChange: (value: boolean) => void;
   onSaveField: (event: FormEvent<HTMLFormElement>) => void;
+  onCancelField: () => void;
 };
 
 function ProfileSectionCard({
   section,
+  isNew,
+  setCardRef,
   fields,
   isAddingField,
   fieldLabel,
@@ -316,13 +386,16 @@ function ProfileSectionCard({
   onFieldValueChange,
   onFieldPrivateChange,
   onSaveField,
+  onCancelField,
 }: ProfileSectionCardProps) {
   const headingId = `profile-section-${section.id}`;
   return (
     <article
-      className="profile-section-card"
+      className={isNew ? "profile-section-card new-section" : "profile-section-card"}
+      ref={setCardRef}
       role="region"
       aria-labelledby={headingId}
+      tabIndex={-1}
     >
       <div className="profile-section-head">
         <h3 id={headingId}>{section.name}</h3>
@@ -374,6 +447,13 @@ function ProfileSectionCard({
           </label>
           <button type="submit" disabled={isSavingField}>
             Save field
+          </button>
+          <button
+            type="button"
+            className="profile-inline-secondary"
+            onClick={onCancelField}
+          >
+            Cancel
           </button>
         </form>
       ) : null}

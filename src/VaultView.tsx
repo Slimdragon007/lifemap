@@ -19,6 +19,7 @@ import {
   DOCUMENT_TYPES,
   type DocumentTypeMeta,
   VAULT_CATEGORY_OPTIONS,
+  VAULT_CATEGORY_LABEL,
 } from "./documentTypes";
 
 const OTHER_OWNER = "__other__";
@@ -85,6 +86,10 @@ function VaultView({
         ? vaultItems
         : vaultItems.filter((item) => item.category === activeCategory),
     [activeCategory, vaultItems],
+  );
+  const visibleOwnerGroups = useMemo(
+    () => groupVaultItemsByOwner(visibleItems),
+    [visibleItems],
   );
   function toggleProfile(id: string) {
     setExpandedProfileIds((current) => {
@@ -233,12 +238,26 @@ function VaultView({
 
       <div className="notebook-list">
         {visibleItems.length > 0 ? (
-          visibleItems.map((item) => (
-            <VaultRow
-              item={item}
-              key={item.id}
-              onOpenDetails={() => openVaultItem(item)}
-            />
+          visibleOwnerGroups.map((group) => (
+            <section
+              aria-labelledby={`vault-owner-${group.key}`}
+              className="vault-owner-group"
+              key={group.key}
+            >
+              <div className="vault-owner-heading">
+                <h3 id={`vault-owner-${group.key}`}>{group.owner}</h3>
+                <span>{formatCount(group.items.length, "record")}</span>
+              </div>
+              <div className="vault-owner-list">
+                {group.items.map((item) => (
+                  <VaultRow
+                    item={item}
+                    key={item.id}
+                    onOpenDetails={() => openVaultItem(item)}
+                  />
+                ))}
+              </div>
+            </section>
           ))
         ) : (
           <EmptyState
@@ -306,6 +325,29 @@ function VaultView({
       ) : null}
     </section>
   );
+}
+
+type VaultOwnerGroup = {
+  key: string;
+  owner: string;
+  items: VaultItem[];
+};
+
+function groupVaultItemsByOwner(items: VaultItem[]): VaultOwnerGroup[] {
+  const groups = new Map<string, VaultOwnerGroup>();
+  for (const item of items) {
+    const owner = item.owner.trim() || WHOLE_FAMILY;
+    const key = owner.toLocaleLowerCase().replace(/\s+/g, "-");
+    const group = groups.get(key) ?? { key, owner, items: [] };
+    group.items.push(item);
+    groups.set(key, group);
+  }
+
+  return [...groups.values()].sort((a, b) => a.owner.localeCompare(b.owner));
+}
+
+function formatCount(count: number, singularLabel: string) {
+  return `${count} ${count === 1 ? singularLabel : `${singularLabel}s`}`;
 }
 
 function MemberDocuments({
@@ -540,18 +582,17 @@ function VaultRow({
   item: VaultItem;
   onOpenDetails: () => void;
 }) {
-  const sub = `${item.owner}${
+  const sub = `${VAULT_CATEGORY_LABEL[item.category]}${
     item.renewalDate ? ` · review by ${formatShortDate(item.renewalDate)}` : ""
   }`;
 
   return (
     <button
       aria-label={`Open details for ${item.title}`}
-      className="notebook-row entry"
+      className="notebook-row entry vault-owner-row"
       type="button"
       onClick={onOpenDetails}
     >
-      <span className="notebook-when">{item.category}</span>
       <span className="notebook-row-main">
         <span className="notebook-row-title">{item.title}</span>
         <span className="notebook-row-sub">{sub}</span>

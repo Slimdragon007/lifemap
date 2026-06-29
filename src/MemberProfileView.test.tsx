@@ -1,6 +1,6 @@
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import MemberProfileView from "./MemberProfileView";
 import type { FamilyMember } from "./familyOS";
 
@@ -14,11 +14,13 @@ const member: FamilyMember = {
   careNotes: [],
 };
 
+type UpdateMemberMock = (updatedMember: FamilyMember) => boolean;
+
 function renderProfile(profileMember: FamilyMember = member) {
   const onAddDocument = vi.fn();
   const onAddDate = vi.fn();
-  const onUpdateMember = vi.fn(() => true);
-  render(
+  const onUpdateMember = vi.fn<UpdateMemberMock>(() => true);
+  const result = render(
     <MemberProfileView
       member={profileMember}
       vaultItems={[]}
@@ -29,10 +31,22 @@ function renderProfile(profileMember: FamilyMember = member) {
       onUpdateMember={onUpdateMember}
     />,
   );
-  return { onAddDate, onAddDocument, onUpdateMember };
+  return { ...result, onAddDate, onAddDocument, onUpdateMember };
 }
 
 describe("MemberProfileView profile sections", () => {
+  beforeEach(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      callback(0);
+      return 0;
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   test("renders default child sections and legacy school fields", () => {
     renderProfile();
 
@@ -57,11 +71,24 @@ describe("MemberProfileView profile sections", () => {
 
   test("adds a custom section to the member profile", async () => {
     const user = userEvent.setup();
-    const { onUpdateMember } = renderProfile();
+    const { onUpdateMember, rerender } = renderProfile();
 
     await user.click(screen.getByRole("button", { name: "Add section" }));
     await user.type(screen.getByLabelText("Section name"), "Therapy");
     await user.click(screen.getByRole("button", { name: "Save section" }));
+
+    const nextMember = onUpdateMember.mock.calls[0][0] as FamilyMember;
+    rerender(
+      <MemberProfileView
+        member={nextMember}
+        vaultItems={[]}
+        familyEvents={[]}
+        onBack={vi.fn()}
+        onAddDocument={vi.fn()}
+        onAddDate={vi.fn()}
+        onUpdateMember={onUpdateMember}
+      />,
+    );
 
     expect(onUpdateMember).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -73,6 +100,32 @@ describe("MemberProfileView profile sections", () => {
         ]),
       }),
     );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Therapy was added to Casey Kim.",
+    );
+    expect(screen.getByRole("region", { name: "Therapy" })).toBeInTheDocument();
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+  });
+
+  test("cancels section and field forms without saving", async () => {
+    const user = userEvent.setup();
+    const { onUpdateMember } = renderProfile();
+
+    await user.click(screen.getByRole("button", { name: "Add section" }));
+    await user.type(screen.getByLabelText("Section name"), "Therapy");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByLabelText("Section name")).not.toBeInTheDocument();
+
+    const health = screen.getByRole("region", { name: "Health" });
+    await user.click(
+      within(health).getByRole("button", { name: "Add field to Health" }),
+    );
+    await user.type(screen.getByLabelText("Field label"), "Allergy");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByLabelText("Field label")).not.toBeInTheDocument();
+    expect(onUpdateMember).not.toHaveBeenCalled();
   });
 
   test("adds a private field inside a profile section", async () => {
@@ -100,6 +153,9 @@ describe("MemberProfileView profile sections", () => {
           }),
         ]),
       }),
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Allergy was saved in Health.",
     );
   });
 

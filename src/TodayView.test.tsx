@@ -30,6 +30,7 @@ type TodayOverrides = {
   identity?: { name: string; initials: string };
   approvalCount?: number;
   onOpenBrainDump?: () => void;
+  onOpenFamilyMap?: () => void;
   onOpenReview?: () => void;
   brief?: DailyBrief;
 };
@@ -39,6 +40,7 @@ function renderToday(overrides: TodayOverrides = {}) {
     identity = { name: "Alex Kim", initials: "AK" },
     approvalCount = 0,
     onOpenBrainDump = vi.fn(),
+    onOpenFamilyMap = vi.fn(),
     onOpenReview = vi.fn(),
     brief = emptyBrief,
   } = overrides;
@@ -56,7 +58,7 @@ function renderToday(overrides: TodayOverrides = {}) {
       onGenerateBrief={vi.fn()}
       onOpenBrainDump={onOpenBrainDump}
       onOpenCabinet={vi.fn()}
-      onOpenFamilyMap={vi.fn()}
+      onOpenFamilyMap={onOpenFamilyMap}
       onOpenImportantDates={vi.fn()}
       onOpenReview={onOpenReview}
       onOpenPriority={vi.fn()}
@@ -150,6 +152,16 @@ describe("TodayView intake", () => {
 
     await user.click(screen.getByRole("button", { name: "Start here" }));
     expect(onOpenBrainDump).toHaveBeenCalledTimes(1);
+  });
+
+  test("offers a direct Family dashboard entry without adding another tool tab", async () => {
+    const user = userEvent.setup();
+    const onOpenFamilyMap = vi.fn();
+
+    renderToday({ onOpenFamilyMap });
+
+    await user.click(screen.getByRole("button", { name: "Open Family dashboard" }));
+    expect(onOpenFamilyMap).toHaveBeenCalledTimes(1);
   });
 
   test("keeps Home focused on one thing and capture, not routing cards or profiles", () => {
