@@ -198,10 +198,10 @@ function MemberProfileView({
           type="button"
           className="member-back"
           onClick={onBack}
-          aria-label="Back to Today"
+          aria-label="Back to Family"
         >
           <ChevronLeft size={16} />
-          <span>Today</span>
+          <span>Family</span>
         </button>
         <div className="member-id">
           <span

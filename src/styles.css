@@ -12747,3 +12747,189 @@ button.notebook-row:active {
     fill: none;
   }
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Release-candidate IA differentiation: Home = action sheet, Cabinet = file
+   ledger, Family = roster. Keep the same tokens, but stop the three primary
+   tabs from sharing the same soft-card grammar.
+   ────────────────────────────────────────────────────────────────────────── */
+.app-shell.view-today .home-flow-stack {
+  gap: 14px;
+}
+
+.app-shell.view-today .home-focus-card {
+  border-color: rgba(207, 122, 82, 0.28);
+  border-left: 5px solid var(--color-accent-clay);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: none;
+}
+
+.app-shell.view-today .home-focus-hero {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 250, 244, 0.84)),
+    var(--color-surface-panel);
+}
+
+.app-shell.view-today .home-focus-icon {
+  background: rgba(255, 241, 230, 0.9);
+  color: var(--color-accent-clay);
+}
+
+.app-shell.view-today .home-focus-primary {
+  background: var(--color-accent-clay);
+}
+
+.app-shell.view-today .home-blender {
+  border: 1px dashed rgba(61, 132, 212, 0.42);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(248, 252, 255, 0.78), rgba(255, 255, 255, 0.72)),
+    var(--color-surface-panel);
+  box-shadow: none;
+}
+
+.app-shell.view-today .home-family-entry,
+.app-shell.view-today .home-review-entry {
+  border: 0;
+  border-top: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.app-shell.view-today .home-family-button,
+.app-shell.view-today .home-review-button {
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.app-shell.view-vault .cabinet-command-panel {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: none;
+}
+
+.cabinet-ledger-meta {
+  margin: -4px 0 0 49px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 680;
+}
+
+.app-shell.view-vault .notebook-filters {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.app-shell.view-vault .vault-owner-group {
+  padding: 14px 0 0;
+}
+
+.app-shell.view-vault .vault-owner-heading {
+  padding-inline: 0;
+}
+
+.app-shell.view-vault .vault-owner-list {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.app-shell.view-vault .notebook-row.entry.vault-owner-row {
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  background: transparent;
+}
+
+.app-shell.view-more .family-dashboard {
+  width: min(100%, 680px);
+}
+
+.app-shell.view-more .family-dashboard-stack {
+  gap: 18px;
+}
+
+.app-shell.view-more .family-members-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.app-shell.view-more .family-dashboard-section-head {
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.app-shell.view-more .family-dashboard-section-head p {
+  margin: 3px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.app-shell.view-more .family-member-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.app-shell.view-more .family-member-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  min-height: 142px;
+  padding: 14px;
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(248, 252, 255, 0.72)),
+    var(--color-surface-panel);
+}
+
+.app-shell.view-more .family-member-card .calm-av {
+  width: 54px;
+  height: 54px;
+  font-size: 15px;
+}
+
+.app-shell.view-more .family-member-meta {
+  justify-self: start;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.app-shell.view-more .family-member-card > svg {
+  position: absolute;
+  right: 16px;
+  top: 18px;
+}
+
+.app-shell.view-more .family-household-panel {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.52);
+  box-shadow: none;
+}
+
+@media (max-width: 520px) {
+  .app-shell.view-more .family-member-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cabinet-ledger-meta {
+    margin-left: 0;
+  }
+}
+
+.bottom-nav .nav-item-primary {
+  border-color: rgba(61, 132, 212, 0.18);
+  color: var(--color-accent-blue-strong);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow-control);
+}
+
+.bottom-nav .nav-item-primary svg {
+  color: currentColor;
+}
+
+.bottom-nav .nav-item-primary.active,
+.bottom-nav .nav-item-primary:hover {
+  color: var(--color-nav-home-text);
+  background: var(--color-nav-home-bg);
+  box-shadow: var(--shadow-control);
+}

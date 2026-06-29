@@ -1434,7 +1434,6 @@ function App() {
               className={
                 view === "today" ||
                 view === "bucket" ||
-                view === "member" ||
                 view === "review"
                   ? "nav-item nav-item-primary active"
                   : "nav-item nav-item-primary"
@@ -1449,6 +1448,7 @@ function App() {
               className={
                 view === "more" ||
                 view === "family" ||
+                view === "member" ||
                 view === "setup" ||
                 view === "launchPlan" ||
                 view === "howItWorks"
@@ -1545,7 +1545,7 @@ function App() {
             onGenerateBrief={handleGenerateBrief}
             onOpenBrainDump={openCapture}
             onOpenCabinet={() => setView("vault")}
-            onOpenFamilyMap={() => setView("family")}
+            onOpenFamilyMap={() => setView("more")}
             onOpenImportantDates={() => setView("dates")}
             onOpenReview={() => setView("review")}
             onOpenPriority={setSelectedPriority}
@@ -1570,7 +1570,7 @@ function App() {
             member={selectedMember}
             vaultItems={collections.vaultItems}
             familyEvents={collections.familyEvents}
-            onBack={() => setView("today")}
+            onBack={() => setView("more")}
             onAddDocument={(docTypeKey = "other") => {
               setAddSheetOwner(selectedMember.name);
               setQuickAddDocTypeKey(docTypeKey);
@@ -2454,35 +2454,18 @@ function FamilyDashboard({
 
       <div className="family-dashboard-stack">
         <section
-          className="family-dashboard-panel family-dashboard-overview"
-          aria-label="Household overview"
-        >
-          <article>
-            <span>Profiles</span>
-            <strong>{people.length}</strong>
-          </article>
-          <article>
-            <span>Pets</span>
-            <strong>{pets.length}</strong>
-          </article>
-          <article>
-            <span>Shared basics</span>
-            <strong>{sharedBasicsCount}</strong>
-          </article>
-          <article>
-            <span>Care notes</span>
-            <strong>{emergencyMembers.length}</strong>
-          </article>
-        </section>
-
-        <section
-          className="family-dashboard-panel family-members-panel"
+          className="family-members-panel"
           aria-labelledby="family-members-title"
         >
           <div className="family-dashboard-section-head">
             <div>
               <span>Roster</span>
               <h2 id="family-members-title">People and pets</h2>
+              <p>
+                {people.length} {people.length === 1 ? "person" : "people"} ·{" "}
+                {pets.length} {pluralize("pet", pets.length)} ·{" "}
+                {sharedBasicsCount} shared {pluralize("basic", sharedBasicsCount)}
+              </p>
             </div>
             <button type="button" onClick={onAddMember}>
               Add person or pet

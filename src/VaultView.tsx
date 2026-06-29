@@ -134,6 +134,11 @@ function VaultView({
             </p>
           </div>
         </div>
+        <p className="cabinet-ledger-meta">
+          {formatCount(vaultItems.length, "stored record")} ·{" "}
+          {formatCount(cabinetSummary.ownerCount, "person or pet")} ·{" "}
+          {formatCount(cabinetSummary.needsReview, "review item")}
+        </p>
         <label className="cabinet-search">
           <Search size={16} aria-hidden="true" />
           <span className="sr-only">Search records</span>
@@ -178,21 +183,6 @@ function VaultView({
           })}
         </section>
       ) : null}
-
-      <section className="cabinet-summary-strip" aria-label="Cabinet summary">
-        <article>
-          <span>Total records</span>
-          <strong>{vaultItems.length}</strong>
-        </article>
-        <article>
-          <span>People / pets</span>
-          <strong>{cabinetSummary.ownerCount}</strong>
-        </article>
-        <article>
-          <span>Needs review</span>
-          <strong>{cabinetSummary.needsReview}</strong>
-        </article>
-      </section>
 
       <h2 className="notebook-section-title">Stored records</h2>
 

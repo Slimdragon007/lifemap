@@ -183,6 +183,15 @@ describe("LifeMap MVP app", () => {
     expect(
       within(primaryNav).queryByRole("button", { name: "Add" }),
     ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Open Family dashboard" }));
+    expect(
+      screen.getByRole("heading", { name: "Family dashboard" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Family admin map" }),
+    ).not.toBeInTheDocument();
+    await user.click(within(primaryNav).getByRole("button", { name: "Home" }));
+
     await openBrainDump(user);
     expect(
       screen.getByRole("heading", { name: "Brain dump" }),
@@ -228,11 +237,14 @@ describe("LifeMap MVP app", () => {
         "The household roster: people, pets, care notes, and shared basics. Open a profile when you need to customize someone.",
       ),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("region", { name: "Household overview" }),
-    ).toBeInTheDocument();
+    const peopleAndPets = screen.getByRole("region", { name: "People and pets" });
+    expect(peopleAndPets).toBeInTheDocument();
+    expect(peopleAndPets).toHaveTextContent(/shared basic/i);
     expect(
       screen.queryByRole("region", { name: "Next useful actions" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Household overview" }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("region", { name: "Household watchlist" }),

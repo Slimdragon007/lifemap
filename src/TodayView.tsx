@@ -182,8 +182,8 @@ function TodayView({
             <span className="atlas-eyebrow">Smart drop</span>
             <h2 id="blender-title">Drop anything here.</h2>
             <p>
-              A file, text, screenshot, travel note, vaccine card, or school
-              email. LifeMap sorts it before anything acts.
+              Paste the loose thing once. LifeMap decides whether it belongs on
+              Home, in Cabinet, with a person, or in Review.
             </p>
           </div>
           <button
@@ -205,11 +205,11 @@ function TodayView({
             <UsersRound size={19} />
           </div>
           <div className="home-family-copy">
-            <span className="atlas-eyebrow">Family map</span>
-            <h2 id="home-family-title">Find the right person fast.</h2>
+            <span className="atlas-eyebrow">People & pets</span>
+            <h2 id="home-family-title">Open someone’s profile.</h2>
             <p>
-              People, pets, shared records, and emergency basics live under the
-              household dashboard.
+              Family is the roster. Pick a person or pet, then customize what
+              lives on that profile.
             </p>
           </div>
           <button
@@ -265,11 +265,7 @@ function BriefNotice({
   onOpenBrainDump: () => void;
 }) {
   if (status === "success") {
-    return (
-      <p className="analyze-notice success" aria-live="polite">
-        Daily Brief refreshed. Review actions before anything leaves LifeMap.
-      </p>
-    );
+    return null;
   }
 
   if (status === "fallback") {
