@@ -1,4 +1,5 @@
 import { CalendarPlus, ChevronLeft, FileText } from "lucide-react";
+import { useMemo, useState, type FormEvent } from "react";
 import type {
   DateCategory,
   FamilyEvent,
@@ -9,6 +10,13 @@ import { memberAccent, memberStuff } from "./familyToday";
 import { VAULT_CATEGORY_LABEL } from "./documentTypes";
 import { dateCategoryMeta } from "./dateCategories";
 import { relativeDayLabel } from "./importantDates";
+import {
+  addProfileField,
+  addProfileSection,
+  profileFieldsForMember,
+  profileSectionsForMember,
+  type ProfileSection,
+} from "./profileSections";
 
 const CATEGORY_LABEL = VAULT_CATEGORY_LABEL;
 
@@ -25,6 +33,7 @@ export type MemberProfileViewProps = {
   onBack: () => void;
   onAddDocument: (docTypeKey?: string) => void;
   onAddDate: (category?: DateCategory) => void;
+  onUpdateMember: (member: FamilyMember) => boolean | Promise<boolean>;
 };
 
 function MemberProfileView({
@@ -34,8 +43,27 @@ function MemberProfileView({
   onBack,
   onAddDocument,
   onAddDate,
+  onUpdateMember,
 }: MemberProfileViewProps) {
+  const [isAddingSection, setIsAddingSection] = useState(false);
+  const [sectionName, setSectionName] = useState("");
+  const [activeFieldSectionId, setActiveFieldSectionId] = useState<string>();
+  const [fieldLabel, setFieldLabel] = useState("");
+  const [fieldValue, setFieldValue] = useState("");
+  const [isFieldPrivate, setIsFieldPrivate] = useState(false);
+  const [isSavingSection, setIsSavingSection] = useState(false);
+  const [savingFieldSectionId, setSavingFieldSectionId] = useState<string>();
   const stuff = memberStuff(member, vaultItems, familyEvents, new Date());
+  const sections = profileSectionsForMember(member);
+  const fieldsBySection = useMemo(() => {
+    const groupedFields = new Map<string, ReturnType<typeof profileFieldsForMember>>();
+    for (const field of profileFieldsForMember(member)) {
+      const fields = groupedFields.get(field.sectionId) ?? [];
+      fields.push(field);
+      groupedFields.set(field.sectionId, fields);
+    }
+    return groupedFields;
+  }, [member]);
 
   // Group this person's documents by what was uploaded (category), so the
   // profile reads as "their things, sorted" rather than one flat pile.
@@ -47,6 +75,68 @@ function MemberProfileView({
   }
 
   const isEmpty = stuff.documents.length === 0 && stuff.dates.length === 0;
+
+  async function handleSaveSection(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextSectionName = sectionName.trim();
+    if (!nextSectionName || isSavingSection) {
+      return;
+    }
+    setIsSavingSection(true);
+    try {
+      const nextMember = addProfileSection(member, nextSectionName);
+      const saved = await onUpdateMember(nextMember);
+      if (saved) {
+        setSectionName("");
+        setIsAddingSection(false);
+      }
+    } catch {
+      // Keep the form open so the typed profile detail is not lost.
+    } finally {
+      setIsSavingSection(false);
+    }
+  }
+
+  async function handleSaveField(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextLabel = fieldLabel.trim();
+    const nextValue = fieldValue.trim();
+    if (
+      !activeFieldSectionId ||
+      !nextLabel ||
+      !nextValue ||
+      savingFieldSectionId
+    ) {
+      return;
+    }
+    setSavingFieldSectionId(activeFieldSectionId);
+    try {
+      const nextMember = addProfileField(member, {
+        sectionId: activeFieldSectionId,
+        label: nextLabel,
+        value: nextValue,
+        private: isFieldPrivate,
+      });
+      const saved = await onUpdateMember(nextMember);
+      if (saved) {
+        setActiveFieldSectionId(undefined);
+        setFieldLabel("");
+        setFieldValue("");
+        setIsFieldPrivate(false);
+      }
+    } catch {
+      // Keep the form open so the typed profile detail is not lost.
+    } finally {
+      setSavingFieldSectionId(undefined);
+    }
+  }
+
+  function openFieldForm(sectionId: string) {
+    setActiveFieldSectionId(sectionId);
+    setFieldLabel("");
+    setFieldValue("");
+    setIsFieldPrivate(false);
+  }
 
   return (
     <section
@@ -85,38 +175,47 @@ function MemberProfileView({
             <span className="atlas-eyebrow">Profile shelf</span>
             <h2 id="profile-categories-title">{member.name}&apos;s info</h2>
           </div>
-          <div className="member-category-groups">
-            <article className="member-category-group">
-              <div className="member-category-heading">
-                <strong>Health</strong>
-              </div>
-              <div className="member-category-actions">
-                <button type="button" onClick={() => onAddDocument("medical")}>
-                  <FileText size={15} />
-                  Documents
+          <div className="profile-add-section">
+            {isAddingSection ? (
+              <form className="profile-inline-form" onSubmit={handleSaveSection}>
+                <label>
+                  <span>Section name</span>
+                  <input
+                    value={sectionName}
+                    onChange={(event) => setSectionName(event.target.value)}
+                  />
+                </label>
+                <button type="submit" disabled={isSavingSection}>
+                  Save section
                 </button>
-                <button type="button" onClick={() => onAddDocument("vaccine")}>
-                  <FileText size={15} />
-                  Vaccines
-                </button>
-              </div>
-            </article>
+              </form>
+            ) : (
+              <button type="button" onClick={() => setIsAddingSection(true)}>
+                Add section
+              </button>
+            )}
+          </div>
 
-            <article className="member-category-group">
-              <div className="member-category-heading">
-                <strong>School</strong>
-              </div>
-              <div className="member-category-actions">
-                <button type="button" onClick={() => onAddDate("school")}>
-                  <CalendarPlus size={15} />
-                  Test day
-                </button>
-                <button type="button" onClick={() => onAddDate("custom")}>
-                  <CalendarPlus size={15} />
-                  Important dates
-                </button>
-              </div>
-            </article>
+          <div className="profile-section-grid">
+            {sections.map((section) => (
+              <ProfileSectionCard
+                key={section.id}
+                section={section}
+                fields={fieldsBySection.get(section.id) ?? []}
+                isAddingField={activeFieldSectionId === section.id}
+                fieldLabel={fieldLabel}
+                fieldValue={fieldValue}
+                isFieldPrivate={isFieldPrivate}
+                isSavingField={savingFieldSectionId === section.id}
+                onAddDocument={onAddDocument}
+                onAddDate={onAddDate}
+                onOpenFieldForm={() => openFieldForm(section.id)}
+                onFieldLabelChange={setFieldLabel}
+                onFieldValueChange={setFieldValue}
+                onFieldPrivateChange={setIsFieldPrivate}
+                onSaveField={handleSaveField}
+              />
+            ))}
           </div>
         </section>
 
@@ -183,6 +282,162 @@ function MemberProfileView({
       </div>
     </section>
   );
+}
+
+type ProfileSectionCardProps = {
+  section: ProfileSection;
+  fields: ReturnType<typeof profileFieldsForMember>;
+  isAddingField: boolean;
+  fieldLabel: string;
+  fieldValue: string;
+  isFieldPrivate: boolean;
+  isSavingField: boolean;
+  onAddDocument: (docTypeKey?: string) => void;
+  onAddDate: (category?: DateCategory) => void;
+  onOpenFieldForm: () => void;
+  onFieldLabelChange: (value: string) => void;
+  onFieldValueChange: (value: string) => void;
+  onFieldPrivateChange: (value: boolean) => void;
+  onSaveField: (event: FormEvent<HTMLFormElement>) => void;
+};
+
+function ProfileSectionCard({
+  section,
+  fields,
+  isAddingField,
+  fieldLabel,
+  fieldValue,
+  isFieldPrivate,
+  isSavingField,
+  onAddDocument,
+  onAddDate,
+  onOpenFieldForm,
+  onFieldLabelChange,
+  onFieldValueChange,
+  onFieldPrivateChange,
+  onSaveField,
+}: ProfileSectionCardProps) {
+  const headingId = `profile-section-${section.id}`;
+  return (
+    <article
+      className="profile-section-card"
+      role="region"
+      aria-labelledby={headingId}
+    >
+      <div className="profile-section-head">
+        <h3 id={headingId}>{section.name}</h3>
+        <button
+          type="button"
+          aria-label={`Add field to ${section.name}`}
+          onClick={onOpenFieldForm}
+        >
+          Add field
+        </button>
+      </div>
+
+      {fields.length > 0 ? (
+        <dl className="profile-field-list">
+          {fields.map((field) => (
+            <div className="profile-field-row" key={field.id}>
+              <dt>{field.label}</dt>
+              <dd>{field.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <p className="member-empty-hint">No details yet.</p>
+      )}
+
+      {isAddingField ? (
+        <form className="profile-inline-form" onSubmit={onSaveField}>
+          <label>
+            <span>Field label</span>
+            <input
+              value={fieldLabel}
+              onChange={(event) => onFieldLabelChange(event.target.value)}
+            />
+          </label>
+          <label>
+            <span>Field value</span>
+            <input
+              value={fieldValue}
+              onChange={(event) => onFieldValueChange(event.target.value)}
+            />
+          </label>
+          <label className="profile-checkbox">
+            <input
+              type="checkbox"
+              checked={isFieldPrivate}
+              onChange={(event) => onFieldPrivateChange(event.target.checked)}
+            />
+            <span>Keep private until revealed</span>
+          </label>
+          <button type="submit" disabled={isSavingField}>
+            Save field
+          </button>
+        </form>
+      ) : null}
+
+      <div className="profile-section-actions">
+        <SectionShortcuts
+          section={section}
+          onAddDocument={onAddDocument}
+          onAddDate={onAddDate}
+        />
+      </div>
+    </article>
+  );
+}
+
+function SectionShortcuts({
+  section,
+  onAddDocument,
+  onAddDate,
+}: {
+  section: ProfileSection;
+  onAddDocument: (docTypeKey?: string) => void;
+  onAddDate: (category?: DateCategory) => void;
+}) {
+  if (section.id === "health" || section.kind === "health") {
+    return (
+      <>
+        <button type="button" onClick={() => onAddDocument("medical")}>
+          <FileText size={15} />
+          Add health document
+        </button>
+        <button type="button" onClick={() => onAddDocument("vaccine")}>
+          <FileText size={15} />
+          Add vaccine
+        </button>
+      </>
+    );
+  }
+
+  if (section.id === "school" || section.kind === "school") {
+    return (
+      <>
+        <button type="button" onClick={() => onAddDate("school")}>
+          <CalendarPlus size={15} />
+          Add school date
+        </button>
+        <button type="button" onClick={() => onAddDocument("school")}>
+          <FileText size={15} />
+          Add school document
+        </button>
+      </>
+    );
+  }
+
+  if (section.id === "travel" || section.kind === "travel") {
+    return (
+      <button type="button" onClick={() => onAddDocument("travel")}>
+        <FileText size={15} />
+        Add travel document
+      </button>
+    );
+  }
+
+  return null;
 }
 
 export default MemberProfileView;

@@ -1198,6 +1198,42 @@ function App() {
     }));
   }
 
+  async function handleUpdateFamilyMember(
+    member: FamilyMember,
+  ): Promise<boolean> {
+    if (isSupabaseConfigured && session) {
+      try {
+        const userId = session.user.id;
+        const client = getSupabase() as unknown as FamilyDataClient;
+        const crypto = await ensureFieldCrypto(session.access_token);
+        const result = await upsertFamilyMember(userId, member, client, crypto);
+        if (result.ok) {
+          const saved = result.item;
+          setCollections((current) => ({
+            ...current,
+            familyMembers: current.familyMembers.map((currentMember) =>
+              currentMember.id === saved.id ? saved : currentMember,
+            ),
+          }));
+          return true;
+        }
+        setToastMessage("Couldn't save that profile. Try again.");
+        return false;
+      } catch {
+        setToastMessage("Couldn't save that profile. Try again.");
+        return false;
+      }
+    }
+
+    setCollections((current) => ({
+      ...current,
+      familyMembers: current.familyMembers.map((currentMember) =>
+        currentMember.id === member.id ? member : currentMember,
+      ),
+    }));
+    return true;
+  }
+
   // Vault: direct manual add (icon grid → modal, no AI). Mirrors the Important
   // Date save path, with the per-user field-crypto guard used by every vault
   // write (see materializeSuggestions) so `detail` encrypts at rest.
@@ -1505,6 +1541,7 @@ function App() {
               setQuickAddDateCategory(category);
               setQuickAdd("date");
             }}
+            onUpdateMember={handleUpdateFamilyMember}
           />
         ) : view === "capture" ? (
           <CaptureWorkspace

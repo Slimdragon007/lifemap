@@ -444,7 +444,7 @@ describe("LifeMap MVP app", () => {
       screen.getByRole("region", { name: "Casey Kim" }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Vaccines" }));
+    await user.click(screen.getByRole("button", { name: "Add vaccine" }));
 
     expect(
       screen.getByRole("dialog", { name: "Add vaccine record" }),

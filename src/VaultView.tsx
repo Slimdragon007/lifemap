@@ -176,12 +176,14 @@ function VaultView({
                 {expanded ? (
                   <div className="notebook-detail">
                     <dl>
-                      {member.details.map((detail) => (
-                        <div key={`${member.id}-${detail.label}`}>
-                          <dt>{detail.label}</dt>
-                          <dd>{detail.value}</dd>
-                        </div>
-                      ))}
+                      {member.details
+                        .filter((detail) => detail.detailType !== "section")
+                        .map((detail) => (
+                          <div key={`${member.id}-${detail.label}`}>
+                            <dt>{detail.label}</dt>
+                            <dd>{detail.value}</dd>
+                          </div>
+                        ))}
                     </dl>
                     <ul>
                       {member.careNotes.map((note) => (
