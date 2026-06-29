@@ -26,3 +26,6 @@ tests/e2e/.env.e2e
 
 # wrangler local state
 worker/.wrangler/
+
+# Graphify generated cache; committed graph outputs live in graphify-out/
+/graphify-out/cache/
