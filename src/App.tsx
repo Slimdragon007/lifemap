@@ -422,6 +422,7 @@ function App() {
   const [toastMessage, setToastMessage] = useState<string>();
   const [toastUndo, setToastUndo] = useState<(() => void) | undefined>();
   const [view, setView] = useState<AppView>("today");
+  const appShellRef = useRef<HTMLElement | null>(null);
   const [onboardingReturnView, setOnboardingReturnView] =
     useState<OnboardingReturnView>();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -678,6 +679,18 @@ function App() {
       setOnboardingReturnView(undefined);
     }
   }, [onboardingReturnView, view]);
+
+  useEffect(() => {
+    const shell = appShellRef.current;
+    if (shell) {
+      shell.scrollTop = 0;
+      shell.scrollLeft = 0;
+    }
+
+    if (window.scrollX !== 0 || window.scrollY !== 0) {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+  }, [selectedMemberId, selectedSetupBucketId, view]);
 
   // Reset the one-shot gate guard when the signed-in account changes, so a
   // different account on the same tab can still be gated.
@@ -1396,7 +1409,10 @@ function App() {
 
   return (
     <>
-      <main className={`app-shell view-${view} analyze-${analyzeStatus}`}>
+      <main
+        ref={appShellRef}
+        className={`app-shell view-${view} analyze-${analyzeStatus}`}
+      >
         <div className="ambient-field" aria-hidden="true" />
         <aside
           className="sidebar app-nav-shell"

@@ -31,6 +31,32 @@ test.describe("mobile shell", () => {
     expect(dockStyles).toEqual({ position: "fixed", columns: 4 });
   });
 
+  test("tab changes reset the mobile shell scroll before Cabinet renders", async ({
+    page,
+  }) => {
+    await enterDemoApp(page);
+
+    const shell = page.locator(".app-shell");
+    await shell.evaluate((element) => {
+      element.scrollTop = 140;
+    });
+
+    await page
+      .getByRole("navigation", { name: "Household sections" })
+      .getByRole("button", { name: "Cabinet", exact: true })
+      .click();
+
+    const heading = page.getByRole("heading", { name: "Cabinet", level: 1 });
+    await expect(heading).toBeVisible();
+
+    await expect
+      .poll(() => shell.evaluate((element) => element.scrollTop))
+      .toBe(0);
+
+    const box = await heading.boundingBox();
+    expect(box?.y).toBeGreaterThanOrEqual(18);
+  });
+
   test("member profile content scrolls above the fixed dock", async ({
     page,
   }) => {
