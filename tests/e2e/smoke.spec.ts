@@ -59,7 +59,7 @@ test.describe("demo smoke", () => {
 
     // The single coral CTA reflects the selection count.
     await expect(
-      queue.getByRole("button", { name: /Ready to approve \d+/ }),
+      queue.getByRole("button", { name: /Approve \d+/ }),
     ).toBeVisible();
   });
 

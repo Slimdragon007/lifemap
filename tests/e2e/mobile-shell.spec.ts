@@ -102,7 +102,7 @@ test.describe("mobile shell", () => {
       page.getByRole("heading", { name: "Review", level: 1 }),
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Approve before LifeMap acts" }),
+      page.getByRole("heading", { name: "Needs your OK" }),
     ).toBeVisible();
   });
 });

@@ -1824,9 +1824,7 @@ function App() {
               <h1 id="review-title" className="notebook-title">
                 Review
               </h1>
-              <p className="notebook-sub">
-                Anything waiting for your OK before it's done.
-              </p>
+              <p className="notebook-sub">Only items waiting for your OK.</p>
             </header>
             {recordsLoadFailed ? (
               <div className="analyze-notice error" role="alert">
@@ -3419,9 +3417,7 @@ function ApprovalQueue({
   const Component = variant === "rail" ? "aside" : "section";
   const pausedCount = editedApprovals.length - selectedCount;
   const reviewButtonLabel =
-    selectedCount === 0
-      ? "Choose what is OK"
-      : `Ready to approve ${selectedCount}`;
+    selectedCount === 0 ? "Choose one" : `Approve ${selectedCount}`;
 
   return (
     <Component
@@ -3429,12 +3425,9 @@ function ApprovalQueue({
       className={variant === "rail" ? "approval-rail" : "approval-queue"}
     >
       <div className="rail-heading">
-        <h2>Approve before LifeMap acts</h2>
-        <span>{stagedRun ? "Approved" : "Needs your OK"}</span>
+        <h2>{stagedRun ? "Approved" : "Needs your OK"}</h2>
       </div>
-      <p className="rail-copy">
-        Nothing sends, schedules, or changes until you say yes.
-      </p>
+      {stagedRun ? null : <p className="rail-copy">Nothing acts without you.</p>}
       {stagedRun ? (
         <StagedSummary run={stagedRun} />
       ) : (
@@ -3459,9 +3452,7 @@ function ApprovalQueue({
               ))
             ) : (
               <p className="notebook-empty">
-                Nothing to review yet. Capture a note and tap “Analyze intake” —
-                drafts and reminders LifeMap suggests will wait here until you
-                approve them.
+                Nothing to review yet.
               </p>
             )}
           </div>
@@ -3488,16 +3479,11 @@ function ApprovalFlowGuide({
   selectedCount: number;
 }) {
   return (
-    <section className="approval-flow-card" aria-label="Approval flow">
+    <section className="approval-flow-card" aria-label="Approval status">
       <div className="approval-flow-metrics">
         <strong>{formatReadyCount(selectedCount)}</strong>
         <span>{formatPausedCount(pausedCount)}</span>
       </div>
-      <p>
-        {selectedCount === 0
-          ? "Turn on at least one item before approving."
-          : "Review the items below. Turn off anything LifeMap should hold."}
-      </p>
     </section>
   );
 }
@@ -3614,7 +3600,6 @@ function ApprovalCard({
             Edit
           </button>
         )}
-        <span className="notebook-tag">{item.status}</span>
       </div>
       {item.kind === "draft" ? (
         <SendDraftControl
@@ -3745,11 +3730,10 @@ function StagedSummary({ run }: { run: StagedRun }) {
         <span className="staged-icon">
           <CheckCircle2 size={18} />
         </span>
-      <div>
+        <div>
           <h3>Approved for now</h3>
           <p>
-            {formatCount(run.approvals.length, "item")} approved at{" "}
-            {run.stagedAt}.
+            {formatCount(run.approvals.length, "item")} at {run.stagedAt}.
           </p>
         </div>
       </div>
@@ -3765,9 +3749,6 @@ function StagedSummary({ run }: { run: StagedRun }) {
           </li>
         ))}
       </ul>
-      <p className="staged-note">
-        Nothing was sent automatically. Draft messages still require Send email.
-      </p>
     </section>
   );
 }
@@ -3777,11 +3758,11 @@ function formatCount(count: number, singularLabel: string) {
 }
 
 function formatReadyCount(count: number) {
-  return `${count} ready for your OK`;
+  return `${count} ready`;
 }
 
 function formatPausedCount(count: number) {
-  return `${count} held back`;
+  return `${count} held`;
 }
 
 function ReviewDialog({

@@ -31,7 +31,7 @@ const tools = [
     title: "Cabinet",
     body: "Stored records only: IDs, cards, forms, policies, and private details.",
   },
-  { title: "Review", body: "Anything waiting for your OK before it's done." },
+  { title: "Review", body: "Only items waiting for your OK." },
 ];
 
 function HowItWorksView({ onBack }: { onBack: () => void }) {
