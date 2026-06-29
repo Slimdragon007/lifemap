@@ -10085,8 +10085,8 @@ button.notebook-row:active {
 
 .vault-owner-group {
   display: grid;
-  gap: 4px;
-  padding: 8px 0 2px;
+  gap: 9px;
+  padding: 12px 0 4px;
 }
 
 .vault-owner-heading {
@@ -10094,58 +10094,95 @@ button.notebook-row:active {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 4px 4px;
+  padding: 0 2px;
 }
 
 .vault-owner-heading h3 {
   margin: 0;
   color: var(--ink, #2c2018);
-  font-size: 14px;
-  font-weight: 760;
+  font-size: 15px;
+  font-weight: 800;
   line-height: 1.2;
 }
 
 .vault-owner-heading span {
   color: var(--ink-quiet, #b39a82);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 760;
 }
 
 .vault-owner-list {
   display: grid;
+  gap: 8px;
 }
 
 .notebook-row.entry.vault-owner-row {
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: stretch;
-  border-bottom: 1px solid var(--rule, #d4d8ce);
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-none);
 }
 
 .notebook-row.entry.vault-owner-row .notebook-row-main {
   grid-column: 1;
-  padding: 13px 14px 13px 4px;
+  padding: 0;
   border-left: 0;
   border-bottom: 0;
 }
 
-.notebook-row.entry.vault-owner-row > .notebook-tag {
+.vault-record-meta {
   grid-column: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   align-self: center;
-  padding: 13px 4px 13px 12px;
-  border: 0;
+  color: var(--color-text-quiet);
+}
+
+.notebook-row.entry.vault-owner-row .notebook-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 999px;
+  background: var(--color-surface-quiet-tint);
+  color: var(--color-text-secondary);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.notebook-row.entry.vault-owner-row .notebook-tag.attention {
+  border-color: var(--color-accent-warm-soft);
+  background: var(--color-accent-warm-soft);
+  color: var(--color-accent-clay);
+}
+
+.notebook-row.entry.vault-owner-row .notebook-tag.current {
+  border-color: var(--color-border-subtle);
+  background: var(--color-surface-row);
+  color: var(--color-text-secondary);
 }
 
 @media (max-width: 640px) {
   .notebook-row.entry.vault-owner-row {
     grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
   }
 
-  .notebook-row.entry.vault-owner-row > .notebook-tag {
+  .vault-record-meta {
     grid-column: 1;
     grid-row: 2;
     justify-self: start;
-    padding: 0 0 13px 4px;
-    border-left: 0;
   }
 
   .cabinet-summary-strip {
@@ -12835,26 +12872,27 @@ button.notebook-row:active {
 }
 
 .app-shell.view-vault .notebook-filters {
-  padding-bottom: 10px;
+  padding-bottom: 14px;
+  margin-bottom: 8px;
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .app-shell.view-vault .vault-owner-group {
-  padding: 14px 0 0;
+  padding: 12px 0 4px;
 }
 
 .app-shell.view-vault .vault-owner-heading {
-  padding-inline: 0;
+  padding-inline: 2px;
 }
 
 .app-shell.view-vault .vault-owner-list {
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: 0;
 }
 
 .app-shell.view-vault .notebook-row.entry.vault-owner-row {
-  border-bottom: 1px solid var(--color-border-subtle);
-  border-radius: 0;
-  background: transparent;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 16px;
+  background: var(--color-surface-panel);
 }
 
 .app-shell.view-more .family-dashboard {

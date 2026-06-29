@@ -1,5 +1,6 @@
 import {
   CheckCircle2,
+  ChevronRight,
   Eye,
   LockKeyhole,
   Plus,
@@ -130,8 +131,8 @@ function VaultView({
         </div>
         <p className="cabinet-ledger-meta">
           {formatCount(vaultItems.length, "stored record")} ·{" "}
-          {formatCount(cabinetSummary.ownerCount, "person or pet")} ·{" "}
-          {formatCount(cabinetSummary.needsReview, "review item")}
+          {formatCount(cabinetSummary.ownerCount, "profile")} ·{" "}
+          {formatNeedsReview(cabinetSummary.needsReview)}
         </p>
         <label className="cabinet-search">
           <Search size={16} aria-hidden="true" />
@@ -294,6 +295,10 @@ function summarizeVaultItems(items: VaultItem[]) {
 
 function formatCount(count: number, singularLabel: string) {
   return `${count} ${count === 1 ? singularLabel : `${singularLabel}s`}`;
+}
+
+function formatNeedsReview(count: number) {
+  return `${count} ${count === 1 ? "needs" : "need"} review`;
 }
 
 export function AddDocumentModal({
@@ -488,6 +493,7 @@ function VaultRow({
   const sub = `${VAULT_CATEGORY_LABEL[item.category]}${
     item.renewalDate ? ` · review by ${formatShortDate(item.renewalDate)}` : ""
   }`;
+  const statusTone = item.status === "Current" ? "current" : "attention";
 
   return (
     <button
@@ -500,7 +506,10 @@ function VaultRow({
         <span className="notebook-row-title">{item.title}</span>
         <span className="notebook-row-sub">{sub}</span>
       </span>
-      <span className="notebook-tag">{item.status}</span>
+      <span className="vault-record-meta">
+        <span className={`notebook-tag ${statusTone}`}>{item.status}</span>
+        <ChevronRight size={16} aria-hidden="true" />
+      </span>
     </button>
   );
 }
