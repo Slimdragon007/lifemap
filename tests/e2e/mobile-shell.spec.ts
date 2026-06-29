@@ -21,6 +21,25 @@ test.describe("mobile shell", () => {
     expect(box?.y).toBeGreaterThanOrEqual(18);
 
     const dock = page.locator(".bottom-nav");
+    await expect(dock.locator("button span")).toHaveText([
+      "Home",
+      "Cabinet",
+      "Family",
+      "Settings",
+    ]);
+
+    const homeButton = dock.getByRole("button", { name: "Home", exact: true });
+    await expect(homeButton).toHaveClass(/active/);
+    const homeActiveStyles = await homeButton.evaluate((button) => {
+      const icon = button.querySelector("svg");
+      return {
+        buttonBackground: getComputedStyle(button).backgroundColor,
+        iconBackground: icon ? getComputedStyle(icon).backgroundColor : "",
+      };
+    });
+    expect(homeActiveStyles.buttonBackground).toBe("rgba(0, 0, 0, 0)");
+    expect(homeActiveStyles.iconBackground).not.toBe("rgba(0, 0, 0, 0)");
+
     const dockStyles = await dock.evaluate((element) => {
       const styles = getComputedStyle(element);
       return {
