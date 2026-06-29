@@ -12933,3 +12933,144 @@ button.notebook-row:active {
   background: var(--color-nav-home-bg);
   box-shadow: var(--shadow-control);
 }
+
+/* Release-candidate visual consistency for legacy notebook surfaces. */
+.app-shell.view-review,
+.app-shell.view-family,
+.app-shell.view-more,
+.member-profile,
+.privacy-workspace {
+  --line: var(--color-border-subtle);
+  --line-strong: var(--color-border-strong);
+  --ink: var(--color-text-primary);
+  --ink-soft: var(--color-text-secondary);
+  --ink-quiet: var(--color-text-quiet);
+  --warm-line: var(--color-accent-warm-soft);
+  --warm-ink: var(--color-text-strong);
+  --warm-ink-soft: var(--color-text-secondary);
+  --warm-ink-quiet: var(--color-text-quiet);
+}
+
+.app-shell.view-review {
+  --accent: var(--color-role-review-accent);
+  --accent-soft: var(--color-accent-blue-soft);
+  --needs: var(--color-role-home-accent);
+  --needs-soft: var(--color-accent-warm-soft);
+}
+
+.app-shell.view-more {
+  --accent: var(--color-role-family-accent);
+  --accent-soft: var(--color-accent-blue-soft);
+}
+
+.app-shell.view-vault {
+  --accent: var(--color-role-cabinet-accent);
+  --accent-soft: var(--color-accent-blue-soft);
+}
+
+.calm-av {
+  border: 1px solid var(--color-border-hairline);
+  color: var(--color-accent-blue-strong);
+  background: var(--color-accent-blue-soft);
+}
+
+.calm-av-blue {
+  color: var(--color-accent-blue-strong);
+  background: var(--color-accent-blue-soft);
+  --member-ring: var(--color-accent-blue);
+}
+
+.calm-av-clay {
+  color: var(--color-accent-clay);
+  background: var(--color-accent-warm-soft);
+  --member-ring: var(--color-accent-clay);
+}
+
+.calm-av-plum {
+  color: var(--color-accent-plum);
+  background: var(--color-accent-plum-soft);
+  --member-ring: var(--color-accent-plum);
+}
+
+.calm-av-sage {
+  color: var(--color-accent-sage);
+  background: var(--color-accent-sage-soft);
+  --member-ring: var(--color-accent-sage);
+}
+
+.calm-av-amber {
+  color: var(--color-accent-amber);
+  background: var(--color-accent-amber-soft);
+  --member-ring: var(--color-accent-amber);
+}
+
+.profile-section-card,
+.family-household-card,
+.settings-welcome-card,
+.privacy-card {
+  border-color: var(--color-border-subtle);
+  background:
+    var(--gradient-liquid-surface),
+    var(--color-surface-panel);
+  box-shadow: var(--shadow-none);
+}
+
+.profile-field-row,
+.member-row,
+.more-row {
+  border-color: var(--color-border-subtle);
+  background: var(--color-surface-quiet-tint);
+}
+
+.profile-section-head button,
+.profile-add-section > button,
+.profile-section-actions button,
+.settings-welcome-actions button,
+.settings-welcome-primary,
+.notebook-btn {
+  border-color: var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-panel);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-none);
+}
+
+.settings-welcome-primary,
+.notebook-cta,
+.notebook-send .send-button,
+.app-shell.view-review .send-button {
+  border-color: transparent;
+  background: var(--gradient-action-primary);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-control);
+}
+
+.app-shell.view-review .notebook-switch[aria-checked="true"],
+.app-shell.view-review .switch[aria-checked="true"] {
+  background: var(--color-role-review-accent);
+}
+
+.app-shell.view-review .notebook-approval:not(.paused)::before {
+  background: var(--color-role-home-accent);
+}
+
+.notebook-textarea,
+.notebook-input,
+.notebook-paste,
+.onboarding-field input,
+.onboarding-person-name,
+.onboarding-person-role,
+.settings-name-field input {
+  border-color: var(--color-border-subtle);
+  background: var(--color-surface-panel);
+  color: var(--color-text-primary);
+}
+
+.settings-welcome-icon,
+.member-row-icon,
+.notebook-approval-icon,
+.app-shell.view-review .approval-icon {
+  color: var(--color-accent-blue);
+  background: var(--color-accent-blue-soft);
+  border-radius: var(--radius-control);
+}

@@ -58,8 +58,11 @@
   --color-accent-warm-soft: rgba(217, 120, 82, 0.13);
   --color-accent-clay: #cf744d;
   --color-accent-plum: #7467c9;
+  --color-accent-plum-soft: rgba(116, 103, 201, 0.12);
   --color-accent-sage: #5f8879;
-  --color-accent-amber: #a96f27;
+  --color-accent-sage-soft: rgba(95, 136, 121, 0.14);
+  --color-accent-amber: #c9813f;
+  --color-accent-amber-soft: rgba(201, 129, 63, 0.14);
   --color-status-danger: #c94332;
 
   --color-action-ink: #172133;
@@ -195,8 +198,11 @@ html[data-theme="dark"] {
   --color-accent-warm-soft: rgba(240, 162, 125, 0.14);
   --color-accent-clay: #f0a27d;
   --color-accent-plum: #afa8ff;
+  --color-accent-plum-soft: rgba(175, 168, 255, 0.16);
   --color-accent-sage: #9fd1bc;
-  --color-accent-amber: #e4b46a;
+  --color-accent-sage-soft: rgba(159, 209, 188, 0.16);
+  --color-accent-amber: #efbd72;
+  --color-accent-amber-soft: rgba(239, 189, 114, 0.16);
   --color-status-danger: #ff8f80;
 
   --color-action-ink: #edf4ff;

@@ -98,6 +98,27 @@
           "scope": ["FRAME_FILL", "SHAPE_FILL", "TEXT_FILL", "STROKE_COLOR"]
         },
         {
+          "name": "color/accent/plum-soft",
+          "type": "COLOR",
+          "css": "var(--color-accent-plum-soft)",
+          "value": "rgba(116, 103, 201, 0.12)",
+          "scope": ["FRAME_FILL", "SHAPE_FILL"]
+        },
+        {
+          "name": "color/accent/sage-soft",
+          "type": "COLOR",
+          "css": "var(--color-accent-sage-soft)",
+          "value": "rgba(95, 136, 121, 0.14)",
+          "scope": ["FRAME_FILL", "SHAPE_FILL"]
+        },
+        {
+          "name": "color/accent/amber-soft",
+          "type": "COLOR",
+          "css": "var(--color-accent-amber-soft)",
+          "value": "rgba(201, 129, 63, 0.14)",
+          "scope": ["FRAME_FILL", "SHAPE_FILL"]
+        },
+        {
           "name": "color/border/subtle",
           "type": "COLOR",
           "css": "var(--color-border-subtle)",
