@@ -115,10 +115,7 @@ function VaultView({
         <h1 id="vault-title" className="notebook-title">
           Cabinet
         </h1>
-        <p className="notebook-sub">
-          Find passports, cards, school forms, vaccine records, and policy
-          details without opening every profile.
-        </p>
+        <p className="notebook-sub">Records, IDs, forms, and private details.</p>
       </header>
 
       <section className="cabinet-command-panel" aria-label="Find records">
@@ -128,10 +125,7 @@ function VaultView({
           </span>
           <div>
             <h2>Records only.</h2>
-            <p>
-              Search by person, pet, category, or status. Private details stay
-              tucked away until you open a record.
-            </p>
+            <p>Search by person, pet, or type.</p>
           </div>
         </div>
         <p className="cabinet-ledger-meta">
@@ -233,7 +227,7 @@ function VaultView({
             message={
               searchQuery
                 ? "No records match that search."
-                : "No records yet. Paste an ID, policy, or form and it files itself."
+                : "No records yet. Drop one in and LifeMap files it."
             }
             onAction={
               searchQuery ? () => setSearchQuery("") : onOpenCapture

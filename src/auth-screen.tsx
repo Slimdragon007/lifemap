@@ -84,9 +84,9 @@ function AuthScreen() {
         : "Reset your password.";
   const lede =
     mode === "signin"
-      ? "Map your life, clear your head, know your next move."
+      ? "Find what matters. Know the next move."
       : mode === "signup"
-        ? "One calm home for the family-admin chaos."
+        ? "One calm home for family logistics."
         : "Enter your email and we'll send you a reset link.";
 
   return (

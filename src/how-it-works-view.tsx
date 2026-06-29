@@ -4,32 +4,32 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 // your next moves. Kept to one calm screen, reached from More.
 const steps = [
   {
-    title: "1. Capture the mess",
-    body: "Paste an email, a school form, a screenshot, or a brain dump. Messy is fine.",
+    title: "1. Capture",
+    body: "Paste a form, email, screenshot, or note.",
   },
   {
-    title: "2. AI sorts it",
-    body: "LifeMap pulls out the tasks, dates, and people, then files them where they belong.",
+    title: "2. Sort",
+    body: "LifeMap finds tasks, dates, people, and records.",
   },
   {
-    title: "3. Your next moves",
-    body: "Today shows the few things that actually need you. The rest waits, quietly.",
+    title: "3. Act",
+    body: "Today shows what needs you.",
   },
 ];
 
 const tools = [
   {
     title: "Today",
-    body: "Your calm summary. The few things that need you right now.",
+    body: "What needs you now.",
   },
   {
     title: "Capture",
-    body: "Where you paste anything messy and let LifeMap sort it.",
+    body: "Drop forms, notes, and screenshots.",
   },
-  { title: "Calendar", body: "Everything time-bound, in one list." },
+  { title: "Calendar", body: "Dates and reminders." },
   {
     title: "Cabinet",
-    body: "Stored records only: IDs, cards, forms, policies, and private details.",
+    body: "Records, IDs, forms, and private details.",
   },
   { title: "Review", body: "Only items waiting for your OK." },
 ];
@@ -47,10 +47,7 @@ function HowItWorksView({ onBack }: { onBack: () => void }) {
             The basics
           </span>
           <h1 id="howitworks-title">How LifeMap works</h1>
-          <p>
-            LifeMap takes the chaos in your head and hands back your next few
-            moves, calmly.
-          </p>
+          <p>Capture once. LifeMap sorts the rest.</p>
         </div>
         <button className="secondary-button" type="button" onClick={onBack}>
           <ArrowLeft size={15} />

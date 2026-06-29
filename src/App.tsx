@@ -1367,10 +1367,7 @@ function App() {
             <span>Private household operating system</span>
           </div>
           <h1 id="login-title">LifeMap</h1>
-          <p>
-            Turn real-life logistics into a calm map of what is due, what is
-            missing, who you are waiting on, and what needs approval.
-          </p>
+          <p>Find the next move. Keep private details tucked away.</p>
           <button
             className="primary-button login-button"
             type="button"
@@ -2443,10 +2440,7 @@ function FamilyDashboard({
             Household dashboard
           </span>
           <h1 id="family-dashboard-title">Family dashboard</h1>
-          <p>
-            The household roster: people, pets, care notes, and shared basics.
-            Open a profile when you need to customize someone.
-          </p>
+          <p>People, pets, care notes, and shared basics.</p>
         </div>
       </header>
 
@@ -2648,7 +2642,7 @@ function MoreView({
             <div className="more-section-heading">
               <span>Appearance</span>
               <h2 id="more-appearance-title">Theme</h2>
-              <p>Light by default, with dark mode available when you want it.</p>
+              <p>Choose how LifeMap looks.</p>
             </div>
             <div className="more-appearance-row">
               <span className="more-row-copy">
@@ -2682,7 +2676,7 @@ function MoreView({
             <div className="more-section-heading">
               <span>Welcome</span>
               <h2 id="more-setup-title">Welcome and setup</h2>
-              <p>Replay onboarding or update the basics LifeMap uses.</p>
+              <p>Replay setup anytime.</p>
             </div>
             <article className="settings-welcome-card">
               <div className="settings-welcome-copy">
@@ -2690,11 +2684,8 @@ function MoreView({
                   <Sparkles size={19} />
                 </span>
                 <div>
-                  <h3>Start with the short tour.</h3>
-                  <p>
-                    Use this when LifeMap feels unclear, or when someone new in
-                    the household needs to understand the flow.
-                  </p>
+                  <h3>Welcome tour.</h3>
+                  <p>A quick walkthrough of the basics.</p>
                 </div>
               </div>
               <div className="settings-welcome-actions">
@@ -2938,7 +2929,7 @@ function MoreView({
           <div className="more-section-heading">
             <span>Safety</span>
             <h2 id="more-account-title">Account and privacy</h2>
-            <p>Security, approval rules, feedback, and account-level controls.</p>
+            <p>Privacy, approvals, and account controls.</p>
           </div>
           <button
             aria-label="Open privacy and security"
@@ -2951,7 +2942,7 @@ function MoreView({
             </span>
             <span className="more-row-copy">
               <strong>Privacy &amp; security</strong>
-              <span>How data, AI, email, and private details are handled.</span>
+              <span>Data, AI, email, and private details.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
@@ -2966,7 +2957,7 @@ function MoreView({
             </span>
             <span className="more-row-copy">
               <strong>Approvals &amp; permissions</strong>
-              <span>Review anything waiting for your OK before LifeMap acts.</span>
+              <span>Items waiting for your OK.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
           </button>

@@ -176,13 +176,10 @@ function OnboardingView({
             </span>
           </header>
           <div className="onboarding-body">
-            <h1 id="onboarding-intro-title">
-              LifeMap takes the chaos in your head and hands back your next few
-              moves, calmly.
-            </h1>
+            <h1 id="onboarding-intro-title">Set up your household map.</h1>
             <p className="onboarding-lede">
-              Capture anything messy, let it get sorted, and see just the few
-              things that need you. Let&apos;s set up your map.
+              Add people, choose what to track, and keep private info tucked
+              away.
             </p>
           </div>
           <footer className="onboarding-foot">

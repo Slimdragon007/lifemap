@@ -12001,8 +12001,26 @@ button.notebook-row:active {
   padding-bottom: calc(156px + env(safe-area-inset-bottom));
 }
 .onboarding-replay-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   width: min(100%, 560px);
   align-self: center;
+  min-height: 44px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 999px;
+  background: var(--color-surface-panel);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-control);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.onboarding-replay-back:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 3px;
 }
 .onboarding-shell-embedded {
   display: block;

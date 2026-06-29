@@ -81,8 +81,8 @@ function TodayView({
     doneCount > 0
       ? `${doneCount} of ${topPriorities.length} handled.`
       : approvalCount > 0
-        ? `${approvalCount} waiting, whenever you're ready.`
-        : "Drop the loose stuff here. It will get sorted.";
+        ? `${approvalCount} waiting for OK.`
+        : "Drop the loose stuff here.";
 
   return (
     <section
@@ -116,7 +116,7 @@ function TodayView({
         </div>
         <div className="calm-greeting-copy">
           <p className="calm-greeting-title">
-            One thing at a time.
+            One thing now.
           </p>
           <p className="calm-status-line">{statusLine}</p>
         </div>
@@ -181,10 +181,7 @@ function TodayView({
           <div className="home-blender-copy">
             <span className="atlas-eyebrow">Smart drop</span>
             <h2 id="blender-title">Drop anything here.</h2>
-            <p>
-              Paste the loose thing once. LifeMap decides whether it belongs on
-              Home, in Cabinet, with a person, or in Review.
-            </p>
+            <p>Paste once. LifeMap files it.</p>
           </div>
           <button
             className="home-blender-button"
@@ -207,10 +204,7 @@ function TodayView({
           <div className="home-family-copy">
             <span className="atlas-eyebrow">People & pets</span>
             <h2 id="home-family-title">Open someone’s profile.</h2>
-            <p>
-              Family is the roster. Pick a person or pet, then customize what
-              lives on that profile.
-            </p>
+            <p>People, pets, and custom fields.</p>
           </div>
           <button
             aria-label="Open Family dashboard"
@@ -231,7 +225,7 @@ function TodayView({
             <div className="home-review-copy">
               <span className="atlas-eyebrow">Safety gate</span>
               <h2>{approvalSummary}</h2>
-              <p>Nothing sends or changes until you approve it.</p>
+              <p>Approve before anything acts.</p>
             </div>
             <button
               aria-label={`Needs your OK. Open Review, ${approvalSummary}`}

@@ -234,7 +234,7 @@ describe("LifeMap MVP app", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        "The household roster: people, pets, care notes, and shared basics. Open a profile when you need to customize someone.",
+        "People, pets, care notes, and shared basics.",
       ),
     ).toBeInTheDocument();
     const peopleAndPets = screen.getByRole("region", { name: "People and pets" });
@@ -276,7 +276,7 @@ describe("LifeMap MVP app", () => {
     await user.click(replayWelcomeButton);
     expect(
       screen.getByRole("heading", {
-        name: /LifeMap takes the chaos in your head/i,
+        name: "Set up your household map.",
       }),
     ).toBeInTheDocument();
     const replayNav = screen.getByRole("navigation", {

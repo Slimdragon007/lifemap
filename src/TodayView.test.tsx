@@ -83,9 +83,7 @@ describe("TodayView identity", () => {
     expect(screen.getByLabelText("m.haslim")).toHaveTextContent("MH");
     // Home no longer leads with a fake demo greeting; identity stays tucked in
     // the avatar.
-    expect(
-      screen.getByText("One thing at a time."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("One thing now.")).toBeInTheDocument();
   });
 
   test("the demo identity still renders AK", () => {
@@ -100,7 +98,7 @@ describe("TodayView focus flow", () => {
     renderToday({ approvalCount: 3 });
 
     expect(
-      screen.getByText("3 waiting, whenever you're ready."),
+      screen.getByText("3 waiting for OK."),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Review notifications" }),
@@ -141,6 +139,10 @@ describe("TodayView intake", () => {
     renderToday({ onOpenBrainDump });
 
     expect(screen.getByRole("heading", { name: "Drop anything here." })).toBeInTheDocument();
+    expect(screen.getByText("Paste once. LifeMap files it.")).toBeInTheDocument();
+    expect(
+      screen.queryByText(/decides whether it belongs/i),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Drop a thought or file" }));
     expect(onOpenBrainDump).toHaveBeenCalledTimes(1);
   });
