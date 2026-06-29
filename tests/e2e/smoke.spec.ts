@@ -20,7 +20,7 @@ test.describe("demo smoke", () => {
     ).toHaveClass(/active/);
 
     // Switch through the current primary destinations; each tab activates in turn.
-    for (const tab of ["Cabinet", "Family", "Settings", "Home"] as const) {
+    for (const tab of ["Home", "Cabinet", "Family", "Settings"] as const) {
       await nav.getByRole("button", { name: tab, exact: true }).click();
       await expect(
         nav.getByRole("button", { name: tab, exact: true }),

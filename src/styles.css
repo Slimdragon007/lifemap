@@ -12990,6 +12990,45 @@ button.notebook-row:active {
   box-shadow: var(--shadow-control);
 }
 
+/* Bottom nav refinement: active state should guide with the icon only, not a
+   full selected tile. This keeps the liquid dock quiet while preserving state. */
+.bottom-nav .nav-item.active,
+.bottom-nav .nav-item:hover {
+  color: var(--color-nav-item-text);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.bottom-nav .nav-item.active span {
+  color: var(--color-nav-item-active-text);
+}
+
+.bottom-nav .nav-item.active svg {
+  box-sizing: content-box;
+  width: 20px;
+  height: 20px;
+  margin: -7px;
+  padding: 7px;
+  border-radius: 14px;
+  color: var(--color-nav-item-active-text);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.86),
+      var(--color-nav-item-active-bg)
+    ),
+    rgba(255, 255, 255, 0.56);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.84),
+    0 10px 22px rgba(72, 143, 225, 0.15);
+  fill: none;
+}
+
+.bottom-nav .nav-item:hover svg {
+  color: var(--color-nav-item-active-text);
+}
+
 /* Release-candidate visual consistency for legacy notebook surfaces. */
 .app-shell.view-review,
 .app-shell.view-family,
