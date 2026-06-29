@@ -1410,16 +1410,11 @@ function App() {
               <span>Cabinet</span>
             </button>
             <button
-              className={view === "review" ? "nav-item active" : "nav-item"}
-              type="button"
-              onClick={() => setView("review")}
-            >
-              <CheckCircle2 size={18} />
-              <span>Review</span>
-            </button>
-            <button
               className={
-                view === "today" || view === "bucket" || view === "member"
+                view === "today" ||
+                view === "bucket" ||
+                view === "member" ||
+                view === "review"
                   ? "nav-item nav-item-primary active"
                   : "nav-item nav-item-primary"
               }
@@ -1508,6 +1503,7 @@ function App() {
             onOpenCabinet={() => setView("vault")}
             onOpenFamilyMap={() => setView("family")}
             onOpenImportantDates={() => setView("dates")}
+            onOpenReview={() => setView("review")}
             onOpenPriority={setSelectedPriority}
             onTogglePriorityDone={togglePriorityDone}
             onOpenSetup={() => setView("setup")}

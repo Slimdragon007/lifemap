@@ -106,6 +106,11 @@ async function openBrainDump(user: ReturnType<typeof userEvent.setup>) {
   );
 }
 
+async function openReviewFromHome(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: "Home" }));
+  await user.click(screen.getByRole("button", { name: /Needs your OK/i }));
+}
+
 async function openCalendarFromCapture(user: ReturnType<typeof userEvent.setup>) {
   await openBrainDump(user);
   const capture = screen.getByRole("region", { name: "Brain dump" });
@@ -143,7 +148,7 @@ describe("LifeMap MVP app", () => {
     expect(
       screen.getByRole("button", { name: "Drop a thought or file" }),
     ).toBeInTheDocument();
-    // Primary nav is now Cabinet · Review · Home · Family · Settings. Capture starts from the
+    // Primary nav is now Cabinet · Home · Family · Settings. Capture starts from the
     // Home blender, not from a top-level tool tab.
     const primaryNav = screen.getByRole("navigation", {
       name: "Household sections",
@@ -152,7 +157,7 @@ describe("LifeMap MVP app", () => {
       within(primaryNav)
         .getAllByRole("button")
         .map((button) => button.textContent),
-    ).toEqual(["Cabinet", "Review", "Home", "Family", "Settings"]);
+    ).toEqual(["Cabinet", "Home", "Family", "Settings"]);
     expect(
       within(primaryNav).getByRole("button", { name: "Home" }),
     ).toBeInTheDocument();
@@ -163,8 +168,8 @@ describe("LifeMap MVP app", () => {
       within(primaryNav).getByRole("button", { name: "Cabinet" }),
     ).toBeInTheDocument();
     expect(
-      within(primaryNav).getByRole("button", { name: "Review" }),
-    ).toBeInTheDocument();
+      within(primaryNav).queryByRole("button", { name: "Review" }),
+    ).not.toBeInTheDocument();
     expect(
       within(primaryNav).getByRole("button", { name: "Family" }),
     ).toBeInTheDocument();
@@ -186,11 +191,14 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Cabinet" }));
     expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
 
-    // Review is reachable from the primary nav without an extra Home routing
-    // section.
+    // Review is reachable from Home as a contextual safety entry.
     await user.click(screen.getByRole("button", { name: "Home" }));
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(screen.getByRole("button", { name: /Needs your OK/i }));
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
+    expect(within(primaryNav).getByRole("button", { name: "Home" })).toHaveClass(
+      "nav-item-primary",
+      "active",
+    );
 
     await user.click(screen.getByRole("button", { name: "Family" }));
     expect(
@@ -601,19 +609,26 @@ describe("LifeMap MVP app", () => {
     expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
   });
 
-  test("uses real app tabs for the review queue", async () => {
+  test("opens the review queue from the Home safety entry", async () => {
     const user = userEvent.setup();
 
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    const primaryNav = screen.getByRole("navigation", {
+      name: "Household sections",
+    });
+    expect(
+      within(primaryNav).queryByRole("button", { name: "Review" }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Needs your OK/i }));
 
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
     expect(
       screen.getByRole("region", { name: "Approval queue" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Review" })).toHaveClass(
+    expect(within(primaryNav).getByRole("button", { name: "Home" })).toHaveClass(
+      "nav-item-primary",
       "active",
     );
     expect(screen.queryByLabelText("Approval status")).not.toBeInTheDocument();
@@ -985,8 +1000,8 @@ describe("LifeMap MVP app", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Close" }));
 
-    // Approvals: Review is a primary destination, not a Home toolbar action.
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    // Approvals: Review is a contextual Home safety entry.
+    await user.click(screen.getByRole("button", { name: /Needs your OK/i }));
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
   });
 
@@ -996,7 +1011,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    await openReviewFromHome(user);
 
     const queue = screen.getByRole("region", { name: "Approval queue" });
     expect(within(queue).getByText("Step 1 of 3")).toBeInTheDocument();
@@ -1017,7 +1032,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    await openReviewFromHome(user);
 
     const queue = screen.getByRole("region", { name: "Approval queue" });
     expect(
@@ -1100,7 +1115,7 @@ describe("LifeMap MVP app", () => {
     render(<App />);
 
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    await openReviewFromHome(user);
 
     const queue = screen.getByRole("region", { name: "Approval queue" });
     const reminderToggle = within(queue).getByRole("switch", {
@@ -1452,7 +1467,7 @@ describe("LifeMap MVP app", () => {
 
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "Review" }));
+    await user.click(screen.getByRole("button", { name: /Needs your OK/i }));
     await user.click(screen.getByRole("button", { name: "Review 1 selected" }));
     await user.click(screen.getByRole("button", { name: "Approve & stage" }));
 

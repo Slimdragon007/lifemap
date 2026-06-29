@@ -5,6 +5,7 @@ import {
   Lightbulb,
   Plus,
   RefreshCw,
+  ShieldCheck,
 } from "lucide-react";
 import type { BriefPriority, DailyBrief } from "./dailyBrief";
 import type { LifeMapAnalysis } from "./lifemap";
@@ -31,6 +32,7 @@ type TodayViewProps = {
   onOpenCabinet: () => void;
   onOpenFamilyMap: () => void;
   onOpenImportantDates: () => void;
+  onOpenReview: () => void;
   onOpenSetup: () => void;
   onOpenSetupBucket: (bucket: RecommendedBucket) => void;
   onOpenPriority: (priority: BriefPriority) => void;
@@ -46,6 +48,7 @@ function TodayView({
   priorityActionStates,
   onGenerateBrief,
   onOpenBrainDump,
+  onOpenReview,
   onOpenPriority,
   onTogglePriorityDone,
 }: TodayViewProps) {
@@ -67,6 +70,10 @@ function TodayView({
   const doneCount = topPriorities.filter(
     (priority) => priorityActionStates[priority.id] === "completed",
   ).length;
+
+  const approvalSummary = `${approvalCount} ${
+    approvalCount === 1 ? "item needs" : "items need"
+  } your OK`;
 
   const statusLine =
     doneCount > 0
@@ -187,6 +194,28 @@ function TodayView({
             <ChevronRight size={15} />
           </button>
         </section>
+
+        {approvalCount > 0 ? (
+          <section className="home-review-entry" aria-label="Review safety gate">
+            <div className="home-review-icon" aria-hidden="true">
+              <ShieldCheck size={18} />
+            </div>
+            <div className="home-review-copy">
+              <span className="atlas-eyebrow">Safety gate</span>
+              <h2>{approvalSummary}</h2>
+              <p>Nothing sends or changes until you approve it.</p>
+            </div>
+            <button
+              aria-label={`Needs your OK. Open Review, ${approvalSummary}`}
+              className="home-review-button"
+              type="button"
+              onClick={onOpenReview}
+            >
+              Needs your OK
+              <ChevronRight size={15} />
+            </button>
+          </section>
+        ) : null}
 
         <BriefNotice
           status={status}

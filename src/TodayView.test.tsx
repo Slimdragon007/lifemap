@@ -30,6 +30,7 @@ type TodayOverrides = {
   identity?: { name: string; initials: string };
   approvalCount?: number;
   onOpenBrainDump?: () => void;
+  onOpenReview?: () => void;
   brief?: DailyBrief;
 };
 
@@ -38,6 +39,7 @@ function renderToday(overrides: TodayOverrides = {}) {
     identity = { name: "Alex Kim", initials: "AK" },
     approvalCount = 0,
     onOpenBrainDump = vi.fn(),
+    onOpenReview = vi.fn(),
     brief = emptyBrief,
   } = overrides;
   render(
@@ -56,6 +58,7 @@ function renderToday(overrides: TodayOverrides = {}) {
       onOpenCabinet={vi.fn()}
       onOpenFamilyMap={vi.fn()}
       onOpenImportantDates={vi.fn()}
+      onOpenReview={onOpenReview}
       onOpenPriority={vi.fn()}
       onTogglePriorityDone={vi.fn()}
       onOpenSetup={vi.fn()}
@@ -107,6 +110,24 @@ describe("TodayView focus flow", () => {
 
     expect(
       screen.queryByText(/waiting for your yes/i),
+    ).not.toBeInTheDocument();
+  });
+
+  test("shows a safety entry when approvals need an OK", async () => {
+    const user = userEvent.setup();
+    const onOpenReview = vi.fn();
+
+    renderToday({ approvalCount: 3, onOpenReview });
+
+    await user.click(screen.getByRole("button", { name: /Needs your OK/i }));
+    expect(onOpenReview).toHaveBeenCalledTimes(1);
+  });
+
+  test("hides the safety entry when nothing needs an OK", () => {
+    renderToday({ approvalCount: 0 });
+
+    expect(
+      screen.queryByRole("button", { name: /Needs your OK/i }),
     ).not.toBeInTheDocument();
   });
 });
