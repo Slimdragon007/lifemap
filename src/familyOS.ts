@@ -1,12 +1,22 @@
 import type { LifeMapAnalysis } from "./lifemap";
 
+export type FamilyMemberDetail = {
+  id?: string;
+  label: string;
+  value: string;
+  detailType?: "field" | "section";
+  sectionId?: string;
+  order?: number;
+  private?: boolean;
+};
+
 export type FamilyMember = {
   id: string;
   name: string;
   role: string;
   initials: string;
   profileType: "adult" | "child" | "pet";
-  details: Array<{ label: string; value: string }>;
+  details: FamilyMemberDetail[];
   careNotes: string[];
 };
 
