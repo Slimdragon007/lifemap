@@ -143,7 +143,7 @@ export function recommendSetupBuckets(profile: SetupProfile): RecommendedBucket[
   if (focus.has("records")) {
     addBucket(buckets, {
       id: "vault-records",
-      label: "Vault: IDs and records",
+      label: "Cabinet: IDs and records",
       reason: "Passports, IDs, insurance cards, emergency cards, and renewal dates belong behind one trusted door.",
       nextAction: "Add the first card or document you always search for.",
       destination: "vault",

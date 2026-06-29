@@ -7,7 +7,7 @@ import type { FamilyMember } from "./familyOS";
 // Onboarding "Your people" must PERSIST + SCALE: finishing the wizard with N
 // people (3+ kids included) creates that many family_members. This is the
 // real-mode guard — it asserts upsertFamilyMember is called once per named
-// person and that they then surface in Vault (mirrors App.realmode.test.tsx's
+// person and that they then surface in Family (mirrors App.realmode.test.tsx's
 // module-mock style so the demo suite in App.test.tsx is unaffected).
 
 const { session, upsertFamilyMemberMock } = vi.hoisted(() => {
@@ -92,7 +92,7 @@ describe("LifeMap onboarding 'Your people' persistence", () => {
     vi.unstubAllGlobals();
   });
 
-  test("creates one family_member per person (3+ kids) and they reach Vault", async () => {
+  test("creates one family_member per person (3+ kids) and they reach Family", async () => {
     const user = userEvent.setup();
     // Fresh signed-in user: the first-run gate routes straight into the wizard.
     render(<App />);
@@ -138,12 +138,13 @@ describe("LifeMap onboarding 'Your people' persistence", () => {
       expect(call[0]).toBe("user-123");
     }
 
-    // The persisted people surface in Vault's "Family profiles".
-    await screen.findByRole("button", { name: "Cabinet" });
-    await user.click(screen.getByRole("button", { name: "Cabinet" }));
+    // The persisted people surface in the Family roster, not Cabinet records.
+    await screen.findByRole("button", { name: "Family" });
+    await user.click(screen.getByRole("button", { name: "Family" }));
 
-    const vault = screen.getByRole("heading", { name: "Vault" });
-    expect(vault).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Family dashboard" }),
+    ).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /Robin/ })).toBeInTheDocument();
     });

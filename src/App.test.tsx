@@ -190,7 +190,7 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Back to Today" }));
 
     await user.click(screen.getByRole("button", { name: "Cabinet" }));
-    expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Cabinet" })).toBeInTheDocument();
 
     // Review is reachable from Home as a contextual safety entry.
     await user.click(screen.getByRole("button", { name: "Home" }));
@@ -218,14 +218,14 @@ describe("LifeMap MVP app", () => {
       screen.queryByRole("region", { name: "Needs attention" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /Open vault record/ }),
+      screen.queryByRole("button", { name: /Open cabinet record/ }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Open LifeMap suggestions" }),
     ).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        "People, pets, shared records, and emergency basics in one calm place.",
+        "The household roster: people, pets, care notes, and shared basics. Open a profile when you need to customize someone.",
       ),
     ).toBeInTheDocument();
     expect(
@@ -405,7 +405,7 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByText("Family profiles")).toBeInTheDocument();
     expect(screen.getByText("Pet care loop")).toBeInTheDocument();
     expect(screen.getByText("Travel command center")).toBeInTheDocument();
-    expect(screen.getByText("Vault: IDs and records")).toBeInTheDocument();
+    expect(screen.getByText("Cabinet: IDs and records")).toBeInTheDocument();
     expect(screen.getByText("5 active buckets")).toBeInTheDocument();
 
     unmount();
@@ -491,7 +491,7 @@ describe("LifeMap MVP app", () => {
       screen.queryByRole("heading", { name: "Four calm places." }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Vault 24 items" }),
+      screen.queryByRole("button", { name: "Cabinet 24 items" }),
     ).not.toBeInTheDocument();
   });
 
@@ -574,7 +574,7 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Settings" }));
     await user.click(screen.getByRole("button", { name: "Open guided setup" }));
     const recordsBucket = screen
-      .getByText("Vault: IDs and records")
+      .getByText("Cabinet: IDs and records")
       .closest("article");
     expect(recordsBucket).not.toBeNull();
     await user.click(
@@ -583,7 +583,7 @@ describe("LifeMap MVP app", () => {
       }),
     );
 
-    expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Cabinet" })).toBeInTheDocument();
   });
 
   test("opens capture from guided setup without Home bucket chips", async () => {
@@ -623,7 +623,7 @@ describe("LifeMap MVP app", () => {
     ).toBeInTheDocument();
   });
 
-  test("routes analyzed capture back to Vault", async () => {
+  test("routes analyzed capture back to Cabinet", async () => {
     const user = userEvent.setup();
     vi.stubGlobal(
       "fetch",
@@ -660,9 +660,9 @@ describe("LifeMap MVP app", () => {
     expect(
       screen.queryByRole("heading", { name: "Brain dump" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
-    // Vault is records-only now; analysis gaps no longer appear here.
-    expect(screen.getByText("Documents & records")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Cabinet" })).toBeInTheDocument();
+    // Cabinet is records-only now; analysis gaps no longer appear here.
+    expect(screen.getByText("Stored records")).toBeInTheDocument();
     expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
   });
 
@@ -889,7 +889,7 @@ describe("LifeMap MVP app", () => {
     expect(screen.getByText("Field trip permission slip")).toBeInTheDocument();
   });
 
-  test("projects current AI analysis into Calendar; Vault stays records-only", async () => {
+  test("projects current AI analysis into Calendar; Cabinet stays records-only", async () => {
     const user = userEvent.setup();
     saveStoredDemoState({
       isLoggedIn: true,
@@ -910,13 +910,13 @@ describe("LifeMap MVP app", () => {
 
     await user.click(screen.getByRole("button", { name: "Cabinet" }));
 
-    expect(screen.getByRole("heading", { name: "Vault" })).toBeInTheDocument();
-    expect(screen.getByText("Documents & records")).toBeInTheDocument();
-    // The "Parent signature" gap belongs on Calendar, not as a Vault record.
+    expect(screen.getByRole("heading", { name: "Cabinet" })).toBeInTheDocument();
+    expect(screen.getByText("Stored records")).toBeInTheDocument();
+    // The "Parent signature" gap belongs on Calendar, not as a Cabinet record.
     expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
   });
 
-  test("keeps Calendar AI suggestions until saved; Vault stays records-only", async () => {
+  test("keeps Calendar AI suggestions until saved; Cabinet stays records-only", async () => {
     const user = userEvent.setup();
     saveStoredDemoState({
       isLoggedIn: true,
@@ -942,10 +942,10 @@ describe("LifeMap MVP app", () => {
     await openCalendarFromCapture(user);
     expect(screen.getByText("Saved to LifeMap")).toBeInTheDocument();
 
-    // Vault never carries the analysis gap as a record.
+    // Cabinet never carries the analysis gap as a record.
     await user.click(screen.getByRole("button", { name: "Cabinet" }));
     expect(screen.queryByText("Parent signature")).not.toBeInTheDocument();
-    expect(screen.getByText("Documents & records")).toBeInTheDocument();
+    expect(screen.getByText("Stored records")).toBeInTheDocument();
   });
 
   test("generates a Daily Brief through the local AI API", async () => {
@@ -1226,7 +1226,7 @@ describe("LifeMap MVP app", () => {
     ).toBeInTheDocument();
   });
 
-  test("keeps Vault profile and record details tucked away until tapped", async () => {
+  test("keeps Cabinet record details tucked away until tapped", async () => {
     const user = userEvent.setup();
 
     render(<App />);
@@ -1234,11 +1234,7 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: "Login as Alex Kim" }));
     await user.click(screen.getByRole("button", { name: "Cabinet" }));
 
-    expect(screen.queryByText("Westview Elementary")).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /Casey Kim/i }));
-
-    expect(screen.getByText("Westview Elementary")).toBeInTheDocument();
+    expect(screen.queryByText("Renewal packet started")).not.toBeInTheDocument();
 
     await user.click(
       screen.getByRole("button", { name: "Open details for Casey passport" }),

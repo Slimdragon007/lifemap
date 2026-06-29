@@ -38,37 +38,35 @@ const kids: FamilyMember[] = [
 describe("VaultView de-demo", () => {
   test("a real viewer sees no demo people and gets empty states", () => {
     render(
-      <VaultView
-        familyMembers={[]}
-        identity={{ name: "m.haslim", initials: "MH" }}
-        vaultItems={[]}
-        {...handlers}
-      />,
+      <VaultView familyMembers={[]} vaultItems={[]} {...handlers} />,
     );
 
     expect(screen.queryByText("Alex Kim")).toBeNull();
     expect(screen.queryByText(/MCV4 vaccine record due for camp/i)).toBeNull();
     expect(screen.queryByText(/Rabies booster due this month/i)).toBeNull();
-    expect(screen.getByText(/No family profiles yet/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Emergency basics appear once you add family profiles/i),
+      screen.getByRole("heading", { name: "Cabinet" }),
     ).toBeInTheDocument();
+    expect(screen.getByLabelText("Search records")).toBeInTheDocument();
+    expect(screen.queryByText("Family profiles")).toBeNull();
+    expect(screen.queryByText("Emergency view")).toBeNull();
+    expect(screen.getByText(/No records yet/i)).toBeInTheDocument();
   });
 
-  test("demo mode still renders the sample family and emergency contact", () => {
+  test("demo mode renders sample records without the family roster", () => {
     render(
       <VaultView
         familyMembers={familyMembers}
-        identity={{ name: "Alex Kim", initials: "AK" }}
         vaultItems={vaultItems}
         {...handlers}
       />,
     );
 
-    expect(screen.getAllByText("Alex Kim").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Alex Kim")).toBeNull();
     expect(
-      screen.getByText(/MCV4 vaccine record due for camp/i),
+      screen.getByText(/MCV4 immunization record/i),
     ).toBeInTheDocument();
+    expect(screen.getByLabelText("Search records")).toBeInTheDocument();
   });
 });
 
@@ -80,7 +78,6 @@ describe("VaultView add-document flow", () => {
     render(
       <VaultView
         familyMembers={kids}
-        identity={{ name: "Mom", initials: "M" }}
         vaultItems={[]}
         onOpenCapture={vi.fn()}
         onAddDocument={onAddDocument}
@@ -113,44 +110,6 @@ describe("VaultView add-document flow", () => {
     );
   });
 
-  test("per-profile Add document pre-selects that member as owner", async () => {
-    const user = userEvent.setup();
-    const onAddDocument = vi.fn();
-
-    render(
-      <VaultView
-        familyMembers={kids}
-        identity={{ name: "Mom", initials: "M" }}
-        vaultItems={[]}
-        onOpenCapture={vi.fn()}
-        onAddDocument={onAddDocument}
-      />,
-    );
-
-    // Expand Emma's profile, use its inline Add document.
-    await user.click(screen.getByRole("button", { name: /Emma Grade 3/ }));
-    const inlineAdds = screen.getAllByRole("button", {
-      name: /^Add document$/i,
-    });
-    // The inline one is the per-profile button (after the top affordance).
-    await user.click(inlineAdds[inlineAdds.length - 1]);
-    await user.click(
-      screen.getByRole("button", { name: /Add a school form/i }),
-    );
-
-    // Owner pre-selected to Emma.
-    expect(screen.getByLabelText("Who is it for?")).toHaveValue("Emma");
-
-    await user.click(screen.getByRole("button", { name: "Save document" }));
-
-    const saved = onAddDocument.mock.calls[0][0] as VaultItem;
-    expect(saved).toMatchObject({
-      title: "School form",
-      category: "school",
-      owner: "Emma",
-    });
-  });
-
   test("generic add auto-guesses the category from the title", async () => {
     const user = userEvent.setup();
     const onAddDocument = vi.fn();
@@ -158,7 +117,6 @@ describe("VaultView add-document flow", () => {
     render(
       <VaultView
         familyMembers={kids}
-        identity={{ name: "Mom", initials: "M" }}
         vaultItems={[]}
         onOpenCapture={vi.fn()}
         onAddDocument={onAddDocument}
@@ -188,7 +146,6 @@ describe("VaultView add-document flow", () => {
     render(
       <VaultView
         familyMembers={kids}
-        identity={{ name: "Mom", initials: "M" }}
         vaultItems={[]}
         onOpenCapture={vi.fn()}
         onAddDocument={onAddDocument}
@@ -211,7 +168,7 @@ describe("VaultView add-document flow", () => {
     });
   });
 
-  test("grouping shows only that owner's documents under their profile", async () => {
+  test("search finds records by owner and hides non-matches", async () => {
     const user = userEvent.setup();
     const items: VaultItem[] = [
       {
@@ -235,20 +192,16 @@ describe("VaultView add-document flow", () => {
     render(
       <VaultView
         familyMembers={kids}
-        identity={{ name: "Mom", initials: "M" }}
         vaultItems={items}
         onOpenCapture={vi.fn()}
         onAddDocument={vi.fn()}
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: /Emma Grade 3/ }));
-    const emmaDetail = screen
-      .getAllByRole("button", { name: /Open details for Emma passport/i })
-      .map((el) => el.closest(".notebook-member-docs"))
-      .find((el): el is HTMLElement => el !== null) as HTMLElement;
-    expect(within(emmaDetail).queryByText("Jordan passport")).toBeNull();
-    expect(within(emmaDetail).getByText("Emma passport")).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Search records"), "Emma");
+
+    expect(screen.getByText("Emma passport")).toBeInTheDocument();
+    expect(screen.queryByText("Jordan passport")).toBeNull();
   });
 
   test("documents are grouped by person with readable category and status", () => {
@@ -274,7 +227,6 @@ describe("VaultView add-document flow", () => {
     render(
       <VaultView
         familyMembers={kids}
-        identity={{ name: "Mom", initials: "M" }}
         vaultItems={items}
         onOpenCapture={vi.fn()}
         onAddDocument={vi.fn()}
@@ -290,9 +242,15 @@ describe("VaultView add-document flow", () => {
 
     expect(emmaGroup).not.toBeNull();
     expect(familyGroup).not.toBeNull();
-    expect(within(emmaGroup as HTMLElement).getByText("Emma passport")).toBeInTheDocument();
-    expect(within(emmaGroup as HTMLElement).getByText("IDs")).toBeInTheDocument();
-    expect(within(emmaGroup as HTMLElement).getByText("Current")).toBeInTheDocument();
+    expect(
+      within(emmaGroup as HTMLElement).getByText("Emma passport"),
+    ).toBeInTheDocument();
+    expect(
+      within(emmaGroup as HTMLElement).getByText("IDs"),
+    ).toBeInTheDocument();
+    expect(
+      within(emmaGroup as HTMLElement).getByText("Current"),
+    ).toBeInTheDocument();
     expect(
       within(familyGroup as HTMLElement).getByText("Family insurance card"),
     ).toBeInTheDocument();

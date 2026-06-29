@@ -262,7 +262,7 @@ function OnboardingView({
               <h1 id="onboarding-title">Your people</h1>
               <p className="onboarding-lede">
                 Tap everyone you carry mental load for — you can add more
-                anytime in your Vault.
+                anytime in Family.
               </p>
               <div className="onboarding-chips">
                 {PEOPLE_CHIPS.map((chip) => (

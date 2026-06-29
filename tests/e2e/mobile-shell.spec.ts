@@ -92,7 +92,7 @@ test.describe("mobile shell", () => {
 
     const nav = page.getByRole("navigation", { name: "Household sections" });
     await nav.getByRole("button", { name: "Cabinet", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Vault" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Cabinet" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Casey" })).toBeVisible();
     await expect(page.getByText("Casey passport")).toBeVisible();
 

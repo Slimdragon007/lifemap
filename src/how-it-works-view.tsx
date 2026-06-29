@@ -28,8 +28,8 @@ const tools = [
   },
   { title: "Calendar", body: "Everything time-bound, in one list." },
   {
-    title: "Vault",
-    body: "Your family's records and emergency info, safe and findable.",
+    title: "Cabinet",
+    body: "Stored records only: IDs, cards, forms, policies, and private details.",
   },
   { title: "Review", body: "Anything waiting for your OK before it's done." },
 ];

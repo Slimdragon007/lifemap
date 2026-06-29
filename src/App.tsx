@@ -194,7 +194,7 @@ const captureTypeGuides = [
     title: "Health",
     sampleLabel: "Doctor appointment",
     description: "Appointments, meds, insurance",
-    outcome: "Pulls missing info into Vault",
+    outcome: "Pulls missing info into Cabinet",
   },
   {
     title: "IDs + records",
@@ -1245,7 +1245,7 @@ function App() {
     return true;
   }
 
-  // Vault: direct manual add (icon grid → modal, no AI). Mirrors the Important
+  // Cabinet: direct manual add (icon grid → modal, no AI). Mirrors the Important
   // Date save path, with the per-user field-crypto guard used by every vault
   // write (see materializeSuggestions) so `detail` encrypts at rest.
   async function handleAddDocument(item: VaultItem): Promise<void> {
@@ -1625,7 +1625,6 @@ function App() {
         ) : view === "vault" ? (
           <VaultView
             familyMembers={collections.familyMembers}
-            identity={identity}
             vaultItems={collections.vaultItems}
             onOpenCapture={() => openCapture()}
             onAddDocument={handleAddDocument}
@@ -1970,7 +1969,7 @@ function App() {
             routeSelectedPriority("review", "Drafts wait in Review.")
           }
           onSaveToVault={() =>
-            routeSelectedPriority("vault", "Supporting info routed to Vault.")
+            routeSelectedPriority("vault", "Supporting info routed to Cabinet.")
           }
           onSnooze={snoozeSelectedPriority}
         />
@@ -2432,6 +2431,7 @@ function FamilyDashboard({
   const emergencyMembers = familyMembers.filter(
     (member) => member.careNotes.length > 0,
   );
+  const sharedBasicsCount = sharedRecords.length + householdDates.length;
 
   return (
     <section
@@ -2446,8 +2446,8 @@ function FamilyDashboard({
           </span>
           <h1 id="family-dashboard-title">Family dashboard</h1>
           <p>
-            People, pets, shared records, and emergency basics in one calm
-            place.
+            The household roster: people, pets, care notes, and shared basics.
+            Open a profile when you need to customize someone.
           </p>
         </div>
       </header>
@@ -2458,7 +2458,7 @@ function FamilyDashboard({
           aria-label="Household overview"
         >
           <article>
-            <span>People</span>
+            <span>Profiles</span>
             <strong>{people.length}</strong>
           </article>
           <article>
@@ -2466,12 +2466,12 @@ function FamilyDashboard({
             <strong>{pets.length}</strong>
           </article>
           <article>
-            <span>Records</span>
-            <strong>{vaultItems.length}</strong>
+            <span>Shared basics</span>
+            <strong>{sharedBasicsCount}</strong>
           </article>
           <article>
-            <span>Dates</span>
-            <strong>{familyEvents.length}</strong>
+            <span>Care notes</span>
+            <strong>{emergencyMembers.length}</strong>
           </article>
         </section>
 
@@ -2481,7 +2481,7 @@ function FamilyDashboard({
         >
           <div className="family-dashboard-section-head">
             <div>
-              <span>Start here</span>
+              <span>Roster</span>
               <h2 id="family-members-title">People and pets</h2>
             </div>
             <button type="button" onClick={onAddMember}>
@@ -2530,7 +2530,7 @@ function FamilyDashboard({
           <div className="family-dashboard-section-head">
             <div>
               <span>Shared household</span>
-              <h2 id="family-shared-title">Records and basics</h2>
+              <h2 id="family-shared-title">Shared basics</h2>
             </div>
           </div>
           <div className="family-household-grid">
@@ -2862,7 +2862,7 @@ function MoreView({
             <span className="more-row-copy">
               <strong>Brain dump capture</strong>
               <span>
-                Paste messy context and route it to calendar, vault, or review.
+                Paste messy context and route it to calendar, cabinet, or review.
               </span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
@@ -2883,7 +2883,7 @@ function MoreView({
             <ChevronRight className="more-row-chevron" size={18} />
           </button>
           <button
-            aria-label="Open vault"
+            aria-label="Open cabinet"
             className="more-row"
             type="button"
             onClick={onOpenVault}
@@ -2892,7 +2892,7 @@ function MoreView({
               <Archive size={18} />
             </span>
             <span className="more-row-copy">
-              <strong>Vault</strong>
+              <strong>Cabinet</strong>
               <span>IDs, records, and documents kept behind one door.</span>
             </span>
             <ChevronRight className="more-row-chevron" size={18} />
@@ -3299,7 +3299,7 @@ function PriorityActionDialog({
           >
             <ShieldCheck size={18} />
             <span>
-              <strong>Save info to Vault</strong>
+              <strong>Save info to Cabinet</strong>
               <small>Move supporting details into the source of truth.</small>
             </span>
           </button>

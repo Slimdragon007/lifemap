@@ -86,12 +86,12 @@ export const launchPlanSections: LaunchPlanSection[] = [
   },
   {
     id: "life-logistics",
-    title: "Vault / calendar / family logistics",
+    title: "Cabinet / calendar / family logistics",
     description: "Keep the life-admin buckets concrete: documents, dates, travel, health.",
     items: [
       {
         id: "calendar-vault-projections",
-        title: "Calendar and Vault use current AI analysis",
+        title: "Calendar and Cabinet use current AI analysis",
         nextAction: "Verify school, travel, health, and document items show up.",
         status: "ready",
       },
