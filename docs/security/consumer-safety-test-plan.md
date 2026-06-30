@@ -56,6 +56,8 @@ Use only fake records and synthetic files. Do not use genuine child, medical, pa
 | Account B Storage denial | Pass | 2026-06-30 | Synthetic Account B download returned object-not-found for Account A's object path. |
 | Anonymous Storage denial | Pass | 2026-06-30 | No-session client download returned object-not-found for Account A's object path. |
 | Clear-map removes Storage objects | Pass with caveat | 2026-06-30 | Storage API removed the object catalog row before metadata cleanup. Owner downloads immediately after deletion can still return cached bytes, so LifeMap now fails closed unless `remove()` confirms deleted paths before metadata is cleared. |
+| Password reset recovery | Pass | 2026-06-30 | Gmail reset email opened `app.getlifemap.com`, the production reset screen updated the password, and direct sign-in with the new password succeeded. |
+| Synthetic auth cleanup | Pass | 2026-06-30 | The synthetic `m.haslim+lifemap-rc-*` user was removed after verification; follow-up SQL confirmed no matching auth user, profile, domain, user-memory, vault item, or vault file rows remained. |
 | Plaintext exposure check | Partial pass | 2026-06-30 | Fake file bytes were encrypted before upload and decrypted only after download. Production bundle secret scan passed through `npm run verify:production`; console/log inspection still needs a browser-observed upload session. |
 
 ## Automated Evidence Recorded
@@ -85,7 +87,8 @@ Results:
 - `npm run test:e2e`: passed 16 tests and skipped 5 real-auth tests because `tests/e2e/.env.e2e` is not present.
 - Live Supabase storage catalog verification passed against project `tljijkoqfnimnkpzhozy` using `scripts/verify-storage-security.sql`.
 - Synthetic production-account storage harness passed upload/open, Account B metadata denial, Account B Storage denial, anonymous Storage denial, and Storage catalog deletion before metadata cleanup.
+- Production password reset proof passed with a Gmail-delivered recovery link, production reset UI update, and direct sign-in confirmation.
 
 ## Remaining Setup Needed
 
-Use an accessible test inbox to finish the password-reset recovery-link proof. Use fake data only. Synthetic `lifemap-rc-*` auth users created during this run should be removed later through Supabase dashboard/admin tooling if they are not needed for future testing.
+Use fake data only for continued testing. Before broader consumer launch, complete a browser-observed upload session to confirm no plaintext file content appears in console or logs, decide the permanent auth-link domain, and set up branded/custom SMTP if LifeMap is going beyond controlled beta.

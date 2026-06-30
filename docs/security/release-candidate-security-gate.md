@@ -5,7 +5,7 @@
 
 ## Current Verdict
 
-LifeMap is production-deployed and usable for controlled testing. It is not yet fully consumer-ready until the remaining live-account safety checks below are completed and recorded.
+LifeMap is production-deployed and the core live-account safety gates below are recorded. It is ready for controlled consumer-beta testing with fake or low-risk documents. Before a broader public launch, finish the remaining hardening follow-ups: custom auth email/Site URL policy, browser-observed upload console/log inspection, and the documented dev-only Vite/Vitest major-upgrade audit.
 
 ## Required Evidence Before Consumer Release
 
@@ -21,7 +21,7 @@ LifeMap is production-deployed and usable for controlled testing. It is not yet 
 | Cross-account Storage denial | Account B cannot download Account A's Storage object | Pass on 2026-06-30; Storage returned object-not-found to Account B |
 | Anonymous Storage denial | No-session user cannot download Account A's Storage object | Pass on 2026-06-30; Storage returned object-not-found to anonymous client |
 | Clear-map deletion | Storage objects are removed before records are cleared | Pass with caveat on 2026-06-30; Storage catalog row is deleted before metadata, and app now fails closed unless `remove()` confirms deleted paths |
-| Password reset | Reset email, recovery session, and password update work on production domain | Partial pass: reset request accepted by Supabase; final email-link recovery still needs a test inbox |
+| Password reset | Reset email, recovery session, and password update work on the configured production auth domain | Pass on 2026-06-30; Gmail reset email opened `app.getlifemap.com`, password update completed, and direct sign-in with the new password succeeded |
 | Product copy safety | No zero-knowledge, HIPAA, bank-grade, or independent-audit claims | Pass in current Privacy copy |
 
 ## Blocking Rules
@@ -30,7 +30,7 @@ Do not call LifeMap fully consumer-ready if any of these are true:
 
 - Real document upload/open has not been tested with a signed-in production test account.
 - Cross-account metadata or Storage denial is not verified.
-- Password reset is not verified on `https://lifemap-d33.pages.dev`.
+- Password reset is not verified on the configured production Auth redirect domain and the current production app deployment.
 - Product copy claims zero-knowledge, HIPAA, bank-grade, bank-level, or independent security audit without actual evidence.
 - `npm audit --omit=dev` reports production dependency vulnerabilities.
 - `npm run verify:production` fails.
@@ -74,8 +74,13 @@ Results:
   - Account B and an anonymous client could not download Account A's Storage object.
   - Supabase `storage.remove()` deleted the Storage catalog row before metadata cleanup.
   - Important caveat: an owner download immediately after deletion can still return cached bytes from Supabase Storage. LifeMap now validates that `remove()` returned the deleted object paths before deleting metadata, so the app does not leave an in-app path to the file.
-  - Synthetic Cabinet rows and Storage objects were cleaned up; synthetic auth users remain because deleting auth users requires admin-auth tooling.
+  - Synthetic Cabinet rows and Storage objects were cleaned up.
+- Production password reset recovery:
+  - Supabase reset email was delivered to the connected Gmail inbox for a synthetic plus-address account.
+  - The reset link redirected to `https://app.getlifemap.com/#`, matching the configured Supabase Site URL rather than the requested `lifemap-d33.pages.dev` redirect.
+  - The production reset screen rendered, password update completed, and a direct Supabase sign-in with the new password succeeded.
+  - The synthetic `m.haslim+lifemap-rc-*` Auth user was removed after verification, and follow-up SQL confirmed no matching auth user, profile, domain, user-memory, vault item, or vault file rows remained.
 
 ## Recommended Next Action
 
-Complete the password-reset recovery link with an accessible test inbox. Then decide whether to remove synthetic `lifemap-rc-*` auth users through the Supabase dashboard/admin tooling.
+Decide whether `app.getlifemap.com` is the permanent auth-link domain. If yes, keep the current Site URL behavior and set up branded/custom SMTP next. If not, update Supabase Auth URL configuration and email templates so recovery links use the intended production domain.
