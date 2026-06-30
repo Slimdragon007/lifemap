@@ -23,8 +23,15 @@ import type { FamilyMember, VaultItem } from "./familyOS";
 const VAULT_SUGGESTION_ID = "ai-vault-missing-signature";
 
 // Hoisted so these are available inside the hoisted vi.mock factories below.
-const { aiAnalysis, caseyMember, session, upsertFamilyMemberMock, upsertVaultItemMock } =
-  vi.hoisted(() => {
+const {
+  aiAnalysis,
+  caseyMember,
+  fieldCrypto,
+  ensureFieldCryptoMock,
+  session,
+  upsertFamilyMemberMock,
+  upsertVaultItemMock,
+} = vi.hoisted(() => {
   const aiAnalysis: LifeMapAnalysis = {
     dueItems: [
       {
@@ -61,6 +68,11 @@ const { aiAnalysis, caseyMember, session, upsertFamilyMemberMock, upsertVaultIte
     details: [{ label: "Teacher", value: "Ms. Rivera" }],
     careNotes: [],
   };
+  const fieldCrypto = {
+    encrypt: async (value: string) => value,
+    decrypt: async (value: string) => value,
+  };
+  const ensureFieldCryptoMock = vi.fn(async () => fieldCrypto);
   const upsertFamilyMemberMock = vi.fn(
     async (_userId: string, member: FamilyMember) => ({
       ok: true as const,
@@ -77,6 +89,8 @@ const { aiAnalysis, caseyMember, session, upsertFamilyMemberMock, upsertVaultIte
   return {
     aiAnalysis,
     caseyMember,
+    fieldCrypto,
+    ensureFieldCryptoMock,
     session,
     upsertFamilyMemberMock,
     upsertVaultItemMock,
@@ -99,10 +113,7 @@ vi.mock("./use-session", () => ({
 }));
 
 vi.mock("./field-crypto", () => ({
-  ensureFieldCrypto: vi.fn(async () => ({
-    encrypt: async (value: string) => value,
-    decrypt: async (value: string) => value,
-  })),
+  ensureFieldCrypto: ensureFieldCryptoMock,
   getFieldCrypto: vi.fn(() => ({
     encrypt: async (value: string) => value,
     decrypt: async (value: string) => value,
@@ -168,6 +179,8 @@ import App from "./App";
 
 describe("LifeMap real-mode AI-vault persistence", () => {
   afterEach(() => {
+    ensureFieldCryptoMock.mockReset();
+    ensureFieldCryptoMock.mockResolvedValue(fieldCrypto);
     upsertFamilyMemberMock.mockClear();
     upsertVaultItemMock.mockClear();
     localStorage.clear();
@@ -212,6 +225,43 @@ describe("LifeMap real-mode AI-vault persistence", () => {
       id: VAULT_SUGGESTION_ID,
       title: "Parent signature",
     });
+  });
+
+  test("does not persist private vault suggestions when field encryption is unavailable", async () => {
+    const user = userEvent.setup();
+    localStorage.setItem("lifemap-onboarded", "1");
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole("button", { name: "Sign out alex@example.com" }),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Drop a thought or file" }),
+    );
+    expect(
+      await screen.findByText("Sorted into relief steps"),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: /Put on calendar/i }),
+    );
+
+    ensureFieldCryptoMock.mockRejectedValueOnce(
+      new Error(
+        "LifeMap cannot save private details until encryption is available.",
+      ),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Save vault suggestion" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Couldn't save securely. Check your connection and try again.",
+      ),
+    ).toBeInTheDocument();
+    expect(upsertVaultItemMock).not.toHaveBeenCalled();
   });
 
   test("persists profile field edits through the real-mode family member upsert path", async () => {

@@ -27,7 +27,11 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { analyzeWithAi, generateBriefWithAi, sendDraftEmail } from "./api";
-import { clearFieldCrypto, ensureFieldCrypto } from "./field-crypto";
+import {
+  clearFieldCrypto,
+  ensureFieldCrypto,
+  type FieldCrypto,
+} from "./field-crypto";
 import {
   buildDailyBriefFromAnalysis,
   type BriefPriority,
@@ -253,6 +257,8 @@ const ONBOARDING_ROLE_LABEL: Record<OnboardingPerson["role"], string> = {
   child: "Child",
   pet: "Pet",
 };
+const SECURE_SAVE_ERROR =
+  "Couldn't save securely. Check your connection and try again.";
 
 function onboardingPersonToFamilyMember(
   person: OnboardingPerson,
@@ -788,7 +794,14 @@ function App() {
     // getFieldCrypto() here could return identity (no-op) crypto if a save fires
     // before the key finishes loading — silently persisting plaintext sensitive
     // fields. Awaiting guarantees real encryption at rest.
-    const crypto = await ensureFieldCrypto(session.access_token);
+    let crypto: FieldCrypto;
+    try {
+      crypto = await ensureFieldCrypto(session.access_token);
+    } catch (error) {
+      console.error("LifeMap field encryption unavailable", error);
+      setToastMessage(SECURE_SAVE_ERROR);
+      return false;
+    }
     const vaultCandidates = buildVaultItemsFromAnalysis(map);
     const eventCandidates = buildCalendarEventsFromAnalysis(map);
     const persistedIds: string[] = [];
@@ -1168,7 +1181,14 @@ function App() {
       const client = getSupabase() as unknown as FamilyDataClient;
       // Derive the per-user key BEFORE writing so details/care_notes encrypt at
       // rest (see materializeSuggestions for the same guard).
-      const crypto = await ensureFieldCrypto(session.access_token);
+      let crypto: FieldCrypto;
+      try {
+        crypto = await ensureFieldCrypto(session.access_token);
+      } catch (error) {
+        console.error("LifeMap field encryption unavailable", error);
+        setToastMessage(SECURE_SAVE_ERROR);
+        return;
+      }
       const results = await Promise.all(
         people.map((person) =>
           upsertFamilyMember(
@@ -1243,8 +1263,9 @@ function App() {
         }
         setToastMessage("Couldn't save that profile. Try again.");
         return false;
-      } catch {
-        setToastMessage("Couldn't save that profile. Try again.");
+      } catch (error) {
+        console.error("LifeMap profile save failed", error);
+        setToastMessage(SECURE_SAVE_ERROR);
         return false;
       }
     }
@@ -1263,18 +1284,23 @@ function App() {
   // write (see materializeSuggestions) so `detail` encrypts at rest.
   async function handleAddDocument(item: VaultItem): Promise<void> {
     if (isSupabaseConfigured && session) {
-      const userId = session.user.id;
-      const client = getSupabase() as unknown as FamilyDataClient;
-      const crypto = await ensureFieldCrypto(session.access_token);
-      const result = await upsertVaultItem(userId, item, client, crypto);
-      if (result.ok) {
-        const saved = result.item;
-        setCollections((current) => ({
-          ...current,
-          vaultItems: [saved, ...current.vaultItems],
-        }));
-      } else {
-        setToastMessage("Couldn't save that document. Try again.");
+      try {
+        const userId = session.user.id;
+        const client = getSupabase() as unknown as FamilyDataClient;
+        const crypto = await ensureFieldCrypto(session.access_token);
+        const result = await upsertVaultItem(userId, item, client, crypto);
+        if (result.ok) {
+          const saved = result.item;
+          setCollections((current) => ({
+            ...current,
+            vaultItems: [saved, ...current.vaultItems],
+          }));
+        } else {
+          setToastMessage("Couldn't save that document. Try again.");
+        }
+      } catch (error) {
+        console.error("LifeMap document save failed", error);
+        setToastMessage(SECURE_SAVE_ERROR);
       }
       return;
     }

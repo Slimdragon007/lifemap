@@ -38,6 +38,7 @@
   "secrets": {
     "required": [
       "OPENAI_API_KEY",
+      "FIELD_ENCRYPTION_KEY",
       "GOOGLE_CLIENT_SECRET",
       "GOOGLE_OAUTH_STATE_SECRET",
     ],

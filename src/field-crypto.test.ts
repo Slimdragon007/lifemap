@@ -1,8 +1,29 @@
-import { describe, expect, test } from "vitest";
-import { createFieldCrypto, identityFieldCrypto } from "./field-crypto";
+import { afterEach, describe, expect, test, vi } from "vitest";
+
+const { getDataKeyMock } = vi.hoisted(() => ({
+  getDataKeyMock: vi.fn(),
+}));
+
+vi.mock("./api", () => ({
+  getDataKey: getDataKeyMock,
+}));
+
+import {
+  FIELD_CRYPTO_UNAVAILABLE_ERROR,
+  clearFieldCrypto,
+  createFieldCrypto,
+  ensureFieldCrypto,
+  getFieldCrypto,
+  identityFieldCrypto,
+} from "./field-crypto";
 
 // 32 bytes → AES-256 key, base64-encoded the same way the Worker returns it.
 const KEY = btoa("0123456789abcdef0123456789abcdef");
+
+afterEach(() => {
+  clearFieldCrypto();
+  getDataKeyMock.mockReset();
+});
 
 describe("createFieldCrypto", () => {
   test("round-trips plaintext through encrypt/decrypt", async () => {
@@ -55,5 +76,32 @@ describe("identityFieldCrypto", () => {
   test("is a no-op pass-through both ways", async () => {
     expect(await identityFieldCrypto.encrypt("x")).toBe("x");
     expect(await identityFieldCrypto.decrypt("x")).toBe("x");
+  });
+});
+
+describe("ensureFieldCrypto", () => {
+  test("activates real encryption when the Worker returns a data key", async () => {
+    getDataKeyMock.mockResolvedValue({ ok: true, key: KEY });
+
+    const crypto = await ensureFieldCrypto("access-token");
+    const ciphertext = await crypto.encrypt("policy #A-1234");
+
+    expect(getDataKeyMock).toHaveBeenCalledWith("access-token");
+    expect(ciphertext.startsWith("v1:")).toBe(true);
+    expect(ciphertext).not.toContain("policy");
+    expect(await getFieldCrypto().decrypt(ciphertext)).toBe("policy #A-1234");
+  });
+
+  test("fails closed when the Worker cannot return a data key", async () => {
+    getDataKeyMock.mockResolvedValue({
+      ok: false,
+      error: "Field encryption is not configured.",
+    });
+
+    await expect(ensureFieldCrypto("access-token")).rejects.toThrow(
+      FIELD_CRYPTO_UNAVAILABLE_ERROR,
+    );
+
+    expect(await getFieldCrypto().encrypt("private")).toBe("private");
   });
 });

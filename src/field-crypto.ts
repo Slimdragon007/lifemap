@@ -21,6 +21,8 @@ export type FieldCrypto = {
 
 const PREFIX = "v1:";
 const IV_BYTES = 12;
+export const FIELD_CRYPTO_UNAVAILABLE_ERROR =
+  "LifeMap cannot save private details until encryption is available.";
 
 // Demo mode, tests, and any path without a key use this no-op pass-through so
 // the rest of the app never special-cases "is encryption on?".
@@ -103,9 +105,8 @@ export function createFieldCrypto(keyBase64: string): FieldCrypto {
 let active: FieldCrypto | null = null;
 
 // Fetches the per-user key from the Worker and activates real encryption for the
-// session. Falls back to identity (pass-through) if the key can't be fetched, so
-// a key-endpoint outage degrades to "unencrypted new writes" rather than a hard
-// failure. Returns the crypto in effect.
+// session. In real mode this must fail closed: sensitive writes should stop
+// rather than degrade to unencrypted plaintext if the key endpoint is down.
 export async function ensureFieldCrypto(
   accessToken: string,
 ): Promise<FieldCrypto> {
@@ -114,8 +115,8 @@ export async function ensureFieldCrypto(
   }
   const result = await getDataKey(accessToken);
   if (!result.ok) {
-    console.warn("LifeMap data-key fetch failed; field encryption inactive");
-    return identityFieldCrypto;
+    console.warn("LifeMap data-key fetch failed; private writes blocked");
+    throw new Error(FIELD_CRYPTO_UNAVAILABLE_ERROR);
   }
   active = createFieldCrypto(result.key);
   return active;
