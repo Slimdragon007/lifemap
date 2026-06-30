@@ -24,15 +24,19 @@ Use only fake records and synthetic files. Do not use genuine child, medical, pa
 8. Confirm Account B cannot see Account A's record in Cabinet.
 9. Attempt to download Account A's object path through Supabase Storage as Account B.
 10. Confirm the request is denied.
-11. Sign back into Account A.
-12. Clear my map.
-13. Confirm owned Storage objects are removed before records disappear.
+11. Sign out completely.
+12. Attempt to download Account A's object path through Supabase Storage with no authenticated session.
+13. Confirm the anonymous request is denied.
+14. Sign back into Account A.
+15. Clear my map.
+16. Confirm owned Storage objects are removed before records disappear.
 
 ## Pass Criteria
 
 - Account A can upload and reopen its own encrypted file.
 - Account B cannot see Account A's metadata.
 - Account B cannot download Account A's encrypted object.
+- Anonymous/no-session users cannot download Account A's encrypted object.
 - Clear-map removes Account A's owned file objects.
 - No plaintext file contents appear in browser console, Worker logs, public bundle, or database metadata.
 
@@ -50,5 +54,6 @@ Use only fake records and synthetic files. Do not use genuine child, medical, pa
 | Account A upload and reopen | Not run | 2026-06-30 |  |
 | Account B metadata denial | Not run | 2026-06-30 |  |
 | Account B Storage denial | Not run | 2026-06-30 |  |
+| Anonymous Storage denial | Not run | 2026-06-30 |  |
 | Clear-map removes Storage objects | Not run | 2026-06-30 |  |
 | Plaintext exposure check | Not run | 2026-06-30 |  |

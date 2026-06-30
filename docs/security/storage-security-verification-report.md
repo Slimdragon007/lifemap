@@ -20,10 +20,10 @@ Supabase references used:
 | `bucket_exists_private` | Pass | `lifemap-documents` exists and `public = false`. |
 | `bucket_limits_ciphertext_only` | Pass | 6 MB limit and `application/octet-stream` only. |
 | `storage_select_insert_delete_own_folder_policies` | Pass | Select, insert, and delete policies target `authenticated` and own user-id folder. |
-| `vault_item_files_authenticated_crud_grants` | Pass | Authenticated role can perform required CRUD operations. |
+| `vault_item_files_authenticated_exact_crud_grants` | Pass | Authenticated role is limited to `DELETE`, `INSERT`, `SELECT`, and `UPDATE`. |
 | `vault_item_files_policy_authenticated_owner` | Pass | Metadata policy targets `authenticated` and checks `auth.uid()` against `user_id`. |
 | `vault_item_files_rls_enabled` | Pass | RLS is enabled on `public.vault_item_files`. |
-| `vault_item_files_no_anon_grants` | Pass | `anon` grants were removed; only `authenticated` grants remain. |
+| `vault_item_files_no_anon_or_public_grants` | Pass | `anon` and `PUBLIC` have no table grants. Owner and service-role grants remain internal/admin-only. |
 
 ## Supabase Advisors
 
@@ -38,17 +38,20 @@ The previous performance advisor run reported existing non-blocking items. They 
 
 ## Applied Fix
 
-The approved least-privilege fix was applied live through Supabase MCP as migration `revoke_vault_item_files_anon_grants` and is tracked locally in:
+The approved least-privilege fixes were applied live through Supabase MCP and are tracked locally in:
 
 - `supabase/migrations/20260630091333_revoke_vault_item_files_anon_grants.sql`
+- `supabase/migrations/20260630164937_tighten_vault_item_files_authenticated_grants.sql`
 
 Applied SQL:
 
 ```sql
 revoke all privileges on table public.vault_item_files from anon;
+revoke all privileges on table public.vault_item_files from authenticated;
+grant select, insert, update, delete on table public.vault_item_files to authenticated;
 ```
 
-After applying the migration, `scripts/verify-storage-security.sql` passed the `vault_item_files_no_anon_grants` check.
+After applying the migrations, `scripts/verify-storage-security.sql` passed the `vault_item_files_no_anon_or_public_grants` and `vault_item_files_authenticated_exact_crud_grants` checks.
 
 ## Risk Assessment
 

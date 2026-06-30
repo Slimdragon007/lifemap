@@ -73,7 +73,7 @@ Those claims require separate key architecture, legal review, third-party audit 
 
 ### Verification Scripts
 
-- Create: `scripts/verify-storage-security.mjs`
+- Create: `scripts/verify-storage-security.sql`
   - Performs non-destructive verification that the private Storage bucket and relevant public tables have expected policy posture.
 - Modify: `scripts/verify-production.mjs`
   - Add a read-only check that the production bundle and Worker still expose no server-only secret markers and point at the expected API origin.
@@ -199,7 +199,7 @@ The Worker can derive the user's data key. This means LifeMap has app-layer encr
 Run:
 
 ```bash
-rg -n "TBD|TODO|implement later|zero-knowledge|HIPAA|bank-grade|only you can decrypt|independently audited" docs/security
+rg -n "TBD|TODO|implement later|zero-knowledge|HIPAA|bank-grade|only you can decrypt|independently audited" docs/security src public worker scripts
 ```
 
 Expected:

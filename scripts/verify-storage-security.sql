@@ -95,13 +95,13 @@ with checks as (
     ), 'missing policy')
   union all
   select
-    'vault_item_files_no_anon_grants',
+    'vault_item_files_no_anon_or_public_grants',
     not exists (
       select 1
       from information_schema.role_table_grants
       where table_schema = 'public'
         and table_name = 'vault_item_files'
-        and grantee = 'anon'
+        and grantee in ('anon', 'PUBLIC', 'public')
     ),
     coalesce((
       select jsonb_agg(
@@ -114,26 +114,29 @@ with checks as (
       from information_schema.role_table_grants
       where table_schema = 'public'
         and table_name = 'vault_item_files'
-        and grantee in ('anon', 'authenticated')
-    ), 'no anon/authenticated grants')
+    ), 'no table grants')
   union all
   select
-    'vault_item_files_authenticated_crud_grants',
-    (
+    'vault_item_files_authenticated_exact_crud_grants',
+    coalesce((
       select array_agg(privilege_type::text order by privilege_type::text)
       from information_schema.role_table_grants
       where table_schema = 'public'
         and table_name = 'vault_item_files'
         and grantee = 'authenticated'
-        and privilege_type in ('DELETE', 'INSERT', 'SELECT', 'UPDATE')
-    ) = array['DELETE', 'INSERT', 'SELECT', 'UPDATE']::text[],
+    ), array[]::text[]) = array['DELETE', 'INSERT', 'SELECT', 'UPDATE']::text[],
     coalesce((
-      select jsonb_agg(privilege_type order by privilege_type)::text
+      select jsonb_agg(
+        jsonb_build_object(
+          'grantee', grantee,
+          'privilege_type', privilege_type
+        )
+        order by grantee, privilege_type
+      )::text
       from information_schema.role_table_grants
       where table_schema = 'public'
         and table_name = 'vault_item_files'
-        and grantee = 'authenticated'
-    ), 'no authenticated grants')
+    ), 'no table grants')
   union all
   select
     'storage_select_insert_delete_own_folder_policies',
