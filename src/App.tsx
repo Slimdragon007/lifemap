@@ -2651,7 +2651,7 @@ function FamilyDashboard({
               <span>Roster</span>
               <h2 id="family-members-title">People and pets</h2>
               <p>
-                {formatCount(people.length, "person")} ·{" "}
+                {people.length} {people.length === 1 ? "person" : "people"} ·{" "}
                 {formatCount(pets.length, "pet")} ·{" "}
                 {sharedBasicsCount} shared {pluralize("basic", sharedBasicsCount)}
               </p>
