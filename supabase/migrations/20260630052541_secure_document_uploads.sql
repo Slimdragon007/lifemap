@@ -1,4 +1,4 @@
--- 20260630050133_secure_document_uploads.sql
+-- 20260630052541_secure_document_uploads.sql
 -- Private, client-side encrypted document upload support.
 --
 -- Files are encrypted in the browser before upload. Supabase Storage only sees
