@@ -134,6 +134,11 @@ import {
   uploadPreparedVaultFile,
   type DocumentStorageClient,
 } from "./document-storage";
+import {
+  closeReservedFileWindow,
+  openDownloadedFile,
+  reserveFileWindow,
+} from "./file-open";
 
 const starterIntake = presentationIntake;
 
@@ -1436,6 +1441,8 @@ function App() {
       return;
     }
 
+    const fileWindow = reserveFileWindow();
+
     try {
       const result = await downloadVaultFile({
         accessToken: session.access_token,
@@ -1443,21 +1450,14 @@ function App() {
         file,
       });
       if (!result.ok) {
+        closeReservedFileWindow(fileWindow);
         setToastMessage(result.error);
         return;
       }
 
-      const url = URL.createObjectURL(result.download.blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = result.download.fileName;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.append(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      openDownloadedFile(result.download, fileWindow);
     } catch (error) {
+      closeReservedFileWindow(fileWindow);
       console.error("LifeMap file open failed", error);
       setToastMessage("Couldn't open that file. Try again.");
     }
