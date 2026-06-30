@@ -3,6 +3,9 @@
 AI family-admin app that reduces mental load. Core loop: record the day (paste messy
 emails/forms/notes) → AI sorts it → hands back your next three things.
 
+**Latest pickup log:** `docs/2026-06-30-lifemap-controlled-beta-session-log.md`.
+Read it before changing product flow, auth, storage, deployment, or release status.
+
 ## Where things live (source of truth)
 
 - **Production:** https://app.getlifemap.com (Cloudflare Pages project `lifemap`, also at
