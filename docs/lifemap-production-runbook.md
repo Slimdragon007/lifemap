@@ -9,6 +9,7 @@
 - API host: Cloudflare Worker `lifemap-api`
 - GitHub repo: `Slimdragon007/lifemap`
 - Default branch: `main`
+- Pages deploy source: Cloudflare Pages GitHub integration, production branch `main`
 
 Before calling a build consumer-ready, complete `docs/security/release-candidate-security-gate.md`.
 
@@ -44,12 +45,20 @@ Use fake records and synthetic files only.
 
 ## Deploy Commands
 
+Frontend production deploys are normally automatic after a push to `main` because the Cloudflare Pages project is connected to GitHub. Use the manual Pages deploy command only as a fallback when intentionally bypassing the GitHub-triggered build.
+
 ```bash
 npm run lint
 npm run typecheck
 npm test
 npm run build
 npm run test:e2e
+npm run verify:production
+```
+
+Manual Pages deploy fallback:
+
+```bash
 npm run deploy:pages
 npm run verify:production
 ```

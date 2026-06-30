@@ -4,14 +4,19 @@
 
 - App: https://lifemap-d33.pages.dev/
 - Worker health: https://lifemap-api.m-haslim.workers.dev/health
-- Latest verified deploy path: `npm run deploy:pages` followed by `npm run verify:production`
+- Primary deploy path: Cloudflare Pages GitHub integration from `Slimdragon007/lifemap` branch `main`
+- Manual deploy fallback: `npm run deploy:pages` followed by `npm run verify:production`
 - Current production verification checks Pages HTML, Worker origin in the client bundle, Worker health, CORS, AI analyze, and public asset secret markers.
 
 ## Frontend: Cloudflare Pages
 
 - Build command: `npm run build`
 - Build output directory: `dist`
-- Deploy command: `npm run deploy:pages`
+- GitHub source: `Slimdragon007/lifemap`
+- Production branch: `main`
+- Production deploy trigger: GitHub push
+- Preview deploy trigger: GitHub branch/PR previews
+- Manual deploy fallback: `npm run deploy:pages`
 - Pages config: `wrangler.jsonc`
 - Required production env vars:
   - `VITE_API_ORIGIN`: deployed LifeMap API origin, for example `https://lifemap-api.<account>.workers.dev`
