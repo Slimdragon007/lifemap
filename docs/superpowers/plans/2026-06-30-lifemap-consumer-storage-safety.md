@@ -221,127 +221,58 @@ Expected: commit succeeds.
 ## Task 2: Add Repeatable Storage Security Verification
 
 **Files:**
-- Create: `scripts/verify-storage-security.mjs`
-- Modify: `package.json`
+- Create: `scripts/verify-storage-security.sql`
+- Create: `docs/security/storage-security-verification-report.md`
 
-- [ ] **Step 1: Write the verification script**
+- [ ] **Step 1: Write the verification SQL**
 
-Create `scripts/verify-storage-security.mjs` with:
+Create `scripts/verify-storage-security.sql`. The query must be read-only and must inspect `storage.buckets`, `pg_policies`, `pg_class`, and `information_schema.role_table_grants`.
 
-```js
-#!/usr/bin/env node
+The query must verify:
 
-import process from "node:process";
-import { createClient } from "@supabase/supabase-js";
+- `lifemap-documents` exists and is private.
+- Bucket size and MIME type limits match encrypted file upload.
+- `public.vault_item_files` has RLS enabled.
+- `public.vault_item_files` owner policy targets `authenticated`.
+- `public.vault_item_files` has no `anon` grants.
+- `authenticated` has required CRUD grants.
+- `storage.objects` has select, insert, and delete policies scoped to the authenticated user's own folder.
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL ?? process.env.SUPABASE_URL;
-const supabaseAnonKey =
-  process.env.VITE_SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error("Missing Supabase URL or anon key.");
-  process.exit(1);
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { persistSession: false },
-});
-
-const expectedTables = [
-  "briefings",
-  "domains",
-  "family_data_audit",
-  "family_events",
-  "family_members",
-  "intake_analyses",
-  "life_items",
-  "mental_models",
-  "profiles",
-  "recurring_care_items",
-  "sent_messages",
-  "user_memory",
-  "vault_item_files",
-  "vault_items",
-];
-
-const failures = [];
-
-async function main() {
-  const { data: buckets, error: bucketsError } =
-    await supabase.storage.listBuckets();
-  if (bucketsError) {
-    failures.push(`Could not list storage buckets: ${bucketsError.message}`);
-  } else {
-    const bucket = buckets.find((item) => item.name === "lifemap-documents");
-    if (!bucket) {
-      failures.push("Missing lifemap-documents storage bucket.");
-    } else if (bucket.public) {
-      failures.push("lifemap-documents bucket must not be public.");
-    }
-  }
-
-  for (const table of expectedTables) {
-    const { error } = await supabase.from(table).select("id").limit(1);
-    if (error && /permission denied|violates row-level security/i.test(error.message)) {
-      continue;
-    }
-  }
-
-  if (failures.length > 0) {
-    console.error("Storage security verification failed:");
-    for (const failure of failures) {
-      console.error(`- ${failure}`);
-    }
-    process.exit(1);
-  }
-
-  console.log("Storage security verification passed.");
-}
-
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
-```
-
-- [ ] **Step 2: Add an npm script**
-
-Modify `package.json` scripts:
-
-```json
-"verify:storage-security": "node scripts/verify-storage-security.mjs"
-```
-
-- [ ] **Step 3: Run the script**
+- [ ] **Step 2: Run the SQL through Supabase MCP or SQL Editor**
 
 Run:
 
 ```bash
-npm run verify:storage-security
+Supabase MCP execute_sql using scripts/verify-storage-security.sql
 ```
 
 Expected:
 
 ```txt
-Storage security verification passed.
+Every check returns status = pass.
 ```
 
-- [ ] **Step 4: Run lint**
+- [ ] **Step 3: Record evidence**
+
+Create `docs/security/storage-security-verification-report.md` with the exact pass/fail results, advisor status, and any required hardening follow-up.
+
+- [ ] **Step 4: Run advisors**
 
 Run:
 
 ```bash
-npm run lint
+Supabase MCP get_advisors security
+Supabase MCP get_advisors performance
 ```
 
-Expected: pass.
+Expected: no security lints. Performance lints may remain if unrelated to the secure upload posture.
 
 - [ ] **Step 5: Commit**
 
 Run:
 
 ```bash
-git add package.json scripts/verify-storage-security.mjs
+git add scripts/verify-storage-security.sql docs/security/storage-security-verification-report.md
 git commit -m "chore: add storage security verification"
 ```
 
