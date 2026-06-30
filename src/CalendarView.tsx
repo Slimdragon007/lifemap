@@ -11,6 +11,7 @@ import GoogleConnection from "./GoogleConnection";
 import EmptyState from "./empty-state";
 import { getGoogleStatus, pushCalendarEvent } from "./api";
 import { getAccessToken } from "./supabaseClient";
+import { formatShortDate } from "./format-utils";
 
 type PushState = "idle" | "pushing" | "done" | "error";
 
@@ -332,13 +333,6 @@ function formatWhen(date: string): string {
   }
 
   return parsed.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function formatShortDate(date: string): string {
-  return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   });

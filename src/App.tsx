@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { formatCount, pluralize } from "./format-utils";
+import type { BriefStatus, PriorityActionState } from "./shared-types";
 import { analyzeWithAi, generateBriefWithAi, sendDraftEmail } from "./api";
 import {
   clearFieldCrypto,
@@ -256,8 +258,6 @@ type AppView =
   | "onboarding";
 type OnboardingReturnView = Exclude<AppView, "onboarding">;
 
-type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
-type PriorityActionState = "completed" | "snoozed";
 type CaptureRoute = {
   destination: "vault" | "calendar" | "review";
   buttonLabel: string;
@@ -2600,10 +2600,6 @@ function CaptureAnalyzeNotice({
   return null;
 }
 
-function pluralize(label: string, count: number) {
-  return count === 1 ? label : `${label}s`;
-}
-
 function FamilyDashboard({
   familyMembers,
   familyEvents,
@@ -2656,7 +2652,7 @@ function FamilyDashboard({
               <h2 id="family-members-title">People and pets</h2>
               <p>
                 {people.length} {people.length === 1 ? "person" : "people"} ·{" "}
-                {pets.length} {pluralize("pet", pets.length)} ·{" "}
+                {formatCount(pets.length, "pet")} ·{" "}
                 {sharedBasicsCount} shared {pluralize("basic", sharedBasicsCount)}
               </p>
             </div>
@@ -3943,10 +3939,6 @@ function StagedSummary({ run }: { run: StagedRun }) {
       </ul>
     </section>
   );
-}
-
-function formatCount(count: number, singularLabel: string) {
-  return `${count} ${count === 1 ? singularLabel : `${singularLabel}s`}`;
 }
 
 function formatReadyCount(count: number) {

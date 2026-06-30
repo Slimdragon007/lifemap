@@ -18,6 +18,7 @@ import type {
   SetupBucketId,
   SetupProfile,
 } from "./setupBuckets";
+import { formatCount } from "./format-utils";
 
 type BucketDetailViewProps = {
   bucket: RecommendedBucket;
@@ -375,13 +376,14 @@ function getCaptureLabel(id: SetupBucketId) {
 
 function formatHouseholdSummary(profile: SetupProfile) {
   const people = profile.adults + profile.children;
+  const peopleCopy = `${people} ${people === 1 ? "person" : "people"}`;
   const petCopy =
     profile.pets > 0
-      ? `, ${profile.pets} ${profile.pets === 1 ? "pet" : "pets"}`
+      ? `, ${formatCount(profile.pets, "pet")}`
       : "";
   const travelCopy = profile.travels ? ", travel enabled" : "";
 
-  return `${people} ${people === 1 ? "person" : "people"}${petCopy}${travelCopy}`;
+  return `${peopleCopy}${petCopy}${travelCopy}`;
 }
 
 export default BucketDetailView;

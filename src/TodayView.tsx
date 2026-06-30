@@ -13,9 +13,8 @@ import type { LifeMapAnalysis } from "./lifemap";
 import type { RecommendedBucket, SetupProfile } from "./setupBuckets";
 import type { ViewerIdentity } from "./viewer";
 import type { UpcomingDate } from "./importantDates";
-
-type BriefStatus = "idle" | "loading" | "success" | "fallback" | "error";
-type PriorityActionState = "completed" | "snoozed";
+import { pluralize } from "./format-utils";
+import type { BriefStatus, PriorityActionState } from "./shared-types";
 
 type TodayViewProps = {
   brief: DailyBrief;
@@ -73,9 +72,7 @@ function TodayView({
     (priority) => priorityActionStates[priority.id] === "completed",
   ).length;
 
-  const approvalSummary = `${approvalCount} ${
-    approvalCount === 1 ? "item needs" : "items need"
-  } your OK`;
+  const approvalSummary = `${approvalCount} ${pluralize("item", approvalCount)} ${approvalCount === 1 ? "needs" : "need"} your OK`;
 
   const statusLine =
     doneCount > 0

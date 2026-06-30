@@ -29,8 +29,10 @@ import {
   formatFileBytes,
   validateDocumentFile,
 } from "./document-storage";
+import { formatCount, formatShortDate } from "./format-utils";
+import { OwnerPicker } from "./owner-picker";
+import { resolveOwner } from "./shared-types";
 
-const OTHER_OWNER = "__other__";
 const WHOLE_FAMILY = "Whole family";
 
 const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
@@ -316,10 +318,6 @@ function summarizeVaultItems(items: VaultItem[]) {
   return { ownerCount: owners.size, needsReview };
 }
 
-function formatCount(count: number, singularLabel: string) {
-  return `${count} ${count === 1 ? singularLabel : `${singularLabel}s`}`;
-}
-
 function formatNeedsReview(count: number) {
   return `${count} ${count === 1 ? "needs" : "need"} review`;
 }
@@ -375,7 +373,7 @@ export function AddDocumentModal({
     setCategoryTouched(true);
   }
 
-  const owner = whoFor === OTHER_OWNER ? otherOwner.trim() : whoFor.trim();
+  const owner = resolveOwner(whoFor, otherOwner);
   const canSave =
     title.trim().length > 0 &&
     owner.length > 0 &&
@@ -483,30 +481,14 @@ export function AddDocumentModal({
               ))}
             </div>
           </div>
-          <label className="add-date-field">
-            <span>Who is it for?</span>
-            <select value={whoFor} onChange={(e) => setWhoFor(e.target.value)}>
-              <option value="">Choose…</option>
-              <option value={WHOLE_FAMILY}>Whole family</option>
-              {familyMembers.map((member) => (
-                <option key={member.id} value={member.name}>
-                  {member.name}
-                </option>
-              ))}
-              <option value={OTHER_OWNER}>Other…</option>
-            </select>
-          </label>
-          {whoFor === OTHER_OWNER ? (
-            <label className="add-date-field">
-              <span>Name</span>
-              <input
-                type="text"
-                value={otherOwner}
-                placeholder="Who is it for?"
-                onChange={(e) => setOtherOwner(e.target.value)}
-              />
-            </label>
-          ) : null}
+          <OwnerPicker
+            familyMembers={familyMembers}
+            whoFor={whoFor}
+            otherOwner={otherOwner}
+            onWhoForChange={setWhoFor}
+            onOtherOwnerChange={setOtherOwner}
+            showWholeFamily
+          />
           <label className="add-date-field">
             <span>Status</span>
             <select
@@ -739,13 +721,6 @@ function VaultDetailDialog({
 
 function stripFileExtension(name: string): string {
   return name.replace(/\.[^.]+$/, "").trim() || name;
-}
-
-function formatShortDate(date: string): string {
-  return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
 }
 
 export default VaultView;
