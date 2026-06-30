@@ -47,7 +47,7 @@ export type DocumentStorageClient = {
       upload: (
         path: string,
         body: Blob,
-        options: { contentType: string; upsert: false },
+        options: { cacheControl: string; contentType: string; upsert: false },
       ) => Promise<UploadResult>;
       download: (path: string) => Promise<DownloadResult>;
       remove: (paths: string[]) => Promise<RemoveResult>;
@@ -141,6 +141,7 @@ export async function uploadPreparedVaultFile(
   const result = await client.storage
     .from(DOCUMENT_STORAGE_BUCKET)
     .upload(prepared.file.objectPath, prepared.encryptedBlob, {
+      cacheControl: "0",
       contentType: FILE_CRYPTO_CONTENT_TYPE,
       upsert: false,
     });
@@ -173,7 +174,29 @@ export async function removeVaultFileObjects(
       error: result.error.message ?? "LifeMap could not remove stored files.",
     };
   }
+  if (!confirmedRemovedPaths(result.data, objectPaths)) {
+    return {
+      ok: false,
+      error: "LifeMap could not confirm stored files were removed.",
+    };
+  }
   return { ok: true };
+}
+
+function confirmedRemovedPaths(data: unknown, objectPaths: string[]): boolean {
+  if (!Array.isArray(data)) {
+    return false;
+  }
+
+  const removed = new Set(
+    data.flatMap((item) => {
+      if (!isRecord(item)) {
+        return [];
+      }
+      return typeof item.name === "string" ? [item.name] : [];
+    }),
+  );
+  return objectPaths.every((path) => removed.has(path));
 }
 
 export async function downloadVaultFile({
@@ -259,4 +282,8 @@ function isAcceptedMimeType(value: string): value is (typeof ACCEPTED_DOCUMENT_M
   return ACCEPTED_DOCUMENT_MIME_TYPES.includes(
     value as (typeof ACCEPTED_DOCUMENT_MIME_TYPES)[number],
   );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

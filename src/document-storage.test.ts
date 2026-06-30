@@ -3,6 +3,7 @@ import {
   DOCUMENT_STORAGE_BUCKET,
   MAX_DOCUMENT_FILE_BYTES,
   prepareEncryptedVaultFile,
+  removeVaultFileObjects,
   uploadPreparedVaultFile,
   validateDocumentFile,
   type DocumentStorageClient,
@@ -93,12 +94,49 @@ describe("document-storage", () => {
     expect(upload).toHaveBeenCalledWith(
       prepared.prepared.file.objectPath,
       expect.any(Blob),
-      { contentType: "application/octet-stream", upsert: false },
+      {
+        cacheControl: "0",
+        contentType: "application/octet-stream",
+        upsert: false,
+      },
     );
     expect(prepared.prepared.file.originalName).toBe("passport.pdf");
     expect(prepared.prepared.file.encryptionVersion).toBe("file-v1");
     expect(prepared.prepared.encryptedBlob.type).toBe(
       "application/octet-stream",
     );
+  });
+
+  test("confirms Storage deleted every requested object before reporting success", async () => {
+    const remove = vi.fn(async () => ({
+      data: [{ name: `${USER_ID}/${VAULT_ITEM_ID}/file.bin` }],
+      error: null,
+    }));
+    const client: DocumentStorageClient = {
+      storage: {
+        from: vi.fn(() => ({
+          upload: vi.fn(),
+          download: vi.fn(),
+          remove,
+        })),
+      },
+    };
+
+    await expect(
+      removeVaultFileObjects(client, [
+        { objectPath: `${USER_ID}/${VAULT_ITEM_ID}/file.bin` },
+      ]),
+    ).resolves.toEqual({ ok: true });
+
+    remove.mockResolvedValueOnce({ data: [], error: null });
+
+    await expect(
+      removeVaultFileObjects(client, [
+        { objectPath: `${USER_ID}/${VAULT_ITEM_ID}/missing.bin` },
+      ]),
+    ).resolves.toEqual({
+      ok: false,
+      error: "LifeMap could not confirm stored files were removed.",
+    });
   });
 });

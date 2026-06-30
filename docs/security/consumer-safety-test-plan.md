@@ -51,12 +51,12 @@ Use only fake records and synthetic files. Do not use genuine child, medical, pa
 
 | Check | Result | Date | Notes |
 | --- | --- | --- | --- |
-| Account A upload and reopen | Blocked | 2026-06-30 | Needs dedicated production test account credentials and a fake PDF/image. `tests/e2e/.env.e2e` is not present in this checkout. |
-| Account B metadata denial | Blocked | 2026-06-30 | Needs a second production test account after Account A creates a fake record. |
-| Account B Storage denial | Blocked | 2026-06-30 | Needs Account A's `vault_item_files.object_path` and Account B's authenticated session. |
-| Anonymous Storage denial | Blocked | 2026-06-30 | Needs Account A's `vault_item_files.object_path` from a real upload. |
-| Clear-map removes Storage objects | Blocked | 2026-06-30 | Needs Account A's real uploaded fake file to verify Storage deletion before records disappear. |
-| Plaintext exposure check | Partial pass | 2026-06-30 | Production bundle secret scan passed through `npm run verify:production`; real-upload plaintext verification still needs Account A upload evidence. |
+| Account A upload and reopen | Pass | 2026-06-30 | Synthetic production Account A uploaded encrypted fake PDF bytes, downloaded them, decrypted them, and matched the original bytes. |
+| Account B metadata denial | Pass | 2026-06-30 | Synthetic Account B received no rows for Account A's `vault_items` or `vault_item_files` records. |
+| Account B Storage denial | Pass | 2026-06-30 | Synthetic Account B download returned object-not-found for Account A's object path. |
+| Anonymous Storage denial | Pass | 2026-06-30 | No-session client download returned object-not-found for Account A's object path. |
+| Clear-map removes Storage objects | Pass with caveat | 2026-06-30 | Storage API removed the object catalog row before metadata cleanup. Owner downloads immediately after deletion can still return cached bytes, so LifeMap now fails closed unless `remove()` confirms deleted paths before metadata is cleared. |
+| Plaintext exposure check | Partial pass | 2026-06-30 | Fake file bytes were encrypted before upload and decrypted only after download. Production bundle secret scan passed through `npm run verify:production`; console/log inspection still needs a browser-observed upload session. |
 
 ## Automated Evidence Recorded
 
@@ -80,11 +80,12 @@ Results:
 - `npm audit`: failed on development-only Vite/Vitest/esbuild advisories requiring a breaking Vite major upgrade.
 - `npm run lint`: passed.
 - `npm run typecheck`: passed.
-- `npm run test -- --reporter=dot`: passed 298 tests.
+- `npm run test -- --reporter=dot`: passed 299 tests.
 - `npm run build`: passed with the existing chunk-size warning.
 - `npm run test:e2e`: passed 16 tests and skipped 5 real-auth tests because `tests/e2e/.env.e2e` is not present.
 - Live Supabase storage catalog verification passed against project `tljijkoqfnimnkpzhozy` using `scripts/verify-storage-security.sql`.
+- Synthetic production-account storage harness passed upload/open, Account B metadata denial, Account B Storage denial, anonymous Storage denial, and Storage catalog deletion before metadata cleanup.
 
 ## Remaining Setup Needed
 
-Create two dedicated production test users and one accessible test inbox before this checklist can be completed end to end. Use fake data only.
+Use an accessible test inbox to finish the password-reset recovery-link proof. Use fake data only. Synthetic `lifemap-rc-*` auth users created during this run should be removed later through Supabase dashboard/admin tooling if they are not needed for future testing.

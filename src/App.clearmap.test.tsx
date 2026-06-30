@@ -34,7 +34,10 @@ const {
     } as unknown as Session;
     const deleteAllFamilyDataMock = vi.fn(async () => ({ ok: true as const }));
     const saveRemoteStateMock = vi.fn(async () => ({ ok: true as const }));
-    const storageRemoveMock = vi.fn(async () => ({ data: [], error: null }));
+    const storageRemoveMock = vi.fn(async (paths: string[]) => ({
+      data: paths.map((name) => ({ name })),
+      error: null,
+    }));
     return {
       aiAnalysis,
       session,
@@ -146,6 +149,7 @@ describe("LifeMap real-mode Clear my map", () => {
   afterEach(() => {
     deleteAllFamilyDataMock.mockClear();
     saveRemoteStateMock.mockClear();
+    storageRemoveMock.mockClear();
     localStorage.clear();
     vi.unstubAllGlobals();
   });
