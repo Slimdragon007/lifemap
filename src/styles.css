@@ -12963,8 +12963,60 @@ button.notebook-row:active {
 }
 
 @media (max-width: 520px) {
+  .app-shell.view-more .family-dashboard-stack,
+  .app-shell.view-more .family-members-panel {
+    gap: 10px;
+  }
+
+  .app-shell.view-more .family-dashboard-section-head {
+    gap: 8px;
+  }
+
+  .app-shell.view-more .family-dashboard-section-head h2 {
+    font-size: 19px;
+    white-space: nowrap;
+  }
+
+  .app-shell.view-more .family-dashboard-section-head button {
+    min-height: 32px;
+    padding-inline: 10px;
+    font-size: 11.5px;
+  }
+
   .app-shell.view-more .family-member-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .app-shell.view-more .family-member-card {
+    grid-template-columns: 48px minmax(0, 1fr) 18px;
+    gap: 10px;
+    min-height: 0;
+    padding: 12px;
+    border-radius: 18px;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(247, 252, 255, 0.7)),
+      var(--color-surface-panel);
+  }
+
+  .app-shell.view-more .family-member-card .calm-av {
+    width: 48px;
+    height: 48px;
+    font-size: 13.5px;
+  }
+
+  .app-shell.view-more .family-member-copy {
+    gap: 2px;
+  }
+
+  .app-shell.view-more .family-member-meta {
+    display: none;
+  }
+
+  .app-shell.view-more .family-member-card > svg {
+    position: static;
+    justify-self: end;
+    align-self: center;
   }
 
   .cabinet-ledger-meta {

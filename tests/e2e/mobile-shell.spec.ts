@@ -76,6 +76,29 @@ test.describe("mobile shell", () => {
     expect(box?.y).toBeGreaterThanOrEqual(18);
   });
 
+  test("family roster uses compact mobile rows", async ({ page }) => {
+    await enterDemoApp(page);
+
+    await page
+      .getByRole("navigation", { name: "Household sections" })
+      .getByRole("button", { name: "Family", exact: true })
+      .click();
+
+    await expect(
+      page.getByRole("heading", { name: "People and pets" }),
+    ).toBeVisible();
+
+    const alexCard = page.getByRole("button", {
+      name: "Open Alex Kim's profile",
+    });
+    await expect(alexCard).toBeVisible();
+    await expect(alexCard.locator(".family-member-meta")).toBeHidden();
+
+    const box = await alexCard.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.height).toBeLessThanOrEqual(86);
+  });
+
   test("member profile content scrolls above the fixed dock", async ({
     page,
   }) => {
