@@ -1159,7 +1159,7 @@ describe("LifeMap MVP app", () => {
       screen.getByRole("heading", { name: "Privacy & security" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/nothing sends without an explicit Send/i),
+      screen.getByText(/Nothing sends without your approval/i),
     ).toBeInTheDocument();
   });
 
