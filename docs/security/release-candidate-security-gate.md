@@ -5,7 +5,7 @@
 
 ## Current Verdict
 
-LifeMap is production-deployed and the core live-account safety gates below are recorded. It is ready for controlled consumer-beta testing with fake or low-risk documents. Before a broader public launch, finish the remaining hardening follow-ups: branded Auth SMTP, browser-observed upload console/log inspection, and the documented dev-only Vite/Vitest major-upgrade audit.
+LifeMap is production-deployed and the core live-account safety gates below are recorded. It is ready for one controlled consumer-beta test with fake or low-risk documents. Before a broader public launch, finish the remaining hardening follow-ups: browser-observed upload console/log inspection, documented dev-only Vite/Vitest major-upgrade audit, and a focused pass on tester feedback.
 
 ## Required Evidence Before Consumer Release
 
@@ -22,6 +22,8 @@ LifeMap is production-deployed and the core live-account safety gates below are 
 | Anonymous Storage denial | No-session user cannot download Account A's Storage object | Pass on 2026-06-30; Storage returned object-not-found to anonymous client |
 | Clear-map deletion | Storage objects are removed before records are cleared | Pass with caveat on 2026-06-30; Storage catalog row is deleted before metadata, and app now fails closed unless `remove()` confirms deleted paths |
 | Password reset | Reset email, recovery session, and password update work on the configured production auth domain | Pass on 2026-06-30; Gmail reset email opened `app.getlifemap.com`, password update completed, and direct sign-in with the new password succeeded |
+| Branded Auth SMTP | Supabase Auth sends password reset through LifeMap's Cloudflare SMTP sender | Pass on 2026-06-30; reset email delivered as `LifeMap <no-reply@getlifemap.com>` |
+| Controlled-beta signup posture | Signup confirmation is intentionally not required for first user testing | Pass on 2026-06-30; `mailer_autoconfirm` is `true` while custom SMTP remains active |
 | Product copy safety | No zero-knowledge, HIPAA, bank-grade, or independent-audit claims | Pass in current Privacy copy |
 
 ## Blocking Rules
@@ -39,6 +41,7 @@ Do not call LifeMap fully consumer-ready if any of these are true:
 
 - Cross-account storage test: `docs/security/consumer-safety-test-plan.md`
 - Auth email deliverability: `docs/security/auth-email-deliverability-runbook.md`
+- Controlled user test: `docs/product/controlled-user-test-checklist.md`
 - Storage posture report: `docs/security/storage-security-verification-report.md`
 - Dependency audit notes: `docs/security/dependency-audit-notes.md`
 
@@ -81,7 +84,11 @@ Results:
   - The reset link redirected to `https://app.getlifemap.com/#`, matching the configured Supabase Site URL rather than the requested `lifemap-d33.pages.dev` redirect.
   - The production reset screen rendered, password update completed, and a direct Supabase sign-in with the new password succeeded.
   - The synthetic `m.haslim+lifemap-rc-*` Auth user was removed after verification, and follow-up SQL confirmed no matching auth user, profile, domain, user-memory, vault item, or vault file rows remained.
+- Branded Auth SMTP:
+  - Cloudflare SMTP authentication succeeded using the LifeMap Email Sending token.
+  - Supabase Auth config shows custom SMTP set to `smtp.mx.cloudflare.net:465`, sender `LifeMap <no-reply@getlifemap.com>`, secure email change enabled, and `mailer_autoconfirm: true`.
+  - Manual Gmail reset test confirmed the LifeMap-branded reset email works end to end.
 
 ## Recommended Next Action
 
-Set up Cloudflare SMTP for Supabase Auth using `docs/security/auth-email-deliverability-runbook.md`, then repeat signup confirmation and password-reset verification with a synthetic account.
+Run the controlled user test in `docs/product/controlled-user-test-checklist.md` using fake or low-risk data only, then turn observed issues into a focused follow-up list.

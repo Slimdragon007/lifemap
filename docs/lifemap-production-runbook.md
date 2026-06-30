@@ -34,12 +34,13 @@ Use fake records and synthetic files only.
 3. Verify password reset on the production domain:
    - open the production login screen
    - use Forgot password with a test account
+   - confirm the reset email is from `LifeMap <no-reply@getlifemap.com>`
    - open the email link
    - confirm the app shows the set-new-password screen
    - update the password
    - sign out and sign back in with the new password
 4. Confirm Privacy & security copy does not claim zero-knowledge, HIPAA, bank-grade, or independent audit status.
-5. Before broader consumer launch, complete branded Supabase Auth SMTP setup using `docs/security/auth-email-deliverability-runbook.md`, then repeat signup-confirmation and password-reset checks with a synthetic account.
+5. Before broader consumer launch, complete the controlled user test in `docs/product/controlled-user-test-checklist.md` using fake or low-risk records only.
 
 ## Deploy Commands
 
@@ -78,7 +79,7 @@ npm run deploy:api -- --dry-run
 ## Next Hardening Work
 
 - Add a CI gate after approving CI/CD workflow changes.
-- Complete branded Supabase Auth SMTP using `docs/security/auth-email-deliverability-runbook.md`.
-- Repeat signup-confirmation and password-reset checks after Auth SMTP is enabled.
+- Keep branded Supabase Auth SMTP monitored through Cloudflare Email Sending logs.
+- Keep signup confirmation intentionally auto-confirmed for controlled beta unless user testing proves it should change.
 - Complete a browser-observed file upload session and confirm plaintext file content does not appear in console or logs.
 - Plan a Vite/Vitest major upgrade to close the remaining development-tooling audit findings.

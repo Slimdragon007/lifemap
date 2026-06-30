@@ -57,6 +57,8 @@ Use only fake records and synthetic files. Do not use genuine child, medical, pa
 | Anonymous Storage denial | Pass | 2026-06-30 | No-session client download returned object-not-found for Account A's object path. |
 | Clear-map removes Storage objects | Pass with caveat | 2026-06-30 | Storage API removed the object catalog row before metadata cleanup. Owner downloads immediately after deletion can still return cached bytes, so LifeMap now fails closed unless `remove()` confirms deleted paths before metadata is cleared. |
 | Password reset recovery | Pass | 2026-06-30 | Gmail reset email opened `app.getlifemap.com`, the production reset screen updated the password, and direct sign-in with the new password succeeded. |
+| Branded Auth SMTP | Pass | 2026-06-30 | Supabase Auth custom SMTP is enabled through Cloudflare Email Service, and manual Gmail verification confirmed reset email delivery from `LifeMap <no-reply@getlifemap.com>`. |
+| Signup confirmation posture | Pass | 2026-06-30 | Signup confirmation remains intentionally disabled for controlled beta usability (`mailer_autoconfirm: true`) while password reset uses branded SMTP. |
 | Synthetic auth cleanup | Pass | 2026-06-30 | The synthetic `m.haslim+lifemap-rc-*` user was removed after verification; follow-up SQL confirmed no matching auth user, profile, domain, user-memory, vault item, or vault file rows remained. |
 | Plaintext exposure check | Partial pass | 2026-06-30 | Fake file bytes were encrypted before upload and decrypted only after download. Production bundle secret scan passed through `npm run verify:production`; console/log inspection still needs a browser-observed upload session. |
 
@@ -87,8 +89,8 @@ Results:
 - `npm run test:e2e`: passed 16 tests and skipped 5 real-auth tests because `tests/e2e/.env.e2e` is not present.
 - Live Supabase storage catalog verification passed against project `tljijkoqfnimnkpzhozy` using `scripts/verify-storage-security.sql`.
 - Synthetic production-account storage harness passed upload/open, Account B metadata denial, Account B Storage denial, anonymous Storage denial, and Storage catalog deletion before metadata cleanup.
-- Production password reset proof passed with a Gmail-delivered recovery link, production reset UI update, and direct sign-in confirmation.
+- Production password reset proof passed with a Gmail-delivered LifeMap-branded recovery link, production reset UI update, and direct sign-in confirmation.
 
 ## Remaining Setup Needed
 
-Use fake data only for continued testing. Before broader consumer launch, complete a browser-observed upload session to confirm no plaintext file content appears in console or logs, and complete the branded Supabase Auth SMTP setup in `docs/security/auth-email-deliverability-runbook.md`.
+Use fake data only for continued testing. Before broader consumer launch, complete a browser-observed upload session to confirm no plaintext file content appears in console or logs, run the controlled user test in `docs/product/controlled-user-test-checklist.md`, and triage any tester trust or flow issues before expanding access.
