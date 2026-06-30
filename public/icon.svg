@@ -1,19 +1,32 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LifeMap">
-  <!-- Full-bleed deep-green field: square so iOS squircle + Android maskable both crop cleanly -->
-  <rect width="512" height="512" fill="#3e5f50"/>
-  <defs>
-    <clipPath id="card"><rect x="112" y="104" width="288" height="304" rx="28"/></clipPath>
-  </defs>
-  <!-- The ledger card -->
-  <rect x="112" y="104" width="288" height="304" rx="28" fill="#f1f3ee"/>
-  <g clip-path="url(#card)">
-    <!-- spine -->
-    <rect x="112" y="104" width="46" height="304" fill="#2f4a3e"/>
-    <!-- sage ruled lines -->
-    <rect x="188" y="182" width="178" height="14" rx="7" fill="#4a6b5c" opacity="0.28"/>
-    <rect x="188" y="238" width="178" height="14" rx="7" fill="#4a6b5c" opacity="0.28"/>
-    <rect x="188" y="294" width="116" height="14" rx="7" fill="#4a6b5c" opacity="0.28"/>
-    <!-- oxblood "needs you" notch -->
-    <rect x="330" y="136" width="34" height="34" rx="9" fill="#b23a2e"/>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LifeMap map icon">
+  <rect width="512" height="512" fill="#eaf6ff"/>
+  <circle cx="408" cy="120" r="108" fill="#fff4e9" opacity="0.8"/>
+  <circle cx="120" cy="412" r="132" fill="#d8ecff" opacity="0.86"/>
+
+  <g filter="url(#shadow)">
+    <path d="M114 142c0-21 18-37 39-33l86 16 91-22 61 15c16 4 27 18 27 35v217c0 22-20 38-41 33l-51-12-92 22-87-16c-19-4-33-20-33-39V142Z" fill="#ffffff"/>
+    <path d="M239 125v288" stroke="#d3e0ec" stroke-width="12"/>
+    <path d="M330 103v288" stroke="#d3e0ec" stroke-width="12"/>
+    <path d="M153 109l86 16v288l-87-16c-22-4-38-23-38-46V147c0-24 17-42 39-38Z" fill="#f8fcff"/>
+    <path d="M239 125l91-22v288l-91 22V125Z" fill="#eff8ff"/>
+    <path d="M330 103l60 15c17 4 28 19 28 36v216c0 21-20 37-41 32l-47-11V103Z" fill="#fffaf4"/>
   </g>
+
+  <path d="M168 296c42-56 88-74 140-49 42 21 56 3 82-45" stroke="#317fd6" stroke-width="28" stroke-linecap="round"/>
+  <path d="M168 296c42-56 88-74 140-49 42 21 56 3 82-45" stroke="#b9dcff" stroke-width="10" stroke-linecap="round"/>
+
+  <circle cx="170" cy="296" r="24" fill="#ffffff"/>
+  <circle cx="170" cy="296" r="14" fill="#317fd6"/>
+  <circle cx="389" cy="202" r="24" fill="#ffffff"/>
+  <circle cx="389" cy="202" r="14" fill="#317fd6"/>
+
+  <path d="M267 196c0-33 27-60 60-60s60 27 60 60c0 45-60 111-60 111s-60-66-60-111Z" fill="#e77852"/>
+  <circle cx="327" cy="196" r="23" fill="#ffffff"/>
+  <path d="M315 194l10 10 19-22" stroke="#317fd6" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <defs>
+    <filter id="shadow" x="78" y="72" width="376" height="378" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#5f7894" flood-opacity="0.22"/>
+    </filter>
+  </defs>
 </svg>
