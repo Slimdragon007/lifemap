@@ -19,8 +19,17 @@ export type FieldCrypto = {
   decrypt: (value: string) => Promise<string>;
 };
 
+export type FileCryptoPayload = {
+  ciphertext: Blob;
+  encryptedByteSize: number;
+  encryptionIv: string;
+  encryptionVersion: typeof FILE_CRYPTO_VERSION;
+};
+
 const PREFIX = "v1:";
 const IV_BYTES = 12;
+export const FILE_CRYPTO_VERSION = "file-v1";
+export const FILE_CRYPTO_CONTENT_TYPE = "application/octet-stream";
 export const FIELD_CRYPTO_UNAVAILABLE_ERROR =
   "LifeMap cannot save private details until encryption is available.";
 
@@ -31,7 +40,7 @@ export const identityFieldCrypto: FieldCrypto = {
   decrypt: async (value) => value,
 };
 
-function bytesToBase64(bytes: Uint8Array): string {
+export function bytesToBase64(bytes: Uint8Array): string {
   let binary = "";
   for (let i = 0; i < bytes.length; i += 1) {
     binary += String.fromCharCode(bytes[i]);
@@ -39,7 +48,7 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
+export function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) {
@@ -103,6 +112,35 @@ export function createFieldCrypto(keyBase64: string): FieldCrypto {
 // ── Session-scoped active crypto ─────────────────────────────────────────────
 
 let active: FieldCrypto | null = null;
+let activeKeyBase64: string | null = null;
+let activeFileKeyPromise: Promise<CryptoKey> | null = null;
+
+async function ensureDataKeyBase64(accessToken: string): Promise<string> {
+  if (activeKeyBase64) {
+    return activeKeyBase64;
+  }
+  const result = await getDataKey(accessToken);
+  if (!result.ok) {
+    console.warn("LifeMap data-key fetch failed; private writes blocked");
+    throw new Error(FIELD_CRYPTO_UNAVAILABLE_ERROR);
+  }
+  activeKeyBase64 = result.key;
+  return activeKeyBase64;
+}
+
+async function ensureFileKey(accessToken: string): Promise<CryptoKey> {
+  const keyBase64 = await ensureDataKeyBase64(accessToken);
+  if (!activeFileKeyPromise) {
+    activeFileKeyPromise = crypto.subtle.importKey(
+      "raw",
+      base64ToBytes(keyBase64),
+      { name: "AES-GCM" },
+      false,
+      ["encrypt", "decrypt"],
+    );
+  }
+  return activeFileKeyPromise;
+}
 
 // Fetches the per-user key from the Worker and activates real encryption for the
 // session. In real mode this must fail closed: sensitive writes should stop
@@ -113,13 +151,63 @@ export async function ensureFieldCrypto(
   if (active) {
     return active;
   }
-  const result = await getDataKey(accessToken);
-  if (!result.ok) {
-    console.warn("LifeMap data-key fetch failed; private writes blocked");
-    throw new Error(FIELD_CRYPTO_UNAVAILABLE_ERROR);
-  }
-  active = createFieldCrypto(result.key);
+  const keyBase64 = await ensureDataKeyBase64(accessToken);
+  active = createFieldCrypto(keyBase64);
   return active;
+}
+
+export async function encryptFileBytes(
+  file: File,
+  accessToken: string,
+): Promise<FileCryptoPayload> {
+  const key = await ensureFileKey(accessToken);
+  const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    await blobToArrayBuffer(file),
+  );
+  const bytes = new Uint8Array(ciphertext);
+  return {
+    ciphertext: new Blob([bytes], { type: FILE_CRYPTO_CONTENT_TYPE }),
+    encryptedByteSize: bytes.byteLength,
+    encryptionIv: bytesToBase64(iv),
+    encryptionVersion: FILE_CRYPTO_VERSION,
+  };
+}
+
+export async function decryptFileBytes(
+  encryptedBlob: Blob,
+  encryptionIv: string,
+  mimeType: string,
+  accessToken: string,
+): Promise<Blob> {
+  const key = await ensureFileKey(accessToken);
+  const plaintext = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: base64ToBytes(encryptionIv) },
+    key,
+    await blobToArrayBuffer(encryptedBlob),
+  );
+  return new Blob([new Uint8Array(plaintext)], { type: mimeType });
+}
+
+async function blobToArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+  if (typeof blob.arrayBuffer === "function") {
+    return blob.arrayBuffer();
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(reader.result);
+      } else {
+        reject(new Error("Could not read file bytes."));
+      }
+    };
+    reader.readAsArrayBuffer(blob);
+  });
 }
 
 // Synchronous accessor for the active crypto (identity until ensureFieldCrypto
@@ -131,4 +219,6 @@ export function getFieldCrypto(): FieldCrypto {
 // Clear on sign-out so a different user never reuses the prior key.
 export function clearFieldCrypto(): void {
   active = null;
+  activeKeyBase64 = null;
+  activeFileKeyPromise = null;
 }

@@ -77,6 +77,7 @@ import {
   type FamilyEvent,
   type FamilyMember,
   type VaultItem,
+  type VaultItemFile,
 } from "./familyOS";
 import {
   deleteAllFamilyData,
@@ -86,6 +87,7 @@ import {
   upsertFamilyEvent,
   upsertFamilyMember,
   upsertVaultItem,
+  upsertVaultItemFile,
   type FamilyCollections,
   type FamilyDataClient,
 } from "./family-data";
@@ -95,7 +97,10 @@ import {
   isSupabaseConfigured,
 } from "./supabaseClient";
 import TodayView from "./TodayView";
-import VaultView, { AddDocumentModal } from "./VaultView";
+import VaultView, {
+  AddDocumentModal,
+  type DocumentSaveInput,
+} from "./VaultView";
 import ImportantDatesView, { AddDateModal } from "./ImportantDatesView";
 import { AddPersonModal } from "./add-person-modal";
 import { DOCUMENT_TYPES } from "./documentTypes";
@@ -122,6 +127,13 @@ import {
   type SetupFocusArea,
   type SetupProfile,
 } from "./setupBuckets";
+import {
+  downloadVaultFile,
+  prepareEncryptedVaultFile,
+  removeVaultFileObjects,
+  uploadPreparedVaultFile,
+  type DocumentStorageClient,
+} from "./document-storage";
 
 const starterIntake = presentationIntake;
 
@@ -941,10 +953,24 @@ function App() {
       return;
     }
     const userId = session.user.id;
+    const client = getSupabase();
+    const storedFiles = collections.vaultItems.flatMap(
+      (item) => item.files ?? [],
+    );
+
+    const fileWipe = await removeVaultFileObjects(
+      client as unknown as DocumentStorageClient,
+      storedFiles,
+    );
+    if (!fileWipe.ok) {
+      console.warn("LifeMap clear-map file wipe failed", fileWipe.error);
+      setToastMessage("Couldn't remove stored files — records were not cleared.");
+      return;
+    }
 
     const wipe = await deleteAllFamilyData(
       userId,
-      getSupabase() as unknown as FamilyDataClient,
+      client as unknown as FamilyDataClient,
     );
     if (!wipe.ok) {
       console.warn("LifeMap clear-map family wipe failed", wipe.error);
@@ -955,7 +981,7 @@ function App() {
     const reset = await saveRemoteState(
       userId,
       emptyPersistedState(),
-      getSupabase() as unknown as RemoteStateClient,
+      client as unknown as RemoteStateClient,
     );
     if (!reset.ok) {
       console.warn("LifeMap clear-map remote reset failed", reset.error);
@@ -1282,33 +1308,159 @@ function App() {
   // Cabinet: direct manual add (icon grid → modal, no AI). Mirrors the Important
   // Date save path, with the per-user field-crypto guard used by every vault
   // write (see materializeSuggestions) so `detail` encrypts at rest.
-  async function handleAddDocument(item: VaultItem): Promise<void> {
+  async function handleAddDocument({
+    file,
+    item,
+  }: DocumentSaveInput): Promise<boolean> {
     if (isSupabaseConfigured && session) {
+      if (!file) {
+        setToastMessage("Attach a PDF or photo before saving.");
+        return false;
+      }
+
+      const userId = session.user.id;
+      const client = getSupabase();
+      let savedItem: VaultItem | undefined;
+      let uploadedFile: VaultItemFile | undefined;
       try {
-        const userId = session.user.id;
-        const client = getSupabase() as unknown as FamilyDataClient;
         const crypto = await ensureFieldCrypto(session.access_token);
-        const result = await upsertVaultItem(userId, item, client, crypto);
-        if (result.ok) {
-          const saved = result.item;
-          setCollections((current) => ({
-            ...current,
-            vaultItems: [saved, ...current.vaultItems],
-          }));
-        } else {
+        const result = await upsertVaultItem(
+          userId,
+          item,
+          client as unknown as FamilyDataClient,
+          crypto,
+        );
+        if (!result.ok) {
           setToastMessage("Couldn't save that document. Try again.");
+          return false;
         }
+
+        savedItem = result.item;
+        const prepared = await prepareEncryptedVaultFile({
+          accessToken: session.access_token,
+          file,
+          userId,
+          vaultItemId: savedItem.id,
+        });
+        if (!prepared.ok) {
+          await deleteFamilyRow(
+            userId,
+            "vault_items",
+            savedItem.id,
+            client as unknown as FamilyDataClient,
+          );
+          setToastMessage(prepared.error);
+          return false;
+        }
+
+        const upload = await uploadPreparedVaultFile(
+          client as unknown as DocumentStorageClient,
+          prepared.prepared,
+        );
+        if (!upload.ok) {
+          await deleteFamilyRow(
+            userId,
+            "vault_items",
+            savedItem.id,
+            client as unknown as FamilyDataClient,
+          );
+          setToastMessage(upload.error);
+          return false;
+        }
+
+        uploadedFile = upload.uploaded.file;
+        const fileResult = await upsertVaultItemFile(
+          userId,
+          uploadedFile,
+          client as unknown as FamilyDataClient,
+        );
+        if (!fileResult.ok) {
+          const cleanup = await removeVaultFileObjects(
+            client as unknown as DocumentStorageClient,
+            [uploadedFile],
+          );
+          if (!cleanup.ok) {
+            console.warn("LifeMap document upload cleanup failed", cleanup.error);
+          }
+          await deleteFamilyRow(
+            userId,
+            "vault_items",
+            savedItem.id,
+            client as unknown as FamilyDataClient,
+          );
+          setToastMessage("Couldn't save that document file. Try again.");
+          return false;
+        }
+
+        const saved = { ...savedItem, files: [fileResult.item] };
+        setCollections((current) => ({
+          ...current,
+          vaultItems: [saved, ...current.vaultItems],
+        }));
+        setToastMessage("Document saved securely.");
+        return true;
       } catch (error) {
         console.error("LifeMap document save failed", error);
+        if (uploadedFile) {
+          const cleanup = await removeVaultFileObjects(
+            client as unknown as DocumentStorageClient,
+            [uploadedFile],
+          );
+          if (!cleanup.ok) {
+            console.warn("LifeMap document upload cleanup failed", cleanup.error);
+          }
+        }
+        if (savedItem) {
+          await deleteFamilyRow(
+            userId,
+            "vault_items",
+            savedItem.id,
+            client as unknown as FamilyDataClient,
+          );
+        }
         setToastMessage(SECURE_SAVE_ERROR);
+        return false;
       }
-      return;
     }
     // Demo / no-Supabase mode: keep it local.
     setCollections((current) => ({
       ...current,
       vaultItems: [item, ...current.vaultItems],
     }));
+    return true;
+  }
+
+  async function handleOpenVaultFile(file: VaultItemFile): Promise<void> {
+    if (!isSupabaseConfigured || !session) {
+      setToastMessage("Sign in to open stored files.");
+      return;
+    }
+
+    try {
+      const result = await downloadVaultFile({
+        accessToken: session.access_token,
+        client: getSupabase() as unknown as DocumentStorageClient,
+        file,
+      });
+      if (!result.ok) {
+        setToastMessage(result.error);
+        return;
+      }
+
+      const url = URL.createObjectURL(result.download.blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.download.fileName;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (error) {
+      console.error("LifeMap file open failed", error);
+      setToastMessage("Couldn't open that file. Try again.");
+    }
   }
 
   // Important Dates: remove a logged date (real mode deletes the row first).
@@ -1665,8 +1817,10 @@ function App() {
           <VaultView
             familyMembers={collections.familyMembers}
             vaultItems={collections.vaultItems}
+            canUploadFiles={isSupabaseConfigured && Boolean(session)}
             onOpenCapture={() => openCapture()}
             onAddDocument={handleAddDocument}
+            onOpenFile={handleOpenVaultFile}
           />
         ) : view === "dates" ? (
           <ImportantDatesView
@@ -2039,15 +2193,20 @@ function App() {
             DOCUMENT_TYPES[0]
           }
           familyMembers={collections.familyMembers}
+          canUploadFiles={isSupabaseConfigured && Boolean(session)}
+          requiresFileUpload={isSupabaseConfigured && Boolean(session)}
           presetOwner={addSheetOwner}
           onClose={() => {
             setQuickAdd(undefined);
             setQuickAddDocTypeKey("other");
           }}
-          onSave={(item) => {
-            handleAddDocument(item);
-            setQuickAdd(undefined);
-            setQuickAddDocTypeKey("other");
+          onSave={async (input) => {
+            const saved = await handleAddDocument(input);
+            if (saved) {
+              setQuickAdd(undefined);
+              setQuickAddDocTypeKey("other");
+            }
+            return saved;
           }}
         />
       ) : null}

@@ -12,8 +12,13 @@ import type { LifeMapAnalysis } from "./lifemap";
 // lifemapState via saveRemoteState(userId, emptyState, …). We mock both modules,
 // drive the real handler through the UI, and assert the calls + their args.
 
-const { aiAnalysis, session, deleteAllFamilyDataMock, saveRemoteStateMock } =
-  vi.hoisted(() => {
+const {
+  aiAnalysis,
+  session,
+  deleteAllFamilyDataMock,
+  saveRemoteStateMock,
+  storageRemoveMock,
+} = vi.hoisted(() => {
     const aiAnalysis: LifeMapAnalysis = {
       dueItems: [],
       missingInfo: [],
@@ -29,17 +34,25 @@ const { aiAnalysis, session, deleteAllFamilyDataMock, saveRemoteStateMock } =
     } as unknown as Session;
     const deleteAllFamilyDataMock = vi.fn(async () => ({ ok: true as const }));
     const saveRemoteStateMock = vi.fn(async () => ({ ok: true as const }));
+    const storageRemoveMock = vi.fn(async () => ({ data: [], error: null }));
     return {
       aiAnalysis,
       session,
       deleteAllFamilyDataMock,
       saveRemoteStateMock,
+      storageRemoveMock,
     };
   });
 
 vi.mock("./supabaseClient", () => ({
   isSupabaseConfigured: true,
-  getSupabase: vi.fn(() => ({})),
+  getSupabase: vi.fn(() => ({
+    storage: {
+      from: vi.fn(() => ({
+        remove: storageRemoveMock,
+      })),
+    },
+  })),
   getAccessToken: vi.fn(async () => "test-access-token"),
 }));
 
@@ -53,6 +66,9 @@ vi.mock("./use-session", () => ({
 }));
 
 vi.mock("./field-crypto", () => ({
+  FILE_CRYPTO_CONTENT_TYPE: "application/octet-stream",
+  decryptFileBytes: vi.fn(),
+  encryptFileBytes: vi.fn(),
   ensureFieldCrypto: vi.fn(async () => ({
     encrypt: async (value: string) => value,
     decrypt: async (value: string) => value,
@@ -91,7 +107,31 @@ vi.mock("./family-data", async () => {
       collections: {
         familyMembers: [],
         familyEvents: [],
-        vaultItems: [],
+        vaultItems: [
+          {
+            id: "vault-1",
+            title: "Passport",
+            category: "identity",
+            owner: "Casey",
+            status: "Current",
+            detail: "",
+            files: [
+              {
+                id: "33333333-3333-4333-8333-333333333333",
+                vaultItemId: "vault-1",
+                bucketId: "lifemap-documents",
+                objectPath:
+                  "user-123/vault-1/33333333-3333-4333-8333-333333333333.bin",
+                encryptionVersion: "file-v1",
+                encryptionIv: "iv",
+                originalName: "passport.pdf",
+                mimeType: "application/pdf",
+                byteSize: 1024,
+                encryptedByteSize: 1052,
+              },
+            ],
+          },
+        ],
         recurringCareItems: [],
       },
     })),
@@ -133,6 +173,9 @@ describe("LifeMap real-mode Clear my map", () => {
     await waitFor(() => {
       expect(deleteAllFamilyDataMock).toHaveBeenCalledTimes(1);
     });
+    expect(storageRemoveMock).toHaveBeenCalledWith([
+      "user-123/vault-1/33333333-3333-4333-8333-333333333333.bin",
+    ]);
     expect((deleteAllFamilyDataMock.mock.calls[0] as unknown[])[0]).toBe(
       "user-123",
     );

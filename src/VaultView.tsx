@@ -2,7 +2,9 @@ import {
   CheckCircle2,
   ChevronRight,
   Eye,
+  FileText,
   LockKeyhole,
+  Paperclip,
   Plus,
   Search,
 } from "lucide-react";
@@ -12,6 +14,7 @@ import {
   inferVaultCategory,
   type VaultCategory,
   type VaultItem,
+  type VaultItemFile,
 } from "./familyOS";
 import ModalBackdrop from "./modal-backdrop";
 import EmptyState from "./empty-state";
@@ -21,6 +24,11 @@ import {
   VAULT_CATEGORY_OPTIONS,
   VAULT_CATEGORY_LABEL,
 } from "./documentTypes";
+import {
+  DOCUMENT_FILE_ACCEPT,
+  formatFileBytes,
+  validateDocumentFile,
+} from "./document-storage";
 
 const OTHER_OWNER = "__other__";
 const WHOLE_FAMILY = "Whole family";
@@ -38,15 +46,24 @@ const vaultFilters: Array<{ id: VaultCategory | "all"; label: string }> = [
 type VaultViewProps = {
   familyMembers: FamilyMember[];
   vaultItems: VaultItem[];
+  canUploadFiles?: boolean;
   onOpenCapture: () => void;
-  onAddDocument: (item: VaultItem) => void;
+  onAddDocument: (input: DocumentSaveInput) => Promise<boolean> | boolean;
+  onOpenFile?: (file: VaultItemFile) => Promise<void> | void;
+};
+
+export type DocumentSaveInput = {
+  item: VaultItem;
+  file?: File;
 };
 
 function VaultView({
   familyMembers,
   vaultItems,
+  canUploadFiles = false,
   onOpenCapture,
   onAddDocument,
+  onOpenFile,
 }: VaultViewProps) {
   const [activeCategory, setActiveCategory] = useState<VaultCategory | "all">(
     "all",
@@ -242,6 +259,7 @@ function VaultView({
           isSensitiveVisible={isSensitiveVisible}
           item={selectedVaultItem}
           onClose={() => setSelectedVaultItem(undefined)}
+          onOpenFile={onOpenFile}
           onReveal={() => setIsSensitiveVisible(true)}
         />
       ) : null}
@@ -250,11 +268,16 @@ function VaultView({
         <AddDocumentModal
           docType={activeDocType}
           familyMembers={familyMembers}
+          canUploadFiles={canUploadFiles}
+          requiresFileUpload={canUploadFiles}
           presetOwner={presetOwner}
           onClose={closeAddDocument}
-          onSave={(item) => {
-            onAddDocument(item);
-            closeAddDocument();
+          onSave={async (input) => {
+            const saved = await onAddDocument(input);
+            if (saved) {
+              closeAddDocument();
+            }
+            return saved;
           }}
         />
       ) : null}
@@ -307,12 +330,16 @@ export function AddDocumentModal({
   presetOwner,
   onClose,
   onSave,
+  canUploadFiles = false,
+  requiresFileUpload = false,
 }: {
   docType: DocumentTypeMeta;
   familyMembers: FamilyMember[];
   presetOwner?: string;
+  canUploadFiles?: boolean;
+  requiresFileUpload?: boolean;
   onClose: () => void;
-  onSave: (item: VaultItem) => void;
+  onSave: (input: DocumentSaveInput) => Promise<boolean> | boolean;
 }) {
   const [title, setTitle] = useState(docType.defaultTitle);
   // Pre-select the kid when the add came from their profile.
@@ -321,6 +348,10 @@ export function AddDocumentModal({
   const [status, setStatus] = useState<VaultItem["status"]>("Current");
   const [expiry, setExpiry] = useState("");
   const [notes, setNotes] = useState("");
+  const [file, setFile] = useState<File>();
+  const [fileError, setFileError] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   // Category: seeded from the tapped doc-type. On the generic quick-add path
   // ("other") we auto-guess from the title until the user taps a chip — then
   // their pick wins (categoryTouched).
@@ -345,22 +376,61 @@ export function AddDocumentModal({
   }
 
   const owner = whoFor === OTHER_OWNER ? otherOwner.trim() : whoFor.trim();
-  const canSave = title.trim().length > 0 && owner.length > 0;
+  const canSave =
+    title.trim().length > 0 &&
+    owner.length > 0 &&
+    !fileError &&
+    (!requiresFileUpload || Boolean(file)) &&
+    !isSaving;
 
-  function handleSubmit(formEvent: FormEvent) {
+  function handleFileChange(next: File | undefined) {
+    setSaveError("");
+    setFile(next);
+    if (!next) {
+      setFileError("");
+      return;
+    }
+    const validation = validateDocumentFile(next);
+    if (!validation.ok) {
+      setFileError(validation.error);
+      return;
+    }
+    setFileError("");
+    if (!title.trim() || title === docType.defaultTitle) {
+      setTitle(stripFileExtension(next.name));
+    }
+  }
+
+  async function handleSubmit(formEvent: FormEvent) {
     formEvent.preventDefault();
+    setSaveError("");
+    if (requiresFileUpload && !file) {
+      setFileError("Attach a PDF or photo before saving.");
+      return;
+    }
     if (!canSave) {
       return;
     }
-    onSave({
-      id: crypto.randomUUID(),
-      title: title.trim(),
-      category,
-      owner,
-      status,
-      detail: notes.trim(),
-      ...(expiry ? { renewalDate: expiry } : {}),
-    });
+    setIsSaving(true);
+    try {
+      const saved = await onSave({
+        item: {
+          id: crypto.randomUUID(),
+          title: title.trim(),
+          category,
+          owner,
+          status,
+          detail: notes.trim(),
+          ...(expiry ? { renewalDate: expiry } : {}),
+        },
+        ...(file ? { file } : {}),
+      });
+      if (!saved) {
+        setSaveError("That document was not saved. Try again.");
+      }
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -379,7 +449,11 @@ export function AddDocumentModal({
                 ? "Add a document"
                 : `Add ${docType.label.toLowerCase()}`}
             </h2>
-            <p>Saved straight to your cabinet. No AI, no waiting.</p>
+            <p>
+              {canUploadFiles
+                ? "Attach the real file. LifeMap encrypts it before upload."
+                : "Demo record only. Sign in to store real files securely."}
+            </p>
           </div>
         </div>
         <form className="add-date-form" onSubmit={handleSubmit}>
@@ -453,6 +527,35 @@ export function AddDocumentModal({
             />
           </label>
           <label className="add-date-field">
+            <span>File</span>
+            {canUploadFiles ? (
+              <>
+                <input
+                  aria-label="File"
+                  accept={DOCUMENT_FILE_ACCEPT}
+                  type="file"
+                  onChange={(e) => handleFileChange(e.target.files?.[0])}
+                />
+                <small>PDF, JPG, PNG, HEIC, or HEIF · 6 MB max.</small>
+                {file && !fileError ? (
+                  <span className="document-file-pill">
+                    <Paperclip size={14} aria-hidden="true" />
+                    {file.name} · {formatFileBytes(file.size)}
+                  </span>
+                ) : null}
+              </>
+            ) : (
+              <span className="document-upload-note">
+                Secure file upload requires a signed-in account.
+              </span>
+            )}
+            {fileError ? (
+              <small className="form-error" role="alert">
+                {fileError}
+              </small>
+            ) : null}
+          </label>
+          <label className="add-date-field">
             <span>Notes</span>
             <input
               type="text"
@@ -474,9 +577,14 @@ export function AddDocumentModal({
               type="submit"
               disabled={!canSave}
             >
-              Save document
+              {isSaving ? "Saving..." : "Save document"}
             </button>
           </div>
+          {saveError ? (
+            <p className="form-error" role="alert">
+              {saveError}
+            </p>
+          ) : null}
         </form>
       </section>
     </ModalBackdrop>
@@ -492,7 +600,7 @@ function VaultRow({
 }) {
   const sub = `${VAULT_CATEGORY_LABEL[item.category]}${
     item.renewalDate ? ` · review by ${formatShortDate(item.renewalDate)}` : ""
-  }`;
+  }${item.files?.length ? ` · ${formatCount(item.files.length, "file")} attached` : ""}`;
   const statusTone = item.status === "Current" ? "current" : "attention";
 
   return (
@@ -518,13 +626,16 @@ function VaultDetailDialog({
   isSensitiveVisible,
   item,
   onClose,
+  onOpenFile,
   onReveal,
 }: {
   isSensitiveVisible: boolean;
   item: VaultItem;
   onClose: () => void;
+  onOpenFile?: (file: VaultItemFile) => Promise<void> | void;
   onReveal: () => void;
 }) {
+  const files = item.files ?? [];
   return (
     <ModalBackdrop onClose={onClose}>
       <section
@@ -575,6 +686,34 @@ function VaultDetailDialog({
           )}
         </article>
 
+        {files.length > 0 ? (
+          <article className="vault-private-card">
+            <div>
+              <FileText size={18} />
+              <span>Attached file</span>
+            </div>
+            {files.map((file) => (
+              <div className="vault-file-row" key={file.id}>
+                <div>
+                  <strong>{file.originalName}</strong>
+                  <p>
+                    {file.mimeType} · {formatFileBytes(file.byteSize)}
+                  </p>
+                </div>
+                <button
+                  className="secondary-button compact-button"
+                  type="button"
+                  onClick={() => {
+                    void onOpenFile?.(file);
+                  }}
+                >
+                  Open file
+                </button>
+              </div>
+            ))}
+          </article>
+        ) : null}
+
         <div className="brief-detail-grid">
           <article className="brief-detail-card">
             <span>Status</span>
@@ -596,6 +735,10 @@ function VaultDetailDialog({
       </section>
     </ModalBackdrop>
   );
+}
+
+function stripFileExtension(name: string): string {
+  return name.replace(/\.[^.]+$/, "").trim() || name;
 }
 
 function formatShortDate(date: string): string {

@@ -4,17 +4,18 @@ import {
   loadFamilyCollections,
   upsertFamilyEvent,
   upsertVaultItem,
+  upsertVaultItemFile,
   type FamilyDataClient,
 } from "./family-data";
 import { createFieldCrypto } from "./field-crypto";
-import type { FamilyEvent, VaultItem } from "./familyOS";
+import type { FamilyEvent, VaultItem, VaultItemFile } from "./familyOS";
 
 const UUID = "11111111-1111-4111-8111-111111111111";
 const EVENT_UUID = "22222222-2222-4222-8222-222222222222";
 const KEY = btoa("0123456789abcdef0123456789abcdef");
 
 describe("family-data RLS-scoped persistence", () => {
-  test("loads and maps the four collections for the signed-in user", async () => {
+  test("loads and maps the family collections for the signed-in user", async () => {
     const { client, selectEq } = makeReadClient({
       family_members: [
         {
@@ -39,6 +40,22 @@ describe("family-data RLS-scoped persistence", () => {
           detail: "Renewal started",
           renewal_date: "2026-08-14",
           linked_event_id: EVENT_UUID,
+        },
+      ],
+      vault_item_files: [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          user_id: "user-1",
+          vault_item_id: UUID,
+          bucket_id: "lifemap-documents",
+          object_path:
+            "user-1/11111111-1111-4111-8111-111111111111/file.bin",
+          encryption_version: "file-v1",
+          encryption_iv: "iv",
+          original_name: "passport.pdf",
+          mime_type: "application/pdf",
+          byte_size: 1024,
+          encrypted_byte_size: 1052,
         },
       ],
       family_events: [],
@@ -67,6 +84,21 @@ describe("family-data RLS-scoped persistence", () => {
       detail: "Renewal started",
       renewalDate: "2026-08-14",
       linkedEventId: EVENT_UUID,
+      files: [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          vaultItemId: UUID,
+          bucketId: "lifemap-documents",
+          objectPath:
+            "user-1/11111111-1111-4111-8111-111111111111/file.bin",
+          encryptionVersion: "file-v1",
+          encryptionIv: "iv",
+          originalName: "passport.pdf",
+          mimeType: "application/pdf",
+          byteSize: 1024,
+          encryptedByteSize: 1052,
+        },
+      ],
     });
     // every read is scoped to the user — RLS-backed isolation
     expect(selectEq).toHaveBeenCalledWith("user_id", "user-1");
@@ -185,6 +217,61 @@ describe("family-data RLS-scoped persistence", () => {
       unknown
     >;
     expect(payload.id).toBe(UUID);
+  });
+
+  test("upserts encrypted file metadata scoped to the signed-in user", async () => {
+    let stored: Record<string, unknown> = {};
+    const upsert = vi.fn(
+      (
+        payload: Record<string, unknown>,
+        options?: { onConflict: "id" },
+      ) => {
+      void options;
+      stored = payload;
+      return {
+        select: () => ({
+          maybeSingle: async () => ({
+            data: payload,
+            error: null,
+          }),
+        }),
+      };
+      },
+    );
+    const client: FamilyDataClient = {
+      from: () => ({ select: vi.fn(), upsert, delete: vi.fn() }),
+    };
+    const file: VaultItemFile = {
+      id: "33333333-3333-4333-8333-333333333333",
+      vaultItemId: UUID,
+      bucketId: "lifemap-documents",
+      objectPath: `user-1/${UUID}/33333333-3333-4333-8333-333333333333.bin`,
+      encryptionVersion: "file-v1",
+      encryptionIv: "iv",
+      originalName: "passport.pdf",
+      mimeType: "application/pdf",
+      byteSize: 1024,
+      encryptedByteSize: 1052,
+    };
+
+    const result = await upsertVaultItemFile("user-1", file, client);
+
+    expect(stored).toMatchObject({
+      id: file.id,
+      user_id: "user-1",
+      vault_item_id: UUID,
+      bucket_id: "lifemap-documents",
+      object_path: file.objectPath,
+      encryption_version: "file-v1",
+      original_name: "passport.pdf",
+      mime_type: "application/pdf",
+    });
+    expect((upsert.mock.calls[0] as unknown[])[1]).toEqual({
+      onConflict: "id",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.item).toEqual(file);
   });
 
   test("delete scopes by both id and user_id", async () => {

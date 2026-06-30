@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import VaultView from "./VaultView";
@@ -97,7 +97,7 @@ describe("VaultView add-document flow", () => {
     await user.click(screen.getByRole("button", { name: "Save document" }));
 
     expect(onAddDocument).toHaveBeenCalledTimes(1);
-    const saved = onAddDocument.mock.calls[0][0] as VaultItem;
+    const saved = onAddDocument.mock.calls[0][0].item as VaultItem;
     expect(saved).toMatchObject({
       title: "Passport",
       category: "identity",
@@ -132,7 +132,7 @@ describe("VaultView add-document flow", () => {
     await user.selectOptions(screen.getByLabelText("Who is it for?"), "Emma");
     await user.click(screen.getByRole("button", { name: "Save document" }));
 
-    expect(onAddDocument.mock.calls[0][0]).toMatchObject({
+    expect(onAddDocument.mock.calls[0][0].item).toMatchObject({
       title: "School enrollment form",
       category: "school",
       owner: "Emma",
@@ -163,9 +163,75 @@ describe("VaultView add-document flow", () => {
     await user.selectOptions(screen.getByLabelText("Who is it for?"), "Emma");
     await user.click(screen.getByRole("button", { name: "Save document" }));
 
-    expect(onAddDocument.mock.calls[0][0]).toMatchObject({
+    expect(onAddDocument.mock.calls[0][0].item).toMatchObject({
       category: "health",
     });
+  });
+
+  test("real upload mode requires a supported file and passes it to save", async () => {
+    const user = userEvent.setup();
+    const onAddDocument = vi.fn(async () => true);
+
+    render(
+      <VaultView
+        canUploadFiles
+        familyMembers={kids}
+        vaultItems={[]}
+        onOpenCapture={vi.fn()}
+        onAddDocument={onAddDocument}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /^Add document$/i }));
+    await user.click(screen.getByRole("button", { name: /Add a passport/i }));
+    await user.selectOptions(screen.getByLabelText("Who is it for?"), "Emma");
+
+    expect(screen.getByRole("button", { name: "Save document" })).toBeDisabled();
+
+    const file = new File(["passport"], "passport.pdf", {
+      type: "application/pdf",
+    });
+    await user.upload(screen.getByLabelText("File"), file);
+    await user.click(screen.getByRole("button", { name: "Save document" }));
+
+    expect(onAddDocument).toHaveBeenCalledTimes(1);
+    const saved = (onAddDocument.mock.calls[0] as unknown[])[0] as {
+      file?: File;
+      item: VaultItem;
+    };
+    expect(saved.file).toBe(file);
+    expect(saved.item).toMatchObject({
+      title: "passport",
+      owner: "Emma",
+    });
+  });
+
+  test("real upload mode rejects unsupported file types before save", async () => {
+    const user = userEvent.setup();
+    const onAddDocument = vi.fn();
+
+    render(
+      <VaultView
+        canUploadFiles
+        familyMembers={kids}
+        vaultItems={[]}
+        onOpenCapture={vi.fn()}
+        onAddDocument={onAddDocument}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /^Add document$/i }));
+    await user.click(screen.getByRole("button", { name: /Add a passport/i }));
+    fireEvent.change(screen.getByLabelText("File"), {
+      target: {
+        files: [new File(["svg"], "icon.svg", { type: "image/svg+xml" })],
+      },
+    });
+
+    expect(
+      screen.getByText("Use a PDF, JPG, PNG, HEIC, or HEIF file."),
+    ).toBeInTheDocument();
+    expect(onAddDocument).not.toHaveBeenCalled();
   });
 
   test("search finds records by owner and hides non-matches", async () => {
@@ -257,5 +323,50 @@ describe("VaultView add-document flow", () => {
     expect(
       within(familyGroup as HTMLElement).getByText("Needs update"),
     ).toBeInTheDocument();
+  });
+
+  test("detail dialog shows attached file metadata and open action", async () => {
+    const user = userEvent.setup();
+    const onOpenFile = vi.fn();
+    const file = {
+      id: "33333333-3333-4333-8333-333333333333",
+      vaultItemId: "v1",
+      bucketId: "lifemap-documents" as const,
+      objectPath: "user/v1/file.bin",
+      encryptionVersion: "file-v1" as const,
+      encryptionIv: "iv",
+      originalName: "passport.pdf",
+      mimeType: "application/pdf",
+      byteSize: 1024,
+      encryptedByteSize: 1052,
+    };
+
+    render(
+      <VaultView
+        familyMembers={kids}
+        vaultItems={[
+          {
+            id: "v1",
+            title: "Emma passport",
+            category: "identity",
+            owner: "Emma",
+            status: "Current",
+            detail: "Hidden number",
+            files: [file],
+          },
+        ]}
+        onOpenCapture={vi.fn()}
+        onAddDocument={vi.fn()}
+        onOpenFile={onOpenFile}
+      />,
+    );
+
+    expect(screen.getByText(/1 file attached/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Open details/i }));
+    expect(screen.getByText("passport.pdf")).toBeInTheDocument();
+    expect(screen.getByText(/application\/pdf · 1 KB/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Open file" }));
+
+    expect(onOpenFile).toHaveBeenCalledWith(file);
   });
 });

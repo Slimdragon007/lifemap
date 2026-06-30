@@ -12,6 +12,8 @@ import {
   FIELD_CRYPTO_UNAVAILABLE_ERROR,
   clearFieldCrypto,
   createFieldCrypto,
+  decryptFileBytes,
+  encryptFileBytes,
   ensureFieldCrypto,
   getFieldCrypto,
   identityFieldCrypto,
@@ -105,3 +107,34 @@ describe("ensureFieldCrypto", () => {
     expect(await getFieldCrypto().encrypt("private")).toBe("private");
   });
 });
+
+describe("file crypto", () => {
+  test("round-trips file bytes through the active data key", async () => {
+    getDataKeyMock.mockResolvedValue({ ok: true, key: KEY });
+    const file = new File(["hello pdf bytes"], "casey.pdf", {
+      type: "application/pdf",
+    });
+
+    const encrypted = await encryptFileBytes(file, "access-token");
+    const decrypted = await decryptFileBytes(
+      encrypted.ciphertext,
+      encrypted.encryptionIv,
+      file.type,
+      "access-token",
+    );
+
+    expect(encrypted.encryptionVersion).toBe("file-v1");
+    expect(encrypted.encryptedByteSize).toBeGreaterThan(file.size);
+    expect(await readBlobText(decrypted)).toBe("hello pdf bytes");
+    expect(getDataKeyMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+function readBlobText(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.readAsText(blob);
+  });
+}

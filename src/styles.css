@@ -3119,6 +3119,23 @@ button.nav-item {
   line-height: 1.45;
 }
 
+.vault-file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(88, 103, 127, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.vault-file-row strong {
+  display: block;
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
 .emergency-panel {
   background:
     linear-gradient(
@@ -12580,6 +12597,34 @@ button.notebook-row:active {
 .add-date-field select:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 1px;
+}
+.document-file-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  padding: 8px 10px;
+  border: 1px solid rgba(58, 107, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(232, 239, 251, 0.68);
+  color: var(--color-text-primary) !important;
+  font-size: 13px !important;
+  font-weight: 750 !important;
+}
+.document-upload-note {
+  padding: 12px 14px;
+  border: 1px solid rgba(151, 110, 39, 0.2);
+  border-radius: var(--radius-control, 14px);
+  background: rgba(255, 246, 230, 0.78);
+  color: #775b2e !important;
+  font-size: 14px !important;
+  font-weight: 650 !important;
+}
+.form-error {
+  margin: 0;
+  color: #9f3f2b;
+  font-size: 13px;
+  font-weight: 700;
 }
 .add-date-toggle {
   display: flex;

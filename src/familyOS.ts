@@ -50,6 +50,19 @@ export type FamilyEvent = {
 export type VaultCategory =
   "identity" | "insurance" | "health" | "school" | "pet" | "travel";
 
+export type VaultItemFile = {
+  id: string;
+  vaultItemId: string;
+  bucketId: "lifemap-documents";
+  objectPath: string;
+  encryptionVersion: "file-v1";
+  encryptionIv: string;
+  originalName: string;
+  mimeType: string;
+  byteSize: number;
+  encryptedByteSize: number;
+};
+
 export type VaultItem = {
   id: string;
   title: string;
@@ -59,6 +72,7 @@ export type VaultItem = {
   detail: string;
   renewalDate?: string;
   linkedEventId?: string;
+  files?: VaultItemFile[];
 };
 
 export type RecurringCareItem = {

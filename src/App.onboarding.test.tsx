@@ -41,6 +41,9 @@ vi.mock("./use-session", () => ({
 }));
 
 vi.mock("./field-crypto", () => ({
+  FILE_CRYPTO_CONTENT_TYPE: "application/octet-stream",
+  decryptFileBytes: vi.fn(),
+  encryptFileBytes: vi.fn(),
   ensureFieldCrypto: vi.fn(async () => ({
     encrypt: async (value: string) => value,
     decrypt: async (value: string) => value,

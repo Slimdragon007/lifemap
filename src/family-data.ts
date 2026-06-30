@@ -6,6 +6,7 @@ import type {
   RecurringCareItem,
   VaultCategory,
   VaultItem,
+  VaultItemFile,
 } from "./familyOS";
 import { type FieldCrypto, identityFieldCrypto } from "./field-crypto";
 
@@ -39,6 +40,7 @@ export type FamilyTable =
   | "family_members"
   | "family_events"
   | "vault_items"
+  | "vault_item_files"
   | "recurring_care_items";
 
 type QueryResult = {
@@ -92,23 +94,33 @@ export async function loadFamilyCollections(
   crypto: FieldCrypto = identityFieldCrypto,
 ): Promise<LoadFamilyResult> {
   // Each read is scoped to userId; RLS guarantees no cross-user leakage.
-  const [members, events, vault, care] = await Promise.all([
+  const [members, events, vault, files, care] = await Promise.all([
     readTable(client, "family_members", userId),
     readTable(client, "family_events", userId),
     readTable(client, "vault_items", userId),
+    readTable(client, "vault_item_files", userId),
     readTable(client, "recurring_care_items", userId),
   ]);
 
-  const failure = [members, events, vault, care].find((r) => !r.ok);
+  const failure = [members, events, vault, files, care].find((r) => !r.ok);
   if (failure && !failure.ok) {
     return { ok: false, collections: EMPTY_COLLECTIONS, error: failure.error };
   }
+
+  const vaultFiles = rowsOf(files).map(mapVaultFileRow);
+  const filesByVaultId = groupVaultFilesByItem(vaultFiles);
 
   // family_members and vault_items carry encrypted fields, so their mappers are
   // async; events and care items have no sensitive columns.
   const [familyMembers, vaultItems] = await Promise.all([
     Promise.all(rowsOf(members).map((row) => mapMemberRow(row, crypto))),
-    Promise.all(rowsOf(vault).map((row) => mapVaultRow(row, crypto))),
+    Promise.all(
+      rowsOf(vault).map(async (row) => {
+        const item = await mapVaultRow(row, crypto);
+        const itemFiles = filesByVaultId.get(item.id);
+        return itemFiles?.length ? { ...item, files: itemFiles } : item;
+      }),
+    ),
   ]);
 
   return {
@@ -190,6 +202,19 @@ export async function upsertVaultItem(
   );
 }
 
+export async function upsertVaultItemFile(
+  userId: string,
+  file: VaultItemFile,
+  client: FamilyDataClient,
+): Promise<WriteResult<VaultItemFile>> {
+  return writeRow(
+    client,
+    "vault_item_files",
+    vaultFileToRow(userId, file),
+    mapVaultFileRow,
+  );
+}
+
 export async function upsertRecurringCareItem(
   userId: string,
   item: RecurringCareItem,
@@ -247,13 +272,14 @@ export async function deleteFamilyRow(
 }
 
 const FAMILY_TABLES: FamilyTable[] = [
+  "vault_item_files",
   "family_members",
   "family_events",
   "vault_items",
   "recurring_care_items",
 ];
 
-// Wipes every row this user owns across all four family tables — the data half
+// Wipes every row this user owns across all family tables — the data half
 // of a real-account "Clear my map / start fresh". RLS already scopes each delete
 // to auth.uid(); the explicit .eq("user_id", …) is defense-in-depth (mirrors the
 // per-row deletes). Returns the first error encountered, if any.
@@ -428,6 +454,52 @@ async function mapVaultRow(
   };
 }
 
+function vaultFileToRow(
+  userId: string,
+  file: VaultItemFile,
+): Record<string, unknown> {
+  return withId(file.id, {
+    user_id: userId,
+    vault_item_id: file.vaultItemId,
+    bucket_id: file.bucketId,
+    object_path: file.objectPath,
+    encryption_version: file.encryptionVersion,
+    encryption_iv: file.encryptionIv,
+    original_name: file.originalName,
+    mime_type: file.mimeType,
+    byte_size: file.byteSize,
+    encrypted_byte_size: file.encryptedByteSize,
+    updated_at: nowIso(),
+  });
+}
+
+function mapVaultFileRow(row: Record<string, unknown>): VaultItemFile {
+  return {
+    id: str(row.id),
+    vaultItemId: str(row.vault_item_id),
+    bucketId: "lifemap-documents",
+    objectPath: str(row.object_path),
+    encryptionVersion: "file-v1",
+    encryptionIv: str(row.encryption_iv),
+    originalName: str(row.original_name),
+    mimeType: str(row.mime_type),
+    byteSize: num(row.byte_size),
+    encryptedByteSize: num(row.encrypted_byte_size),
+  };
+}
+
+function groupVaultFilesByItem(
+  files: VaultItemFile[],
+): Map<string, VaultItemFile[]> {
+  const grouped = new Map<string, VaultItemFile[]>();
+  for (const file of files) {
+    const current = grouped.get(file.vaultItemId) ?? [];
+    current.push(file);
+    grouped.set(file.vaultItemId, current);
+  }
+  return grouped;
+}
+
 function careToRow(
   userId: string,
   item: RecurringCareItem,
@@ -483,6 +555,10 @@ function nowIso(): string {
 
 function str(value: unknown): string {
   return typeof value === "string" ? value : "";
+}
+
+function num(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
