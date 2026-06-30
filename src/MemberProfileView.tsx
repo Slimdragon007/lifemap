@@ -389,6 +389,7 @@ function ProfileSectionCard({
   onCancelField,
 }: ProfileSectionCardProps) {
   const headingId = `profile-section-${section.id}`;
+  const primaryAction = profileSectionPrimaryAction(section);
   return (
     <article
       className={isNew ? "profile-section-card new-section" : "profile-section-card"}
@@ -399,13 +400,23 @@ function ProfileSectionCard({
     >
       <div className="profile-section-head">
         <h3 id={headingId}>{section.name}</h3>
-        <button
-          type="button"
-          aria-label={`Add field to ${section.name}`}
-          onClick={onOpenFieldForm}
-        >
-          Add field
-        </button>
+        {primaryAction.type === "document" ? (
+          <button
+            type="button"
+            aria-label={`${primaryAction.label} to ${section.name}`}
+            onClick={() => onAddDocument(primaryAction.docTypeKey)}
+          >
+            {primaryAction.label}
+          </button>
+        ) : (
+          <button
+            type="button"
+            aria-label={`Add field to ${section.name}`}
+            onClick={onOpenFieldForm}
+          >
+            Add field
+          </button>
+        )}
       </div>
 
       {fields.length > 0 ? (
@@ -469,6 +480,30 @@ function ProfileSectionCard({
   );
 }
 
+function profileSectionPrimaryAction(
+  section: ProfileSection,
+):
+  | { type: "field" }
+  | { type: "document"; label: string; docTypeKey: string } {
+  if (section.id === "documents" || section.kind === "documents") {
+    return { type: "document", label: "Add document", docTypeKey: "other" };
+  }
+  if (section.id === "ids" || section.kind === "ids") {
+    return { type: "document", label: "Add ID", docTypeKey: "id" };
+  }
+  if (section.id === "insurance" || section.kind === "insurance") {
+    return {
+      type: "document",
+      label: "Add insurance card",
+      docTypeKey: "insurance",
+    };
+  }
+  if (section.id === "vaccines" || section.kind === "vaccines") {
+    return { type: "document", label: "Add vaccine", docTypeKey: "vaccine" };
+  }
+  return { type: "field" };
+}
+
 function SectionShortcuts({
   section,
   onAddDocument,
@@ -500,7 +535,7 @@ function SectionShortcuts({
           <CalendarPlus size={15} />
           Add school date
         </button>
-        <button type="button" onClick={() => onAddDocument("school")}>
+        <button type="button" onClick={() => onAddDocument("school-form")}>
           <FileText size={15} />
           Add school document
         </button>

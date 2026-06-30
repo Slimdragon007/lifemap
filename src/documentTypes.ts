@@ -3,6 +3,7 @@ import {
   FileText,
   GraduationCap,
   IdCard,
+  Plane,
   type LucideIcon,
   ShieldPlus,
   Stethoscope,
@@ -81,6 +82,13 @@ export const DOCUMENT_TYPES: DocumentTypeMeta[] = [
     icon: GraduationCap,
     category: "school",
     defaultTitle: "School form",
+  },
+  {
+    key: "travel",
+    label: "Travel document",
+    icon: Plane,
+    category: "travel",
+    defaultTitle: "Travel document",
   },
   {
     key: "id",

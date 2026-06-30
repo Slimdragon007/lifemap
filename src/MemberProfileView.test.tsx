@@ -128,6 +128,27 @@ describe("MemberProfileView profile sections", () => {
     expect(onUpdateMember).not.toHaveBeenCalled();
   });
 
+  test("uses document save actions for document-like profile sections", async () => {
+    const user = userEvent.setup();
+    const { onAddDocument } = renderProfile();
+
+    const documents = screen.getByRole("region", { name: "Documents" });
+    expect(
+      within(documents).queryByRole("button", {
+        name: "Add field to Documents",
+      }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      within(documents).getByRole("button", {
+        name: "Add document to Documents",
+      }),
+    );
+
+    expect(onAddDocument).toHaveBeenCalledWith("other");
+    expect(screen.queryByLabelText("Field label")).not.toBeInTheDocument();
+  });
+
   test("adds a private field inside a profile section", async () => {
     const user = userEvent.setup();
     const { onUpdateMember } = renderProfile();
@@ -319,7 +340,7 @@ describe("MemberProfileView profile sections", () => {
       ),
     );
 
-    expect(childResult.onAddDocument).toHaveBeenCalledWith("school");
+    expect(childResult.onAddDocument).toHaveBeenCalledWith("school-form");
 
     cleanup();
 
