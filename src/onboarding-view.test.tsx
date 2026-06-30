@@ -21,6 +21,23 @@ async function finishFromPeopleStep(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Enter LifeMap" }));
 }
 
+describe("OnboardingView welcome copy", () => {
+  test("opens with a calm safety-focused welcome", () => {
+    render(<OnboardingView onComplete={vi.fn()} onSkip={vi.fn()} />);
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Welcome. Let's put the mental load somewhere safe.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Add your people and pets, choose what matters, and keep records, dates, and private details easy to find.",
+      ),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("OnboardingView step 1 name", () => {
   test("step-1 Continue is disabled until a name is entered", async () => {
     const user = userEvent.setup();

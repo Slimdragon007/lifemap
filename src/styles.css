@@ -12963,8 +12963,60 @@ button.notebook-row:active {
 }
 
 @media (max-width: 520px) {
+  .app-shell.view-more .family-dashboard-stack,
+  .app-shell.view-more .family-members-panel {
+    gap: 10px;
+  }
+
+  .app-shell.view-more .family-dashboard-section-head {
+    gap: 8px;
+  }
+
+  .app-shell.view-more .family-dashboard-section-head h2 {
+    font-size: 19px;
+    white-space: nowrap;
+  }
+
+  .app-shell.view-more .family-dashboard-section-head button {
+    min-height: 32px;
+    padding-inline: 10px;
+    font-size: 11.5px;
+  }
+
   .app-shell.view-more .family-member-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .app-shell.view-more .family-member-card {
+    grid-template-columns: 48px minmax(0, 1fr) 18px;
+    gap: 10px;
+    min-height: 0;
+    padding: 12px;
+    border-radius: 18px;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(247, 252, 255, 0.7)),
+      var(--color-surface-panel);
+  }
+
+  .app-shell.view-more .family-member-card .calm-av {
+    width: 48px;
+    height: 48px;
+    font-size: 13.5px;
+  }
+
+  .app-shell.view-more .family-member-copy {
+    gap: 2px;
+  }
+
+  .app-shell.view-more .family-member-meta {
+    display: none;
+  }
+
+  .app-shell.view-more .family-member-card > svg {
+    position: static;
+    justify-self: end;
+    align-self: center;
   }
 
   .cabinet-ledger-meta {
@@ -12988,6 +13040,45 @@ button.notebook-row:active {
   color: var(--color-nav-home-text);
   background: var(--color-nav-home-bg);
   box-shadow: var(--shadow-control);
+}
+
+/* Bottom nav refinement: active state should guide with the icon only, not a
+   full selected tile. This keeps the liquid dock quiet while preserving state. */
+.bottom-nav .nav-item.active,
+.bottom-nav .nav-item:hover {
+  color: var(--color-nav-item-text);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.bottom-nav .nav-item.active span {
+  color: var(--color-nav-item-active-text);
+}
+
+.bottom-nav .nav-item.active svg {
+  box-sizing: content-box;
+  width: 20px;
+  height: 20px;
+  margin: -7px;
+  padding: 7px;
+  border-radius: 14px;
+  color: var(--color-nav-item-active-text);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.86),
+      var(--color-nav-item-active-bg)
+    ),
+    rgba(255, 255, 255, 0.56);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.84),
+    0 10px 22px rgba(72, 143, 225, 0.15);
+  fill: none;
+}
+
+.bottom-nav .nav-item:hover svg {
+  color: var(--color-nav-item-active-text);
 }
 
 /* Release-candidate visual consistency for legacy notebook surfaces. */

@@ -1433,6 +1433,20 @@ function App() {
           <nav className="nav-list bottom-nav" aria-label="Household sections">
             <button
               className={
+                view === "today" ||
+                view === "bucket" ||
+                view === "review"
+                  ? "nav-item active"
+                  : "nav-item"
+              }
+              type="button"
+              onClick={() => setView("today")}
+            >
+              <Sparkles size={18} />
+              <span>Home</span>
+            </button>
+            <button
+              className={
                 view === "vault" || view === "calendar" || view === "dates"
                   ? "nav-item active"
                   : "nav-item"
@@ -1442,20 +1456,6 @@ function App() {
             >
               <Archive size={18} />
               <span>Cabinet</span>
-            </button>
-            <button
-              className={
-                view === "today" ||
-                view === "bucket" ||
-                view === "review"
-                  ? "nav-item nav-item-primary active"
-                  : "nav-item nav-item-primary"
-              }
-              type="button"
-              onClick={() => setView("today")}
-            >
-              <Sparkles size={18} />
-              <span>Home</span>
             </button>
             <button
               className={

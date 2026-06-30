@@ -149,7 +149,7 @@ describe("LifeMap MVP app", () => {
     expect(
       screen.getByRole("button", { name: "Drop a thought or file" }),
     ).toBeInTheDocument();
-    // Primary nav is now Cabinet · Home · Family · Settings. Capture starts from the
+    // Primary nav is now Home · Cabinet · Family · Settings. Capture starts from the
     // Home blender, not from a top-level tool tab.
     const primaryNav = screen.getByRole("navigation", {
       name: "Household sections",
@@ -158,13 +158,10 @@ describe("LifeMap MVP app", () => {
       within(primaryNav)
         .getAllByRole("button")
         .map((button) => button.textContent),
-    ).toEqual(["Cabinet", "Home", "Family", "Settings"]);
+    ).toEqual(["Home", "Cabinet", "Family", "Settings"]);
     expect(
       within(primaryNav).getByRole("button", { name: "Home" }),
     ).toBeInTheDocument();
-    expect(within(primaryNav).getByRole("button", { name: "Home" })).toHaveClass(
-      "nav-item-primary",
-    );
     expect(
       within(primaryNav).getByRole("button", { name: "Cabinet" }),
     ).toBeInTheDocument();
@@ -206,7 +203,6 @@ describe("LifeMap MVP app", () => {
     await user.click(screen.getByRole("button", { name: /Needs your OK/i }));
     expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
     expect(within(primaryNav).getByRole("button", { name: "Home" })).toHaveClass(
-      "nav-item-primary",
       "active",
     );
 
@@ -695,7 +691,6 @@ describe("LifeMap MVP app", () => {
       screen.getByRole("region", { name: "Approval queue" }),
     ).toBeInTheDocument();
     expect(within(primaryNav).getByRole("button", { name: "Home" })).toHaveClass(
-      "nav-item-primary",
       "active",
     );
     expect(screen.getByLabelText("Approval status")).toBeInTheDocument();
