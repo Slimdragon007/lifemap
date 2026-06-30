@@ -176,10 +176,12 @@ function OnboardingView({
             </span>
           </header>
           <div className="onboarding-body">
-            <h1 id="onboarding-intro-title">Set up your household map.</h1>
+            <h1 id="onboarding-intro-title">
+              Welcome. Let&apos;s put the mental load somewhere safe.
+            </h1>
             <p className="onboarding-lede">
-              Add people, choose what to track, and keep private info tucked
-              away.
+              Add your people and pets, choose what matters, and keep records,
+              dates, and private details easy to find.
             </p>
           </div>
           <footer className="onboarding-foot">
@@ -391,11 +393,12 @@ function OnboardingView({
                 ))}
               </div>
               <h1 id="onboarding-title">
-                Your map is alive{name.trim() ? `, ${name.trim()}` : ""}.
+                You&apos;re set up{name.trim() ? `, ${name.trim()}` : ""}.
               </h1>
               <p className="onboarding-lede">
-                Welcome aboard. From here, just capture what&apos;s messy and
-                I&apos;ll keep your next moves clear.
+                Capture the next messy thing when you&apos;re ready. LifeMap will
+                file it, surface what matters, and ask before anything
+                sensitive happens.
               </p>
             </div>
           ) : null}
