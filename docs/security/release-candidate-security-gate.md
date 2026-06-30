@@ -5,7 +5,7 @@
 
 ## Current Verdict
 
-LifeMap is production-deployed and the core live-account safety gates below are recorded. It is ready for controlled consumer-beta testing with fake or low-risk documents. Before a broader public launch, finish the remaining hardening follow-ups: custom auth email/Site URL policy, browser-observed upload console/log inspection, and the documented dev-only Vite/Vitest major-upgrade audit.
+LifeMap is production-deployed and the core live-account safety gates below are recorded. It is ready for controlled consumer-beta testing with fake or low-risk documents. Before a broader public launch, finish the remaining hardening follow-ups: branded Auth SMTP, browser-observed upload console/log inspection, and the documented dev-only Vite/Vitest major-upgrade audit.
 
 ## Required Evidence Before Consumer Release
 
@@ -38,6 +38,7 @@ Do not call LifeMap fully consumer-ready if any of these are true:
 ## Manual Proof Links
 
 - Cross-account storage test: `docs/security/consumer-safety-test-plan.md`
+- Auth email deliverability: `docs/security/auth-email-deliverability-runbook.md`
 - Storage posture report: `docs/security/storage-security-verification-report.md`
 - Dependency audit notes: `docs/security/dependency-audit-notes.md`
 
@@ -83,4 +84,4 @@ Results:
 
 ## Recommended Next Action
 
-Decide whether `app.getlifemap.com` is the permanent auth-link domain. If yes, keep the current Site URL behavior and set up branded/custom SMTP next. If not, update Supabase Auth URL configuration and email templates so recovery links use the intended production domain.
+Set up Cloudflare SMTP for Supabase Auth using `docs/security/auth-email-deliverability-runbook.md`, then repeat signup confirmation and password-reset verification with a synthetic account.

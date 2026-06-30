@@ -3,6 +3,7 @@
 ## Current Live State
 
 - Production app: https://lifemap-d33.pages.dev/
+- Permanent Auth link domain: https://app.getlifemap.com/
 - Worker health: https://lifemap-api.m-haslim.workers.dev/health
 - Frontend host: Cloudflare Pages project `lifemap`
 - API host: Cloudflare Worker `lifemap-api`
@@ -38,6 +39,7 @@ Use fake records and synthetic files only.
    - update the password
    - sign out and sign back in with the new password
 4. Confirm Privacy & security copy does not claim zero-knowledge, HIPAA, bank-grade, or independent audit status.
+5. Before broader consumer launch, complete branded Supabase Auth SMTP setup using `docs/security/auth-email-deliverability-runbook.md`, then repeat signup-confirmation and password-reset checks with a synthetic account.
 
 ## Deploy Commands
 
@@ -76,6 +78,7 @@ npm run deploy:api -- --dry-run
 ## Next Hardening Work
 
 - Add a CI gate after approving CI/CD workflow changes.
-- Verify password reset and account recovery on production with a test account.
-- Run and record the Account A / Account B cross-account storage denial checklist.
+- Complete branded Supabase Auth SMTP using `docs/security/auth-email-deliverability-runbook.md`.
+- Repeat signup-confirmation and password-reset checks after Auth SMTP is enabled.
+- Complete a browser-observed file upload session and confirm plaintext file content does not appear in console or logs.
 - Plan a Vite/Vitest major upgrade to close the remaining development-tooling audit findings.

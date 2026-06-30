@@ -51,6 +51,16 @@ Lets a signed-in user connect their Google account so a later phase can write ca
 - Apply the migration `supabase/migrations/0002_sent_messages.sql` at deploy (creates `sent_messages` + RLS). Do not apply prod DDL ahead of the PR.
 - Locally, `wrangler dev` reads the same `vars`; the `send_email` binding requires the onboarded domain to actually transmit.
 
+### Supabase Auth email
+
+Supabase Auth password-reset and signup-confirmation emails are separate from `/api/send`. Treat `https://app.getlifemap.com` as the permanent Auth link domain and configure branded Auth SMTP before a broader consumer launch.
+
+- Runbook: `docs/security/auth-email-deliverability-runbook.md`
+- Cloudflare Email Sending is enabled for `getlifemap.com`.
+- Recommended Auth sender: `no-reply@getlifemap.com` with sender name `LifeMap`.
+- SMTP endpoint: `smtp.mx.cloudflare.net:465` with username `api_token` and a Cloudflare API token as the password.
+- Do not commit the Cloudflare Email Sending token or the Supabase Management API token.
+
 Secrets are managed through Cloudflare's env model (not scattered `.env` files):
 
 - **Local:** copy `worker/.dev.vars.example` to `worker/.dev.vars` (gitignored) and set `OPENAI_API_KEY`. `wrangler dev` reads it automatically.

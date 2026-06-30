@@ -91,4 +91,4 @@ Results:
 
 ## Remaining Setup Needed
 
-Use fake data only for continued testing. Before broader consumer launch, complete a browser-observed upload session to confirm no plaintext file content appears in console or logs, decide the permanent auth-link domain, and set up branded/custom SMTP if LifeMap is going beyond controlled beta.
+Use fake data only for continued testing. Before broader consumer launch, complete a browser-observed upload session to confirm no plaintext file content appears in console or logs, and complete the branded Supabase Auth SMTP setup in `docs/security/auth-email-deliverability-runbook.md`.
