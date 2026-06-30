@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-30
 **Project:** `tljijkoqfnimnkpzhozy`
-**Status:** One least-privilege hardening issue found
+**Status:** Passed after least-privilege migration
 
 ## Verification Method
 
@@ -23,35 +23,37 @@ Supabase references used:
 | `vault_item_files_authenticated_crud_grants` | Pass | Authenticated role can perform required CRUD operations. |
 | `vault_item_files_policy_authenticated_owner` | Pass | Metadata policy targets `authenticated` and checks `auth.uid()` against `user_id`. |
 | `vault_item_files_rls_enabled` | Pass | RLS is enabled on `public.vault_item_files`. |
-| `vault_item_files_no_anon_grants` | Fail | `anon` has table grants on `public.vault_item_files`. RLS should still block row access, but least privilege requires revoking anon grants. |
+| `vault_item_files_no_anon_grants` | Pass | `anon` grants were removed; only `authenticated` grants remain. |
 
 ## Supabase Advisors
 
-Security advisors returned no lints.
+Security advisors returned no lints after the grant migration.
 
-Performance advisors still report existing non-blocking items:
+The previous performance advisor run reported existing non-blocking items. They are not introduced by this grant migration:
 
 - `public.vault_items.vault_items_linked_event_id_fkey` lacks a covering index.
 - Older policies on several tables still use unwrapped `auth.uid()` and should be normalized to `(select auth.uid())`.
 - Some indexes are unused, including `vault_item_files_vault_item_id_idx`.
 - Auth DB connection strategy is configured as an absolute value.
 
-## Required Fix
+## Applied Fix
 
-Before a consumer safety release candidate, revoke `anon` privileges from `public.vault_item_files`.
+The approved least-privilege fix was applied live through Supabase MCP as migration `revoke_vault_item_files_anon_grants` and is tracked locally in:
 
-Recommended SQL:
+- `supabase/migrations/20260630091333_revoke_vault_item_files_anon_grants.sql`
+
+Applied SQL:
 
 ```sql
 revoke all privileges on table public.vault_item_files from anon;
 ```
 
-Do this through a migration and then rerun `scripts/verify-storage-security.sql`.
+After applying the migration, `scripts/verify-storage-security.sql` passed the `vault_item_files_no_anon_grants` check.
 
 ## Risk Assessment
 
-This is not an observed cross-user data leak. The metadata table has RLS enabled and its policy is scoped to authenticated owners. The issue is still worth fixing because consumer safety should use least-privilege grants in addition to RLS.
+This was not an observed cross-user data leak. The metadata table has RLS enabled and its policy is scoped to authenticated owners. The grant layer is now aligned with the same least-privilege posture.
 
 ## Remaining Manual Test
 
-Run the Account A / Account B cross-account test in `docs/security/consumer-safety-test-plan.md` after the anon grant fix is applied.
+Run the Account A / Account B cross-account test in `docs/security/consumer-safety-test-plan.md` before consumer release candidate approval.
