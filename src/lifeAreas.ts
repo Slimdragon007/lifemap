@@ -9,6 +9,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import type { RecommendedBucket, SetupProfile } from "./setupBuckets";
+import { formatCount } from "./format-utils";
 
 // The "Your LifeMap" area tiles + their icons. Preserved as a shared mapping
 // so the tiles render identically wherever they live (Today previously, the
@@ -32,7 +33,7 @@ export function getSetupLifeArea(
       return {
         id: bucket.id,
         label: "Profiles",
-        meta: formatTileCount(profileCount, "profile"),
+        meta: formatCount(profileCount, "profile"),
         icon: UsersRound,
       };
     }
@@ -40,7 +41,7 @@ export function getSetupLifeArea(
       return {
         id: bucket.id,
         label: "School",
-        meta: formatTileCount(Math.max(1, profile.children), "kid"),
+        meta: formatCount(Math.max(1, profile.children), "kid"),
         icon: FileText,
       };
     case "vault-records":
@@ -54,7 +55,7 @@ export function getSetupLifeArea(
       return {
         id: bucket.id,
         label: "Pets",
-        meta: formatTileCount(Math.max(1, profile.pets), "pet"),
+        meta: formatCount(Math.max(1, profile.pets), "pet"),
         icon: HeartPulse,
       };
     case "travel-command":
@@ -109,6 +110,3 @@ export const STARTER_LIFE_AREAS: LifeAreaTile[] = [
   { id: "home-starter", label: "Home", meta: "Set up", icon: Home },
 ];
 
-function formatTileCount(count: number, label: string) {
-  return `${count} ${count === 1 ? label : `${label}s`}`;
-}

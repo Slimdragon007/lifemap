@@ -4,8 +4,8 @@ import ModalBackdrop from "./modal-backdrop";
 import { DATE_CATEGORIES, dateCategoryMeta } from "./dateCategories";
 import { upcomingDates, relativeDayLabel } from "./importantDates";
 import type { DateCategory, FamilyEvent, FamilyMember } from "./familyOS";
-
-const OTHER_OWNER = "__other__";
+import { OwnerPicker } from "./owner-picker";
+import { resolveOwner } from "./shared-types";
 
 export type ImportantDatesViewProps = {
   familyEvents: FamilyEvent[];
@@ -145,7 +145,7 @@ export function AddDateModal({
   const [otherOwner, setOtherOwner] = useState("");
   const [isAnnual, setIsAnnual] = useState(category === "birthday");
 
-  const owner = whoFor === OTHER_OWNER ? otherOwner.trim() : whoFor.trim();
+  const owner = resolveOwner(whoFor, otherOwner);
   const canSave = title.trim().length > 0 && date.trim().length > 0;
 
   function handleSubmit(eventArg: FormEvent) {
@@ -200,29 +200,14 @@ export function AddDateModal({
               onChange={(e) => setDate(e.target.value)}
             />
           </label>
-          <label className="add-date-field">
-            <span>Who is it for?</span>
-            <select value={whoFor} onChange={(e) => setWhoFor(e.target.value)}>
-              <option value="">Everyone</option>
-              {familyMembers.map((member) => (
-                <option key={member.id} value={member.name}>
-                  {member.name}
-                </option>
-              ))}
-              <option value={OTHER_OWNER}>Other…</option>
-            </select>
-          </label>
-          {whoFor === OTHER_OWNER ? (
-            <label className="add-date-field">
-              <span>Name</span>
-              <input
-                type="text"
-                value={otherOwner}
-                placeholder="Who is it for?"
-                onChange={(e) => setOtherOwner(e.target.value)}
-              />
-            </label>
-          ) : null}
+          <OwnerPicker
+            familyMembers={familyMembers}
+            whoFor={whoFor}
+            otherOwner={otherOwner}
+            onWhoForChange={setWhoFor}
+            onOtherOwnerChange={setOtherOwner}
+            emptyLabel="Everyone"
+          />
           <label className="add-date-toggle">
             <input
               type="checkbox"

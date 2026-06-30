@@ -19,6 +19,7 @@ import {
   type SetupFocusArea,
   type SetupProfile,
 } from "./setupBuckets";
+import { pluralize } from "./format-utils";
 
 type GuidedSetupViewProps = {
   activeBucketIds: SetupBucketId[];
@@ -49,7 +50,7 @@ function GuidedSetupView({
   );
   const visibleBuckets =
     activeBuckets.length > 0 ? activeBuckets : recommendedBuckets;
-  const activeCountLabel = `${activeBuckets.length} active ${activeBuckets.length === 1 ? "bucket" : "buckets"}`;
+  const activeCountLabel = `${activeBuckets.length} active ${pluralize("bucket", activeBuckets.length)}`;
 
   function updateNumber(field: "adults" | "children" | "pets", value: string) {
     onProfileChange({
