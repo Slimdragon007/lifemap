@@ -53,6 +53,14 @@ grant select, insert, update, delete on table public.vault_item_files to authent
 
 After applying the migrations, `scripts/verify-storage-security.sql` passed the `vault_item_files_no_anon_or_public_grants` and `vault_item_files_authenticated_exact_crud_grants` checks.
 
+## Plain-English Triage
+
+This was treated as a release-blocking security hardening issue because LifeMap stores sensitive family files and metadata. That does not mean there was evidence of a breach, exposed files, or confirmed cross-account access.
+
+The issue was narrower: the live database allowed the `authenticated` role to hold extra table privileges that the app did not need. RLS still scoped the rows to the signed-in owner, but the grant layer was broader than the least-privilege standard LifeMap should require before consumer release.
+
+The fix removed those unnecessary privileges and updated the verifier so this specific drift fails future checks.
+
 ## Risk Assessment
 
 This was not an observed cross-user data leak. The metadata table has RLS enabled and its policy is scoped to authenticated owners. The grant layer is now aligned with the same least-privilege posture.

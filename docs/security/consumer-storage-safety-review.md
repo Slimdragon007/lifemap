@@ -29,6 +29,18 @@ LifeMap stores family records so they are findable without exposing private deta
 
 LifeMap uses app-layer encryption. The Cloudflare Worker can derive the data key from server-side secrets and the signed-in user's session. This is a strong MVP protection against database/storage exposure, but it is not a zero-knowledge architecture.
 
+## Security Triage Standard
+
+For LifeMap, unnecessary privileges on sensitive file metadata are treated as release blockers even when there is no evidence of a breach. This is intentional: family records, IDs, school details, vaccines, and insurance information deserve a stricter standard than ordinary app data.
+
+Security notes should clearly separate these states:
+
+- Confirmed exposure: evidence shows another user or public actor could access private data.
+- Release-blocking hardening: no confirmed exposure, but the control does not meet LifeMap's least-privilege standard.
+- Follow-up improvement: a non-blocking control improvement that should be scheduled and tracked.
+
+Every future storage or RLS finding should state the evidence observed, affected surface, user-data exposure status, remediation, and remaining proof needed.
+
 ## Protected Data Classes
 
 - child names and school context
