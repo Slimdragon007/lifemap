@@ -54,3 +54,19 @@ The first prototype uses fake data only. It may simulate upload and extraction, 
 - Whether document extraction runs server-side, client-side, or through an approved AI provider.
 - Whether family members have separate accounts or shared household access first.
 - Whether audit history is visible to users in the first MVP.
+
+## Current Secure Upload Architecture
+
+Real document uploads now require a signed-in Supabase session. The browser validates file type and size, encrypts file bytes with Web Crypto AES-GCM, uploads the encrypted blob to the private `lifemap-documents` bucket, and stores metadata in `vault_item_files`.
+
+Storage object paths use this shape:
+
+```txt
+{userId}/{vaultItemId}/{fileId}.bin
+```
+
+The design protects against accidental plaintext storage and cross-user reads when RLS and Storage policies are correct.
+
+## Current Non-Zero-Knowledge Limitation
+
+The Worker can derive the user's data key. This means LifeMap has app-layer encryption but not end-user-only key custody. Product copy must not claim zero-knowledge or "only you can decrypt."
