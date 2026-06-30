@@ -191,7 +191,7 @@ The design protects against accidental plaintext storage and cross-user reads wh
 
 ## Current Non-Zero-Knowledge Limitation
 
-The Worker can derive the user's data key. This means LifeMap has app-layer encryption but not end-user-only key custody. Product copy must not claim zero-knowledge or "only you can decrypt."
+The Worker can derive the user's data key. This means LifeMap has app-layer encryption but not end-user-only key custody. Product copy must not claim zero-knowledge or end-user-only decryption.
 ```
 
 - [ ] **Step 3: Scan for placeholders and forbidden claims**
@@ -411,7 +411,7 @@ const sections = [
   },
   {
     title: "Current limitation",
-    body: "LifeMap is not zero-knowledge today. Its server can derive the encryption key, so we do not claim that only you can decrypt your files.",
+    body: "LifeMap is not zero-knowledge today. Its server can derive the encryption key, so we do not claim end-user-only decryption.",
   },
 ];
 ```

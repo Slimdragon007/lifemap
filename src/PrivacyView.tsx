@@ -2,20 +2,28 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 
 const sections = [
   {
-    title: "Stored on your device",
-    body: "In demo mode, everything you capture stays in this browser only. Use Reset demo on the More tab to clear it.",
+    title: "Files are encrypted before upload",
+    body: "When you attach a PDF or photo in a signed-in account, LifeMap encrypts the file in your browser before storing it in a private document bucket.",
   },
   {
-    title: "Your account",
-    body: "When you sign in, your data lives in your own Supabase account and is isolated by row-level security — no other user can read it.",
+    title: "Your records are account-scoped",
+    body: "LifeMap uses Supabase Auth and Row Level Security so each signed-in user can only read and change their own household records.",
   },
   {
-    title: "AI processing",
-    body: "Intake text is analyzed by OpenAI through LifeMap's server-side Worker. The AI key is server-only and never reaches the browser.",
+    title: "Nothing sends without your approval",
+    body: "Drafts, reminders, calendar suggestions, and other sensitive actions wait for your explicit OK before LifeMap acts.",
   },
   {
-    title: "Email sending",
-    body: "Drafts wait for your approval — nothing sends without an explicit Send. When you send, the email goes from LifeMap's domain with Reply-To set to you, and a record is kept in your account.",
+    title: "Private details stay tucked away",
+    body: "Sensitive details stay hidden in normal views until you choose to reveal or open them.",
+  },
+  {
+    title: "Clear my map removes stored files before records are cleared",
+    body: "When you clear a real account, LifeMap attempts to remove stored file objects before clearing the related records. If file deletion fails, clearing stops.",
+  },
+  {
+    title: "Current limitation",
+    body: "LifeMap is not zero-knowledge today. Its server can derive the encryption key, so we do not claim end-user-only decryption.",
   },
 ];
 
@@ -32,7 +40,9 @@ function PrivacyView({ onBack }: { onBack: () => void }) {
             Trust & safety
           </span>
           <h1 id="privacy-title">Privacy &amp; security</h1>
-          <p>How LifeMap handles your data, your account, AI, and email.</p>
+          <p>
+            How LifeMap handles your records, files, approvals, and account.
+          </p>
         </div>
         <button className="secondary-button" type="button" onClick={onBack}>
           <ArrowLeft size={15} />

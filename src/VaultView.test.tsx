@@ -186,6 +186,9 @@ describe("VaultView add-document flow", () => {
     await user.click(screen.getByRole("button", { name: /Add a passport/i }));
     await user.selectOptions(screen.getByLabelText("Who is it for?"), "Emma");
 
+    expect(
+      screen.getByText(/Files are encrypted in this browser before upload/i),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save document" })).toBeDisabled();
 
     const file = new File(["passport"], "passport.pdf", {

@@ -536,7 +536,10 @@ export function AddDocumentModal({
                   type="file"
                   onChange={(e) => handleFileChange(e.target.files?.[0])}
                 />
-                <small>PDF, JPG, PNG, HEIC, or HEIF · 6 MB max.</small>
+                <small>
+                  Files are encrypted in this browser before upload. PDF, JPG,
+                  PNG, HEIC, or HEIF · 6 MB max.
+                </small>
                 {file && !fileError ? (
                   <span className="document-file-pill">
                     <Paperclip size={14} aria-hidden="true" />
