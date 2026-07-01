@@ -175,14 +175,47 @@ function OnboardingView({
               LifeMap
             </span>
           </header>
-          <div className="onboarding-body">
-            <h1 id="onboarding-intro-title">
-              Welcome. Let&apos;s put the mental load somewhere safe.
-            </h1>
-            <p className="onboarding-lede">
-              Add your people and pets, choose what matters, and keep records,
-              dates, and private details easy to find.
-            </p>
+          <div className="onboarding-body onboarding-proof-body">
+            <div className="onboarding-proof-copy">
+              <p className="onboarding-kicker">See it in action</p>
+              <h1 id="onboarding-intro-title">
+                See what LifeMap does before you add anything.
+              </h1>
+              <p className="onboarding-lede">
+                It turns scattered family details into a few places you can
+                actually find again.
+              </p>
+            </div>
+
+            <div
+              className="onboarding-proof-preview"
+              aria-label="Example of a filled LifeMap"
+            >
+              <div className="onboarding-proof-search">
+                Search: Casey passport
+              </div>
+              <div className="onboarding-proof-result">
+                <div>
+                  <strong>Casey passport</strong>
+                  <span>Cabinet &middot; IDs &middot; renew by Aug 14</span>
+                </div>
+                <em>Found instantly</em>
+              </div>
+              <div className="onboarding-proof-grid">
+                <div>
+                  <span>Today</span>
+                  <strong>1 priority from your family records</strong>
+                </div>
+                <div>
+                  <span>Cabinet</span>
+                  <strong>4 records saved privately</strong>
+                </div>
+              </div>
+              <p className="onboarding-proof-trust">
+                Files are encrypted before upload. Private records stay hidden
+                until opened, and nothing is sent or shared without your OK.
+              </p>
+            </div>
           </div>
           <footer className="onboarding-foot">
             <span />

@@ -272,7 +272,7 @@ describe("LifeMap MVP app", () => {
     await user.click(replayWelcomeButton);
     expect(
       screen.getByRole("heading", {
-        name: "Welcome. Let's put the mental load somewhere safe.",
+        name: "See what LifeMap does before you add anything.",
       }),
     ).toBeInTheDocument();
     const replayNav = screen.getByRole("navigation", {

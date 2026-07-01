@@ -21,20 +21,47 @@ async function finishFromPeopleStep(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Enter LifeMap" }));
 }
 
-describe("OnboardingView welcome copy", () => {
-  test("opens with a calm safety-focused welcome", () => {
+describe("OnboardingView proof moment", () => {
+  test("opens with a filled LifeMap example and sensitive-data reassurance", () => {
     render(<OnboardingView onComplete={vi.fn()} onSkip={vi.fn()} />);
 
     expect(
       screen.getByRole("heading", {
-        name: "Welcome. Let's put the mental load somewhere safe.",
+        name: "See what LifeMap does before you add anything.",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Add your people and pets, choose what matters, and keep records, dates, and private details easy to find.",
+        "It turns scattered family details into a few places you can actually find again.",
       ),
     ).toBeInTheDocument();
+    expect(screen.getByText("Search: Casey passport")).toBeInTheDocument();
+    expect(screen.getByText("Casey passport")).toBeInTheDocument();
+    expect(
+      screen.getByText("Cabinet · IDs · renew by Aug 14"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Found instantly")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Files are encrypted before upload. Private records stay hidden until opened, and nothing is sent or shared without your OK.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  test("still supports Continue into setup and Skip out of onboarding", async () => {
+    const user = userEvent.setup();
+    const onSkip = vi.fn();
+    const { unmount } = render(
+      <OnboardingView onComplete={vi.fn()} onSkip={onSkip} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByLabelText("Your name")).toBeInTheDocument();
+
+    unmount();
+    render(<OnboardingView onComplete={vi.fn()} onSkip={onSkip} />);
+    await user.click(screen.getByRole("button", { name: "Skip" }));
+    expect(onSkip).toHaveBeenCalledTimes(1);
   });
 });
 
