@@ -29,3 +29,6 @@ worker/.wrangler/
 
 # Graphify generated cache; committed graph outputs live in graphify-out/
 /graphify-out/cache/
+
+# Superpowers visual brainstorming local session state
+.superpowers/
